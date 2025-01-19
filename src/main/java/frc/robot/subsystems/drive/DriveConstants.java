@@ -46,6 +46,8 @@ public class DriveConstants {
     public static final SwerveModuleConfiguration backRightModule = new SwerveModuleConfiguration(31, 32,
         Rotation2d.fromDegrees(0.));
 
+    public static final boolean USE_SETPOINT_GENERATOR = true;
+
     // Drive motor configuration
     public static final int driveMotorCurrentLimit = 30;
     public static final double wheelRadiusMeters = Units.inchesToMeters(2);
@@ -62,17 +64,17 @@ public class DriveConstants {
     public static final double driveKs = 0.0;
     public static final double driveKv = 0.1;
 
-    public static final double driveSimP = 0.05;
+    public static final double driveSimP = 0.6;
     public static final double driveSimD = 0.0;
     public static final double driveSimKs = 0.0;
-    public static final double driveSimKv = 0.0789;
+    public static final double driveSimKv = 0.12;
 
     // Turn motor configuration
     public static final boolean turnInverted = false;
     public static final int turnMotorCurrentLimit = 15;
     public static final double turnMotorReduction = 12.8;
     public static final DCMotor turnSimMotor = DCMotor.getNeoVortex(1);
-    public static final AngularVelocity maxSteerVelocity = RadiansPerSecond.of(10);
+    public static final AngularVelocity maxSteerVelocity = RadiansPerSecond.of(100);
 
     // Turn encoder configuration
     public static final boolean turnEncoderInverted = false;
@@ -83,7 +85,8 @@ public class DriveConstants {
     // Turn PID configuration
     public static final double turnKp = 2.0;
     public static final double turnKd = 0.0;
-    public static final double turnSimP = 8.0;
+
+    public static final double turnSimP = 13.0;
     public static final double turnSimD = 0.0;
     public static final double turnPIDMinInput = 0; // Radians
     public static final double turnPIDMaxInput = 2 * Math.PI; // Radians
@@ -91,7 +94,7 @@ public class DriveConstants {
     // PathPlanner configuration
     public static final double robotMassKg = Units.lbsToKilograms(100.); // TODO: Update for real robot
     public static final double robotMOI = 6.883; // TODO: Measure for real robot
-    public static final double wheelCOF = 1.2; // TODO: Measure for TPU wheels
+    public static final double wheelCOF = 10.; // TODO: Measure for TPU wheels
 
     public static final RobotConfig pathplannerConfig = new RobotConfig(robotMassKg, robotMOI,
         new ModuleConfig(wheelRadiusMeters, maxSpeedMetersPerSec, wheelCOF,

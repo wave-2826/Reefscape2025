@@ -158,9 +158,18 @@ public class Drive extends SubsystemBase {
      */
     public void runVelocity(ChassisSpeeds speeds) {
         // Calculate module setpoints
-        previousSetpoint = setpointGenerator.generateSetpoint(previousSetpoint, speeds, 0.02);
-        SwerveModuleState[] setpointStates = previousSetpoint.moduleStates();
-        SwerveDriveKinematics.desaturateWheelSpeeds(setpointStates, maxSpeedMetersPerSec);
+        SwerveModuleState[] setpointStates;
+        if(DriveConstants.USE_SETPOINT_GENERATOR) {
+            previousSetpoint = setpointGenerator.generateSetpoint(previousSetpoint, speeds, 0.02);
+            setpointStates = previousSetpoint.moduleStates();
+
+            // TODO: Determine if this has any benefits while using the setpoint generator
+            // SwerveDriveKinematics.desaturateWheelSpeeds(setpointStates, maxSpeedMetersPerSec);
+        } else {
+            ChassisSpeeds discreteSpeeds = ChassisSpeeds.discretize(speeds, 0.02);
+            setpointStates = kinematics.toSwerveModuleStates(discreteSpeeds);
+            SwerveDriveKinematics.desaturateWheelSpeeds(setpointStates, maxSpeedMetersPerSec);
+        }
 
         // Log unoptimized setpoints
         Logger.recordOutput("SwerveStates/Setpoints", setpointStates);
