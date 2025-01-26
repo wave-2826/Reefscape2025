@@ -94,7 +94,7 @@ public class DriveConstants {
     // PathPlanner configuration
     public static final double robotMassKg = Units.lbsToKilograms(100.); // TODO: Update for real robot
     public static final double robotMOI = 6.883; // TODO: Measure for real robot
-    public static final double wheelCOF = 10.; // TODO: Measure for TPU wheels
+    public static final double wheelCOF = 0.9; // TODO: Measure for TPU wheels
 
     public static final RobotConfig pathplannerConfig = new RobotConfig(robotMassKg, robotMOI,
         new ModuleConfig(wheelRadiusMeters, maxSpeedMetersPerSec, wheelCOF,
