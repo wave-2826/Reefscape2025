@@ -51,7 +51,7 @@ public class DriveConstants {
     // Drive motor configuration
     public static final int driveMotorCurrentLimit = 30;
     public static final double wheelRadiusMeters = Units.inchesToMeters(2);
-    public static final double driveMotorReduction = 6.75;
+    public static final double driveMotorReduction = Mk4Reductions.L2.reduction;
     public static final DCMotor driveSimMotor = DCMotor.getNeoVortex(1);
 
     // Drive encoder configuration
@@ -72,7 +72,7 @@ public class DriveConstants {
     // Turn motor configuration
     public static final boolean turnInverted = false;
     public static final int turnMotorCurrentLimit = 15;
-    public static final double turnMotorReduction = 12.8;
+    public static final double turnMotorReduction = Mk4Reductions.Turn.reduction;
     public static final DCMotor turnSimMotor = DCMotor.getNeoVortex(1);
     public static final AngularVelocity maxSteerVelocity = RadiansPerSecond.of(100);
 
@@ -106,4 +106,20 @@ public class DriveConstants {
         .withGyro(COTS.ofPigeon2()).withSwerveModule(
             new SwerveModuleSimulationConfig(driveSimMotor, turnSimMotor, driveMotorReduction, turnMotorReduction,
                 Volts.of(0.1), Volts.of(0.1), Meters.of(wheelRadiusMeters), KilogramSquareMeters.of(0.02), wheelCOF));
+
+    private enum Mk4Reductions {
+        // @formatter:off
+        L1((50.0 / 14.0) * (19.0 / 25.0) * (45.0 / 15.0)),
+        L2((50.0 / 14.0) * (17.0 / 27.0) * (45.0 / 15.0)),
+        L3((50.0 / 14.0) * (16.0 / 28.0) * (45.0 / 15.0)),
+        L4((48.0 / 16.0) * (16.0 / 28.0) * (45.0 / 15.0)),
+        Turn((150.0 / 7.0));
+        // @formatter:on
+
+        final double reduction;
+
+        Mk4Reductions(double reduction) {
+            this.reduction = reduction;
+        }
+    }
 }
