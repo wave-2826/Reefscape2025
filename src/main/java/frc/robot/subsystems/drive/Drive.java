@@ -41,6 +41,10 @@ import java.util.concurrent.locks.ReentrantLock;
 import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
 
+/**
+ * The drivetrain subsystem. Manages the swerve drive including all modules, the gyro, kinematics, odometry, and system
+ * identification.
+ */
 public class Drive extends SubsystemBase {
     static final Lock odometryLock = new ReentrantLock();
     private final GyroIO gyroIO;

@@ -82,7 +82,7 @@ public class ModuleIOSpark implements ModuleIO {
         // Configure turn motor
         var turnConfig = new SparkMaxConfig();
         turnConfig.inverted(turnInverted).idleMode(IdleMode.kBrake).smartCurrentLimit(turnMotorCurrentLimit)
-            .voltageCompensation(12.0);
+            .voltageCompensation(Constants.voltageCompensation);
         turnConfig.analogSensor.inverted(turnEncoderInverted).positionConversionFactor(turnEncoderPositionFactor)
             .velocityConversionFactor(turnEncoderVelocityFactor);
         turnConfig.closedLoop.feedbackSensor(FeedbackSensor.kAnalogSensor).positionWrappingEnabled(true)
