@@ -53,8 +53,9 @@ public class Drive extends SubsystemBase {
     private SwerveDriveKinematics kinematics = new SwerveDriveKinematics(moduleTranslations);
     private Rotation2d rawGyroRotation = new Rotation2d();
     // For delta tracking
-    private SwerveModulePosition[] lastModulePositions = new SwerveModulePosition[] { new SwerveModulePosition(),
-                    new SwerveModulePosition(), new SwerveModulePosition(), new SwerveModulePosition() };
+    private SwerveModulePosition[] lastModulePositions = new SwerveModulePosition[] {
+        new SwerveModulePosition(), new SwerveModulePosition(), new SwerveModulePosition(), new SwerveModulePosition()
+    };
 
     // See https://pathplanner.dev/pplib-swerve-setpoint-generator.html
     // We use PathPlanner's variation of 254's setpoint generator which takes a prior setpoint,

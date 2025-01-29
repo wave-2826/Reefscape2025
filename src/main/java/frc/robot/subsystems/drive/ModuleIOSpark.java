@@ -106,8 +106,9 @@ public class ModuleIOSpark implements ModuleIO {
         sparkStickyFault = false;
         ifOk(driveSpark, driveEncoder::getPosition, (value) -> inputs.drivePositionRad = value);
         ifOk(driveSpark, driveEncoder::getVelocity, (value) -> inputs.driveVelocityRadPerSec = value);
-        ifOk(driveSpark, new DoubleSupplier[] { driveSpark::getAppliedOutput, driveSpark::getBusVoltage },
-            (values) -> inputs.driveAppliedVolts = values[0] * values[1]);
+        ifOk(driveSpark, new DoubleSupplier[] {
+            driveSpark::getAppliedOutput, driveSpark::getBusVoltage
+        }, (values) -> inputs.driveAppliedVolts = values[0] * values[1]);
         ifOk(driveSpark, driveSpark::getOutputCurrent, (value) -> inputs.driveCurrentAmps = value);
         inputs.driveConnected = driveConnectedDebounce.calculate(!sparkStickyFault);
 
@@ -116,8 +117,9 @@ public class ModuleIOSpark implements ModuleIO {
         ifOk(turnSpark, turnEncoder::getPosition,
             (value) -> inputs.turnPosition = new Rotation2d(value).minus(zeroRotation));
         ifOk(turnSpark, turnEncoder::getVelocity, (value) -> inputs.turnVelocityRadPerSec = value);
-        ifOk(turnSpark, new DoubleSupplier[] { turnSpark::getAppliedOutput, turnSpark::getBusVoltage },
-            (values) -> inputs.turnAppliedVolts = values[0] * values[1]);
+        ifOk(turnSpark, new DoubleSupplier[] {
+            turnSpark::getAppliedOutput, turnSpark::getBusVoltage
+        }, (values) -> inputs.turnAppliedVolts = values[0] * values[1]);
         ifOk(turnSpark, turnSpark::getOutputCurrent, (value) -> inputs.turnCurrentAmps = value);
         inputs.turnConnected = turnConnectedDebounce.calculate(!sparkStickyFault);
 
