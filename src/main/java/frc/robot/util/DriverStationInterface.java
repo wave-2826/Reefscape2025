@@ -5,6 +5,10 @@ import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.List;
+
+import org.littletonrobotics.junction.AutoLogOutput;
+import org.littletonrobotics.junction.networktables.LoggedNetworkString;
+
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.commands.PathPlannerAuto;
 import com.pathplanner.lib.config.RobotConfig;
@@ -14,6 +18,9 @@ import com.pathplanner.lib.trajectory.PathPlannerTrajectoryState;
 import com.sun.net.httpserver.HttpServer;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.wpilibj.DriverStation;
+import frc.robot.FieldConstants.ReefBranch;
+import frc.robot.FieldConstants.ReefLevel;
 import frc.robot.subsystems.drive.DriveConstants;
 
 public class DriverStationInterface {
@@ -31,11 +38,21 @@ public class DriverStationInterface {
     }
 
     /**
+     * The selected reef branch entry in the NetworkTables table.
+     */
+    private LoggedNetworkString reefBranchEntry = new LoggedNetworkString("/DriverStationInterface/ReefBranch", "A");
+    /**
+     * The selected reef level entry in the NetworkTables table.
+     */
+    private LoggedNetworkString reefLevelEntry = new LoggedNetworkString("/DriverStationInterface/ReefLevel", "L1");
+
+    /**
      * The HTTP server used for the driver station interface API.
      */
     private HttpServer server;
 
     private DriverStationInterface() {
+        // Start the API server
         try {
             server = HttpServer.create(new InetSocketAddress(DS_API_PORT), 0);
             server.createContext("/autoData", (exchange) -> {
@@ -135,5 +152,28 @@ public class DriverStationInterface {
         }
 
         return new PathPlannerTrajectory(allStates);
+    }
+
+    /**
+     * Gets the reef target from the dashboard.
+     * @return
+     */
+    @AutoLogOutput(key = "/DriverStationInterface/ReefTarget")
+    public ReefTarget getReefTarget() {
+        try {
+            return new ReefTarget(ReefBranch.valueOf(reefBranchEntry.get()), ReefLevel.valueOf(reefLevelEntry.get()));
+        } catch(IllegalArgumentException e) {
+            DriverStation.reportError("Invalid reef target from dashboard", false);
+            return new ReefTarget(ReefBranch.A, ReefLevel.L1);
+        }
+    }
+
+    /**
+     * Sets the reef target on the dashboard.
+     * @param target
+     */
+    public void setReefTarget(ReefTarget target) {
+        reefBranchEntry.set(target.branch().name());
+        reefLevelEntry.set(target.level().name());
     }
 }
