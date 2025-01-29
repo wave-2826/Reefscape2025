@@ -41,6 +41,10 @@ import java.util.concurrent.locks.ReentrantLock;
 import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
 
+/**
+ * The drivetrain subsystem. Manages the swerve drive including all modules, the gyro, kinematics, odometry, and system
+ * identification.
+ */
 public class Drive extends SubsystemBase {
     static final Lock odometryLock = new ReentrantLock();
     private final GyroIO gyroIO;
@@ -53,8 +57,9 @@ public class Drive extends SubsystemBase {
     private SwerveDriveKinematics kinematics = new SwerveDriveKinematics(moduleTranslations);
     private Rotation2d rawGyroRotation = new Rotation2d();
     // For delta tracking
-    private SwerveModulePosition[] lastModulePositions = new SwerveModulePosition[] { new SwerveModulePosition(),
-                    new SwerveModulePosition(), new SwerveModulePosition(), new SwerveModulePosition() };
+    private SwerveModulePosition[] lastModulePositions = new SwerveModulePosition[] {
+        new SwerveModulePosition(), new SwerveModulePosition(), new SwerveModulePosition(), new SwerveModulePosition()
+    };
 
     // See https://pathplanner.dev/pplib-swerve-setpoint-generator.html
     // We use PathPlanner's variation of 254's setpoint generator which takes a prior setpoint,
