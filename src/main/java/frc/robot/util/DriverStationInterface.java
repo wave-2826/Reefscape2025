@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.littletonrobotics.junction.AutoLogOutput;
+import org.littletonrobotics.junction.networktables.LoggedNetworkNumber;
 import org.littletonrobotics.junction.networktables.LoggedNetworkString;
 
 import com.pathplanner.lib.auto.AutoBuilder;
@@ -45,6 +46,22 @@ public class DriverStationInterface {
      * The selected reef level entry in the NetworkTables table.
      */
     private LoggedNetworkString reefLevelEntry = new LoggedNetworkString("/DriverStationInterface/ReefLevel", "L1");
+    /**
+     * The current robot rotation (in radians) entry in the NetworkTables table. We currently don't just use the pose
+     * because deserializing it is a bit difficult. TODO: Use the pose instead of this.
+     */
+    private LoggedNetworkNumber robotRotationEntry = new LoggedNetworkNumber("/DriverStationInterface/RobotRotation",
+        0);
+    /**
+     * The current robot x position (in meters) entry in the NetworkTables table. We currently don't just use the pose
+     * because deserializing it is a bit difficult.
+     */
+    private LoggedNetworkNumber robotXEntry = new LoggedNetworkNumber("/DriverStationInterface/RobotX", 0);
+    /**
+     * The current robot y position (in meters) entry in the NetworkTables table. We currently don't just use the pose
+     * because deserializing it is a bit difficult.
+     */
+    private LoggedNetworkNumber robotYEntry = new LoggedNetworkNumber("/DriverStationInterface/RobotY", 0);
 
     /**
      * The HTTP server used for the driver station interface API.
@@ -175,5 +192,14 @@ public class DriverStationInterface {
     public void setReefTarget(ReefTarget target) {
         reefBranchEntry.set(target.branch().name());
         reefLevelEntry.set(target.level().name());
+    }
+
+    /**
+     * Updates the driver station dashboard with the robot position and orientation.
+     */
+    public void updateRobotPose(Pose2d pose) {
+        robotRotationEntry.set(pose.getRotation().getRadians());
+        robotXEntry.set(pose.getX());
+        robotYEntry.set(pose.getY());
     }
 }
