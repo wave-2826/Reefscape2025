@@ -172,6 +172,8 @@ out/
 networktables.json
 simgui*.json
 *-window.json
+# Not the simulation GUI saved under misc/simgui
+!misc/simgui/*.json
 
 # Simulation data log directory
 logs/
