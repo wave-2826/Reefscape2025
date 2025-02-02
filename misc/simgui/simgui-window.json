@@ -1,0 +1,113 @@
+{
+  "Docking": {
+    "Data": []
+  },
+  "MainWindow": {
+    "GLOBAL": {
+      "font": "Droid Sans",
+      "fps": "0",
+      "height": "837",
+      "maximized": "1",
+      "style": "1",
+      "userScale": "2",
+      "width": "1600",
+      "xpos": "2560",
+      "ypos": "232"
+    }
+  },
+  "Table": {
+    "0x965B9C9E,2": {
+      "Column 0  Width": "130",
+      "Column 1  Weight": "1.0000",
+      "RefScale": "13"
+    },
+    "0xE51DFCDA,2": {
+      "Column 0  Width": "130",
+      "Column 1  Weight": "1.0000",
+      "RefScale": "13"
+    },
+    "0xE56EC1C2,4": {
+      "Column 0  Weight": "1.0000",
+      "Column 1  Weight": "1.0000",
+      "Column 2  Weight": "1.0000",
+      "Column 3  Weight": "1.0000"
+    }
+  },
+  "Window": {
+    "###/FMSInfo": {
+      "Collapsed": "0",
+      "Pos": "348,616",
+      "Size": "167,206"
+    },
+    "###/SmartDashboard/Auto Choices": {
+      "Collapsed": "0",
+      "Pos": "292,138",
+      "Size": "260,54"
+    },
+    "###FMS": {
+      "Collapsed": "0",
+      "Pos": "32,486",
+      "Size": "273,140"
+    },
+    "###Joysticks": {
+      "Collapsed": "0",
+      "Pos": "35,704",
+      "Size": "796,73"
+    },
+    "###Keyboard 0 Settings": {
+      "Collapsed": "0",
+      "Pos": "277,95",
+      "Size": "300,560"
+    },
+    "###NetworkTables": {
+      "Collapsed": "0",
+      "Pos": "756,38",
+      "Size": "770,336"
+    },
+    "###NetworkTables Info": {
+      "Collapsed": "0",
+      "Pos": "756,69",
+      "Size": "760,306"
+    },
+    "###Other Devices": {
+      "Collapsed": "0",
+      "Pos": "939,20",
+      "Size": "250,695"
+    },
+    "###Plot <0>": {
+      "Collapsed": "0",
+      "Pos": "859,390",
+      "Size": "700,400"
+    },
+    "###PowerDistributions": {
+      "Collapsed": "0",
+      "Pos": "245,155",
+      "Size": "201,56"
+    },
+    "###RoboRIO": {
+      "Collapsed": "0",
+      "Pos": "201,571",
+      "Size": "218,212"
+    },
+    "###System Joysticks": {
+      "Collapsed": "0",
+      "Pos": "559,419",
+      "Size": "154,218"
+    },
+    "###Timing": {
+      "Collapsed": "0",
+      "Pos": "31,296",
+      "Size": "159,150"
+    },
+    "Debug##Default": {
+      "Collapsed": "0",
+      "Pos": "60,60",
+      "Size": "400,400"
+    },
+    "Robot State": {
+      "Collapsed": "0",
+      "Pos": "41,39",
+      "Size": "88,116"
+    }
+  }
+}
