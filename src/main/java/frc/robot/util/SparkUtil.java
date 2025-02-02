@@ -2,6 +2,7 @@ package frc.robot.util;
 
 import com.revrobotics.REVLibError;
 import com.revrobotics.spark.SparkBase;
+import com.revrobotics.spark.config.SignalsConfig;
 
 import edu.wpi.first.wpilibj.Timer;
 
@@ -17,6 +18,41 @@ import org.ironmaple.simulation.SimulatedArena;
 public class SparkUtil {
     /** Stores whether any error was has been detected by other utility methods. */
     public static boolean sparkStickyFault = false;
+
+    /** A SignalsConfig with all status signals set to reasonable speeds. */
+    public static SignalsConfig defaultSignals = new SignalsConfig()
+    // @formatter:off
+        .faultsAlwaysOn(true)
+        .warningsAlwaysOn(true)
+        .iAccumulationAlwaysOn(false)
+        .analogVoltageAlwaysOn(false)
+        .analogPositionAlwaysOn(false)
+        .analogVelocityAlwaysOn(false)
+        .primaryEncoderPositionAlwaysOn(false)
+        .primaryEncoderVelocityAlwaysOn(false)
+        .absoluteEncoderPositionAlwaysOn(false)
+        .absoluteEncoderVelocityAlwaysOn(false)
+        .externalOrAltEncoderPositionAlwaysOn(false)
+        .externalOrAltEncoderVelocityAlwaysOn(false)
+        
+        .faultsPeriodMs(250)
+        .limitsPeriodMs(20)
+        .warningsPeriodMs(250)
+        .busVoltagePeriodMs(20)
+        .analogVoltagePeriodMs(250)
+        .appliedOutputPeriodMs(20)
+        .iAccumulationPeriodMs(250)
+        .outputCurrentPeriodMs(20)
+        .analogPositionPeriodMs(250)
+        .analogVelocityPeriodMs(250)
+        .motorTemperaturePeriodMs(250)
+        .primaryEncoderPositionPeriodMs(100)
+        .primaryEncoderVelocityPeriodMs(100)
+        .absoluteEncoderPositionPeriodMs(250)
+        .absoluteEncoderVelocityPeriodMs(250)
+        .externalOrAltEncoderPosition(250)
+        .externalOrAltEncoderVelocity(250);
+    // @formatter:on
 
     /** Processes a value from a Spark only if the value is valid. */
     public static void ifOk(SparkBase spark, DoubleSupplier supplier, DoubleConsumer consumer) {
