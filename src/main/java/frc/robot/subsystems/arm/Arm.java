@@ -9,10 +9,18 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
  * system for it.
  */
 public class Arm extends SubsystemBase {
-    ArmState targetState;
+    private final ArmIO io;
+    private final ArmIOInputsAutoLogged inputs;
+
+    private ArmState targetState;
+
+    public Arm(ArmIO io) {
+        this.io = io;
+        this.inputs = new ArmIOInputsAutoLogged();
+    }
 
     @Override
     public void periodic() {
-        
+
     }
 }

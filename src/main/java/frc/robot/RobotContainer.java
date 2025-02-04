@@ -27,10 +27,6 @@ import frc.robot.util.DriverStationInterface;
 import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.MetersPerSecond;
-import static frc.robot.subsystems.vision.VisionConstants.camera0Name;
-import static frc.robot.subsystems.vision.VisionConstants.camera1Name;
-import static frc.robot.subsystems.vision.VisionConstants.robotToCamera0;
-import static frc.robot.subsystems.vision.VisionConstants.robotToCamera1;
 
 import org.ironmaple.simulation.SimulatedArena;
 import org.ironmaple.simulation.drivesims.SwerveDriveSimulation;
@@ -67,7 +63,9 @@ public class RobotContainer {
                     });
                 vision = new Vision(drive::addVisionMeasurement,
                     new VisionIOPhotonVision(VisionConstants.camera0Name, VisionConstants.robotToCamera0),
-                    new VisionIOPhotonVision(VisionConstants.camera1Name, VisionConstants.robotToCamera1));
+                    new VisionIOPhotonVision(VisionConstants.camera1Name, VisionConstants.robotToCamera1),
+                    new VisionIOPhotonVision(VisionConstants.camera2Name, VisionConstants.robotToCamera2),
+                    new VisionIOPhotonVision(VisionConstants.camera3Name, VisionConstants.robotToCamera3));
                 break;
             case SIM:
                 // Create a maple-sim swerve drive simulation instance
@@ -83,8 +81,14 @@ public class RobotContainer {
                     driveSimulation::setSimulationWorldPose);
 
                 vision = new Vision(drive::addVisionMeasurement,
-                    new VisionIOPhotonVisionSim(camera0Name, robotToCamera0, drive::getPose),
-                    new VisionIOPhotonVisionSim(camera1Name, robotToCamera1, drive::getPose));
+                    new VisionIOPhotonVisionSim(VisionConstants.camera0Name, VisionConstants.robotToCamera0,
+                        driveSimulation::getSimulatedDriveTrainPose),
+                    new VisionIOPhotonVisionSim(VisionConstants.camera1Name, VisionConstants.robotToCamera1,
+                        driveSimulation::getSimulatedDriveTrainPose),
+                    new VisionIOPhotonVisionSim(VisionConstants.camera2Name, VisionConstants.robotToCamera2,
+                        driveSimulation::getSimulatedDriveTrainPose),
+                    new VisionIOPhotonVisionSim(VisionConstants.camera3Name, VisionConstants.robotToCamera3,
+                        driveSimulation::getSimulatedDriveTrainPose));
                 break;
             default:
                 // Replayed robot, disable IO implementations
@@ -102,6 +106,10 @@ public class RobotContainer {
                 });
                 // Needs to use the same number of dummy implementations as the real robot has cameras
                 vision = new Vision(drive::addVisionMeasurement, new VisionIO() {
+                    /** Replayed robot doesn't have IO */
+                }, new VisionIO() {
+                    /** Replayed robot doesn't have IO */
+                }, new VisionIO() {
                     /** Replayed robot doesn't have IO */
                 }, new VisionIO() {
                     /** Replayed robot doesn't have IO */

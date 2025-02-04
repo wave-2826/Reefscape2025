@@ -3,6 +3,7 @@ package frc.robot.subsystems.vision;
 import static frc.robot.subsystems.vision.VisionConstants.aprilTagLayout;
 
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform3d;
 import java.util.function.Supplier;
 import org.photonvision.simulation.PhotonCameraSim;
@@ -34,8 +35,24 @@ public class VisionIOPhotonVisionSim extends VisionIOPhotonVision {
 
         // Add sim camera
         var cameraProperties = new SimCameraProperties();
+        cameraProperties.setFPS(25.);
+        // TODO: Change 84 to be the actual diagonal FOV of each camera?
+        cameraProperties.setCalibration(1280, 800, Rotation2d.fromDegrees(84.));
+        cameraProperties.setAvgLatencyMs(35);
+        cameraProperties.setLatencyStdDevMs(5);
+
         cameraSim = new PhotonCameraSim(camera, cameraProperties);
         visionSim.addCamera(cameraSim, robotToCamera);
+
+        // Enable the raw and processed streams. These are enabled by default.
+        cameraSim.enableRawStream(true);
+        cameraSim.enableProcessedStream(true);
+
+        // Enable drawing a wireframe visualization of the field to the camera streams.
+        // This is extremely resource-intensive and is disabled by default.
+        if(VisionConstants.enableWireframeDrawing) {
+            cameraSim.enableDrawWireframe(true);
+        }
     }
 
     @Override
