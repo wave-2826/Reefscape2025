@@ -2,8 +2,8 @@ package frc.robot;
 
 import com.pathplanner.lib.auto.AutoBuilder;
 import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
@@ -24,6 +24,9 @@ import frc.robot.subsystems.vision.VisionIOPhotonVision;
 import frc.robot.subsystems.vision.VisionIOPhotonVisionSim;
 import frc.robot.util.DriverStationInterface;
 
+import static edu.wpi.first.units.Units.Degrees;
+import static edu.wpi.first.units.Units.Meters;
+import static edu.wpi.first.units.Units.MetersPerSecond;
 import static frc.robot.subsystems.vision.VisionConstants.camera0Name;
 import static frc.robot.subsystems.vision.VisionConstants.camera1Name;
 import static frc.robot.subsystems.vision.VisionConstants.robotToCamera0;
@@ -31,6 +34,7 @@ import static frc.robot.subsystems.vision.VisionConstants.robotToCamera1;
 
 import org.ironmaple.simulation.SimulatedArena;
 import org.ironmaple.simulation.drivesims.SwerveDriveSimulation;
+import org.ironmaple.simulation.seasonspecific.reefscape2025.ReefscapeCoralOnFly;
 import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
@@ -58,8 +62,9 @@ public class RobotContainer {
                 // Real robot, instantiate hardware IO implementations
                 drive = new Drive(new GyroIOPigeon2(), new ModuleIOSpark(DriveConstants.frontLeftModule),
                     new ModuleIOSpark(DriveConstants.frontRightModule),
-                    new ModuleIOSpark(DriveConstants.backLeftModule),
-                    new ModuleIOSpark(DriveConstants.backRightModule));
+                    new ModuleIOSpark(DriveConstants.backLeftModule), new ModuleIOSpark(DriveConstants.backRightModule),
+                    (pose) -> {
+                    });
                 vision = new Vision(drive::addVisionMeasurement,
                     new VisionIOPhotonVision(VisionConstants.camera0Name, VisionConstants.robotToCamera0),
                     new VisionIOPhotonVision(VisionConstants.camera1Name, VisionConstants.robotToCamera1));
@@ -74,7 +79,8 @@ public class RobotContainer {
                 // Sim robot, instantiate physics sim IO implementations
                 drive = new Drive(new GyroIOSim(driveSimulation.getGyroSimulation()),
                     new ModuleIOSim(driveSimulation.getModules()[0]), new ModuleIOSim(driveSimulation.getModules()[1]),
-                    new ModuleIOSim(driveSimulation.getModules()[2]), new ModuleIOSim(driveSimulation.getModules()[3]));
+                    new ModuleIOSim(driveSimulation.getModules()[2]), new ModuleIOSim(driveSimulation.getModules()[3]),
+                    driveSimulation::setSimulationWorldPose);
 
                 vision = new Vision(drive::addVisionMeasurement,
                     new VisionIOPhotonVisionSim(camera0Name, robotToCamera0, drive::getPose),
@@ -92,6 +98,7 @@ public class RobotContainer {
                     /** Replayed robot doesn't have IO */
                 }, new ModuleIO() {
                     /** Replayed robot doesn't have IO */
+                }, (pose) -> {
                 });
                 // Needs to use the same number of dummy implementations as the real robot has cameras
                 vision = new Vision(drive::addVisionMeasurement, new VisionIO() {
@@ -142,6 +149,27 @@ public class RobotContainer {
             : () -> drive.setPose(new Pose2d(drive.getPose().getTranslation(), new Rotation2d())); // Zero gyro
 
         controller.start().onTrue(Commands.runOnce(resetGyro, drive).ignoringDisable(true));
+
+        // Example Coral Placement Code
+        // TODO: Implement this for our actual robot logic
+        if(Constants.currentMode == Constants.Mode.SIM) {
+            // L4 placement
+            controller.y()
+                .onTrue(Commands.runOnce(() -> SimulatedArena.getInstance()
+                    .addGamePieceProjectile(new ReefscapeCoralOnFly(
+                        driveSimulation.getSimulatedDriveTrainPose().getTranslation(), new Translation2d(0.4, 0),
+                        driveSimulation.getDriveTrainSimulatedChassisSpeedsFieldRelative(),
+                        driveSimulation.getSimulatedDriveTrainPose().getRotation(), Meters.of(2),
+                        MetersPerSecond.of(1.5), Degrees.of(-80)))));
+            // L3 placement
+            controller.b()
+                .onTrue(Commands.runOnce(() -> SimulatedArena.getInstance()
+                    .addGamePieceProjectile(new ReefscapeCoralOnFly(
+                        driveSimulation.getSimulatedDriveTrainPose().getTranslation(), new Translation2d(0.4, 0),
+                        driveSimulation.getDriveTrainSimulatedChassisSpeedsFieldRelative(),
+                        driveSimulation.getSimulatedDriveTrainPose().getRotation(), Meters.of(1.35),
+                        MetersPerSecond.of(1.5), Degrees.of(-60)))));
+        }
     }
 
     public Command getAutonomousCommand() {
@@ -155,11 +183,12 @@ public class RobotContainer {
         SimulatedArena.getInstance().resetFieldForAuto();
     }
 
-    public void displaySimFieldToAdvantageScope() {
+    public void updateSimulation() {
         if(Constants.currentMode != Constants.Mode.SIM) return;
 
+        SimulatedArena.getInstance().simulationPeriodic();
         Logger.recordOutput("FieldSimulation/RobotPosition", driveSimulation.getSimulatedDriveTrainPose());
-        Logger.recordOutput("FieldSimulation/Notes",
-            SimulatedArena.getInstance().getGamePiecesByType("Note").toArray(new Pose3d[0]));
+        Logger.recordOutput("FieldSimulation/Coral", SimulatedArena.getInstance().getGamePiecesArrayByType("Coral"));
+        Logger.recordOutput("FieldSimulation/Algae", SimulatedArena.getInstance().getGamePiecesArrayByType("Algae"));
     }
 }
