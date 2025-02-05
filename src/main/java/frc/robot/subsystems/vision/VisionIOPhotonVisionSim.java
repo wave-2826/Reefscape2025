@@ -36,10 +36,11 @@ public class VisionIOPhotonVisionSim extends VisionIOPhotonVision {
         // Add sim camera
         var cameraProperties = new SimCameraProperties();
         cameraProperties.setFPS(25.);
-        // TODO: Change 84 to be the actual diagonal FOV of each camera?
-        cameraProperties.setCalibration(1280, 800, Rotation2d.fromDegrees(84.));
-        cameraProperties.setAvgLatencyMs(35);
-        cameraProperties.setLatencyStdDevMs(5);
+
+        cameraProperties.setCalibration(1280, 800, Rotation2d.fromDegrees(79.1));
+        cameraProperties.setCalibError(0.35, 0.10);
+        cameraProperties.setAvgLatencyMs(50);
+        cameraProperties.setLatencyStdDevMs(15);
 
         cameraSim = new PhotonCameraSim(camera, cameraProperties);
         visionSim.addCamera(cameraSim, robotToCamera);
@@ -57,7 +58,9 @@ public class VisionIOPhotonVisionSim extends VisionIOPhotonVision {
 
     @Override
     public void updateInputs(VisionIOInputs inputs) {
-        visionSim.update(poseSupplier.get());
-        super.updateInputs(inputs);
+        if(!VisionConstants.enableVisionSimulation) {
+            visionSim.update(poseSupplier.get());
+            super.updateInputs(inputs);
+        }
     }
 }

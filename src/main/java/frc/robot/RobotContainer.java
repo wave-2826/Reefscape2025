@@ -21,6 +21,9 @@ import frc.robot.subsystems.drive.GyroIOSim;
 import frc.robot.subsystems.drive.ModuleIO;
 import frc.robot.subsystems.drive.ModuleIOSim;
 import frc.robot.subsystems.drive.ModuleIOSpark;
+import frc.robot.subsystems.leds.LEDIO;
+import frc.robot.subsystems.leds.LEDIORio;
+import frc.robot.subsystems.leds.LEDs;
 import frc.robot.subsystems.vision.Vision;
 import frc.robot.subsystems.vision.VisionConstants;
 import frc.robot.subsystems.vision.VisionIO;
@@ -45,6 +48,8 @@ public class RobotContainer {
     private final Vision vision;
     @SuppressWarnings("unused")
     private final Arm arm;
+    @SuppressWarnings("unused")
+    private final LEDs leds;
 
     // Only used in simulation
     private SwerveDriveSimulation driveSimulation = null;
@@ -73,6 +78,7 @@ public class RobotContainer {
                     new VisionIOPhotonVision(VisionConstants.camera2Name, VisionConstants.robotToCamera2),
                     new VisionIOPhotonVision(VisionConstants.camera3Name, VisionConstants.robotToCamera3));
                 arm = new Arm(new ArmIOReal());
+                leds = new LEDs(new LEDIORio());
                 break;
             case SIM:
                 // Create a maple-sim swerve drive simulation instance
@@ -97,6 +103,9 @@ public class RobotContainer {
                     new VisionIOPhotonVisionSim(VisionConstants.camera3Name, VisionConstants.robotToCamera3,
                         driveSimulation::getSimulatedDriveTrainPose));
                 arm = new Arm(new ArmIOSim());
+                // TODO: LEDIoSim for Elastic multi color view
+                // https://frc-elastic.gitbook.io/docs/additional-features-and-references/widgets-list-and-properties-reference#multi-color-view
+                leds = new LEDs(new LEDIORio());
                 break;
             default:
                 // Replayed robot, disable IO implementations
@@ -123,6 +132,9 @@ public class RobotContainer {
                     /** Replayed robot doesn't have IO */
                 });
                 arm = new Arm(new ArmIO() {
+                    /** Replayed robot doesn't have IO */
+                });
+                leds = new LEDs(new LEDIO() {
                     /** Replayed robot doesn't have IO */
                 });
                 break;

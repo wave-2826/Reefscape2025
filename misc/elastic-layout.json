@@ -1,0 +1,225 @@
+{
+  "version": 1.0,
+  "grid_size": 120,
+  "tabs": [
+    {
+      "name": "Teleoperated",
+      "grid_layout": {
+        "layouts": [],
+        "containers": [
+          {
+            "title": "FMSInfo",
+            "x": 1080.0,
+            "y": 0.0,
+            "width": 384.0,
+            "height": 128.0,
+            "type": "FMSInfo",
+            "properties": {
+              "topic": "/FMSInfo",
+              "period": 0.06
+            }
+          },
+          {
+            "title": "Alerts",
+            "x": 1080.0,
+            "y": 120.0,
+            "width": 360.0,
+            "height": 480.0,
+            "type": "Alerts",
+            "properties": {
+              "topic": "/SmartDashboard/Alerts",
+              "period": 0.06
+            }
+          },
+          {
+            "title": "ReefBranch",
+            "x": 600.0,
+            "y": 120.0,
+            "width": 360.0,
+            "height": 125.0,
+            "type": "Text Display",
+            "properties": {
+              "topic": "/DriverStationInterface/ReefBranch",
+              "period": 0.06,
+              "data_type": "string",
+              "show_submit_button": false
+            }
+          },
+          {
+            "title": "ReefLevel",
+            "x": 600.0,
+            "y": 240.0,
+            "width": 360.0,
+            "height": 125.0,
+            "type": "Text Display",
+            "properties": {
+              "topic": "/DriverStationInterface/ReefLevel",
+              "period": 0.06,
+              "data_type": "string",
+              "show_submit_button": false
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "Autonomous",
+      "grid_layout": {
+        "layouts": [],
+        "containers": [
+          {
+            "title": "Alerts",
+            "x": 1080.0,
+            "y": 120.0,
+            "width": 360.0,
+            "height": 480.0,
+            "type": "Alerts",
+            "properties": {
+              "topic": "/SmartDashboard/Alerts",
+              "period": 0.06
+            }
+          },
+          {
+            "title": "Auto Choices",
+            "x": 1080.0,
+            "y": 0.0,
+            "width": 360.0,
+            "height": 120.0,
+            "type": "ComboBox Chooser",
+            "properties": {
+              "topic": "/SmartDashboard/Auto Choices",
+              "period": 0.06,
+              "sort_options": false
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "PhotonVision Simulation",
+      "grid_layout": {
+        "layouts": [],
+        "containers": [
+          {
+            "title": "frontLeftCamera-raw",
+            "x": 0.0,
+            "y": 0.0,
+            "width": 480.0,
+            "height": 360.0,
+            "type": "Camera Stream",
+            "properties": {
+              "topic": "/CameraPublisher/frontLeftCamera-raw",
+              "period": 0.06
+            }
+          },
+          {
+            "title": "frontRightCamera-raw",
+            "x": 480.0,
+            "y": 0.0,
+            "width": 480.0,
+            "height": 360.0,
+            "type": "Camera Stream",
+            "properties": {
+              "topic": "/CameraPublisher/frontRightCamera-raw",
+              "period": 0.06
+            }
+          },
+          {
+            "title": "backLeftCamera-raw",
+            "x": 0.0,
+            "y": 360.0,
+            "width": 480.0,
+            "height": 360.0,
+            "type": "Camera Stream",
+            "properties": {
+              "topic": "/CameraPublisher/backLeftCamera-raw",
+              "period": 0.06
+            }
+          },
+          {
+            "title": "backRightCamera-raw",
+            "x": 480.0,
+            "y": 360.0,
+            "width": 480.0,
+            "height": 360.0,
+            "type": "Camera Stream",
+            "properties": {
+              "topic": "/CameraPublisher/backRightCamera-raw",
+              "period": 0.06
+            }
+          },
+          {
+            "title": "Sim Field",
+            "x": 960.0,
+            "y": 0.0,
+            "width": 360.0,
+            "height": 720.0,
+            "type": "Field",
+            "properties": {
+              "topic": "/SmartDashboard/VisionSystemSim-main/Sim Field",
+              "period": 0.06,
+              "field_game": "Reefscape",
+              "robot_width": 0.85,
+              "robot_length": 0.85,
+              "show_other_objects": true,
+              "show_trajectories": false,
+              "field_rotation": -90.0,
+              "robot_color": 4294198070,
+              "trajectory_color": 4294967295
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "Testing",
+      "grid_layout": {
+        "layouts": [],
+        "containers": [
+          {
+            "title": "RobotRotation",
+            "x": 720.0,
+            "y": 0.0,
+            "width": 360.0,
+            "height": 120.0,
+            "type": "Text Display",
+            "properties": {
+              "topic": "/DriverStationInterface/RobotRotation",
+              "period": 0.06,
+              "data_type": "double",
+              "show_submit_button": false
+            }
+          },
+          {
+            "title": "RobotX",
+            "x": 720.0,
+            "y": 120.0,
+            "width": 360.0,
+            "height": 120.0,
+            "type": "Text Display",
+            "properties": {
+              "topic": "/DriverStationInterface/RobotX",
+              "period": 0.06,
+              "data_type": "double",
+              "show_submit_button": false
+            }
+          },
+          {
+            "title": "RobotY",
+            "x": 720.0,
+            "y": 240.0,
+            "width": 360.0,
+            "height": 120.0,
+            "type": "Text Display",
+            "properties": {
+              "topic": "/DriverStationInterface/RobotY",
+              "period": 0.06,
+              "data_type": "double",
+              "show_submit_button": false
+            }
+          }
+        ]
+      }
+    }
+  ]
+}
