@@ -9,6 +9,10 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.commands.DriveCommands;
+import frc.robot.subsystems.arm.Arm;
+import frc.robot.subsystems.arm.ArmIO;
+import frc.robot.subsystems.arm.ArmIOReal;
+import frc.robot.subsystems.arm.ArmIOSim;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.drive.DriveConstants;
 import frc.robot.subsystems.drive.GyroIO;
@@ -39,6 +43,8 @@ public class RobotContainer {
     private final Drive drive;
     @SuppressWarnings("unused")
     private final Vision vision;
+    @SuppressWarnings("unused")
+    private final Arm arm;
 
     // Only used in simulation
     private SwerveDriveSimulation driveSimulation = null;
@@ -66,6 +72,7 @@ public class RobotContainer {
                     new VisionIOPhotonVision(VisionConstants.camera1Name, VisionConstants.robotToCamera1),
                     new VisionIOPhotonVision(VisionConstants.camera2Name, VisionConstants.robotToCamera2),
                     new VisionIOPhotonVision(VisionConstants.camera3Name, VisionConstants.robotToCamera3));
+                arm = new Arm(new ArmIOReal());
                 break;
             case SIM:
                 // Create a maple-sim swerve drive simulation instance
@@ -89,6 +96,7 @@ public class RobotContainer {
                         driveSimulation::getSimulatedDriveTrainPose),
                     new VisionIOPhotonVisionSim(VisionConstants.camera3Name, VisionConstants.robotToCamera3,
                         driveSimulation::getSimulatedDriveTrainPose));
+                arm = new Arm(new ArmIOSim());
                 break;
             default:
                 // Replayed robot, disable IO implementations
@@ -112,6 +120,9 @@ public class RobotContainer {
                 }, new VisionIO() {
                     /** Replayed robot doesn't have IO */
                 }, new VisionIO() {
+                    /** Replayed robot doesn't have IO */
+                });
+                arm = new Arm(new ArmIO() {
                     /** Replayed robot doesn't have IO */
                 });
                 break;

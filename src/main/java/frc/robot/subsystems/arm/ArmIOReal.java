@@ -5,9 +5,11 @@ import static frc.robot.util.SparkUtil.*;
 
 import com.revrobotics.AbsoluteEncoder;
 import com.revrobotics.RelativeEncoder;
+import com.revrobotics.spark.SparkClosedLoopController;
 import com.revrobotics.spark.SparkFlex;
 import com.revrobotics.spark.SparkLimitSwitch;
 import com.revrobotics.spark.SparkMax;
+import com.revrobotics.spark.SparkBase.ControlType;
 import com.revrobotics.spark.SparkBase.PersistMode;
 import com.revrobotics.spark.SparkBase.ResetMode;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
@@ -21,21 +23,27 @@ import frc.robot.Constants;
 import frc.robot.util.SparkUtil;
 
 public class ArmIOReal implements ArmIO {
-    SparkFlex elevatorHeightMotor1;
-    SparkFlex elevatorHeightMotor2;
-    SparkMax armPitchMotor;
-    SparkMax armWristMotor;
-    SparkFlex endEffectorMotor;
+    protected SparkFlex elevatorHeightMotor1;
+    protected SparkFlex elevatorHeightMotor2;
+    protected SparkMax armPitchMotor;
+    protected SparkMax armWristMotor;
+    protected SparkFlex endEffectorMotor;
 
-    RelativeEncoder elevatorHeightEncoder1;
-    RelativeEncoder elevatorHeightEncoder2;
-    AbsoluteEncoder armPitchEncoder;
-    AbsoluteEncoder armWristEncoder;
-    RelativeEncoder endEffectorEncoder;
+    private SparkClosedLoopController elevatorHeightController1;
+    private SparkClosedLoopController elevatorHeightController2;
+    private SparkClosedLoopController armPitchController;
+    private SparkClosedLoopController armWristController;
+    private SparkClosedLoopController endEffectorController;
 
-    SparkLimitSwitch elevatorResetSwitch;
-    SparkLimitSwitch verticalGamePieceSwitch;
-    SparkLimitSwitch horizontalGamePieceSwitch;
+    private RelativeEncoder elevatorHeightEncoder1;
+    private RelativeEncoder elevatorHeightEncoder2;
+    private AbsoluteEncoder armPitchEncoder;
+    private AbsoluteEncoder armWristEncoder;
+    private RelativeEncoder endEffectorEncoder;
+
+    private SparkLimitSwitch elevatorResetSwitch;
+    private SparkLimitSwitch verticalGamePieceSwitch;
+    private SparkLimitSwitch horizontalGamePieceSwitch;
 
     public ArmIOReal() {
         // Create motor contorllers 
@@ -89,7 +97,8 @@ public class ArmIOReal implements ArmIO {
             PersistMode.kPersistParameters));
 
         SparkMaxConfig armWristConfig = new SparkMaxConfig();
-        armWristConfig.closedLoop.apply(ArmConstants.PitchWristConstants.armWristClosedLoopConfig)
+        armWristConfig.closedLoop.apply(ArmConstants.PitchWristConstants.armWristPositionClosedLoopConfig)
+            .apply(ArmConstants.PitchWristConstants.armWristVelocityClosedLoopConfig)
             .feedbackSensor(FeedbackSensor.kAbsoluteEncoder);
         armWristConfig.absoluteEncoder
             .positionConversionFactor(ArmConstants.PitchWristConstants.wristPositionConversionFactor)
@@ -125,6 +134,13 @@ public class ArmIOReal implements ArmIO {
         tryUntilOk(endEffectorMotor, 5, () -> endEffectorMotor.configure(endEffectorConfig,
             ResetMode.kResetSafeParameters, PersistMode.kPersistParameters));
 
+        // Create closed loop controllers
+        elevatorHeightController1 = elevatorHeightMotor1.getClosedLoopController();
+        elevatorHeightController2 = elevatorHeightMotor2.getClosedLoopController();
+        armPitchController = armPitchMotor.getClosedLoopController();
+        armWristController = armWristMotor.getClosedLoopController();
+        endEffectorController = endEffectorMotor.getClosedLoopController();
+
         // Create sensors
         elevatorResetSwitch = elevatorHeightMotor1.getForwardLimitSwitch();
 
@@ -141,17 +157,18 @@ public class ArmIOReal implements ArmIO {
     }
 
     @Override
-    public void updateElevatorPosition() {
+    public void updateInputs(ArmIOInputs inputs) {
         // TODO: Slightly more complicated logic to improve the precision of resetting by using our
         // direction and resetting on the falling edge to the sensor top/bottom
         if(elevatorResetSwitch.isPressed()) {
             elevatorHeightEncoder1.setPosition(ArmConstants.ElevatorConstants.resetSwitchHeight.in(Meters));
             elevatorHeightEncoder2.setPosition(ArmConstants.ElevatorConstants.resetSwitchHeight.in(Meters));
         }
-    }
 
-    @Override
-    public void updateInputs(ArmIOInputs inputs) {
+        // We average the two encoders' readings because they may not be perfectly in sync.
+        inputs.elevatorHeightMeters = (elevatorHeightEncoder1.getPosition() + elevatorHeightEncoder2.getPosition())
+            / 2.;
+
         inputs.elevatorLimitSwitchActive = elevatorResetSwitch.isPressed();
 
         inputs.armPitchPosition = Rotation2d.fromRadians(armPitchEncoder.getPosition());
@@ -162,6 +179,38 @@ public class ArmIOReal implements ArmIO {
 
         inputs.endEffectorVelocity = endEffectorEncoder.getVelocity();
 
-        inputs.gamePiecePresent = false; // TODO: Detect game piece based on wrist angle
+        if(Math.abs(inputs.armWristPosition.getDegrees() % 180) < 45.) {
+            inputs.gamePiecePresent = verticalGamePieceSwitch.isPressed();
+        } else {
+            inputs.gamePiecePresent = horizontalGamePieceSwitch.isPressed();
+        }
+    }
+
+    @Override
+    public void setElevatorHeight(double heightMeters) {
+        elevatorHeightController1.setReference(heightMeters, ControlType.kMAXMotionPositionControl);
+        elevatorHeightController2.setReference(heightMeters, ControlType.kMAXMotionPositionControl);
+    }
+
+    @Override
+    public void setArmPitchPosition(Rotation2d position) {
+        armPitchController.setReference(position.getRadians(), ControlType.kPosition);
+    }
+
+    @Override
+    public void setArmWristPosition(Rotation2d position) {
+        armWristController.setReference(position.getRadians(), ControlType.kPosition,
+            ArmConstants.PitchWristConstants.armWristPositionSlot);
+    }
+
+    @Override
+    public void setArmWristVelocity(double velocityRadPerSecond) {
+        armWristController.setReference(velocityRadPerSecond, ControlType.kVelocity,
+            ArmConstants.PitchWristConstants.armWristVelocitySlot);
+    }
+
+    @Override
+    public void setEndEffectorVelocity(double velocityRadPerSecond) {
+        endEffectorController.setReference(velocityRadPerSecond, ControlType.kVelocity);
     }
 }
