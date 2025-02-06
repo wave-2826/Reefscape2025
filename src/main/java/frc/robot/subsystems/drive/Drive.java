@@ -35,6 +35,7 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.Constants;
 import frc.robot.Constants.Mode;
+import frc.robot.subsystems.leds.LEDs;
 import frc.robot.util.DriverStationInterface;
 import frc.robot.util.LocalADStarAK;
 import java.util.concurrent.locks.Lock;
@@ -76,6 +77,16 @@ public class Drive extends SubsystemBase {
         lastModulePositions, new Pose2d());
 
     private final Consumer<Pose2d> resetSimulationPoseCallBack;
+    /** The acceleration that needs to be experienced for an "abrupt stop". */
+    private final static double ABRUPT_STOP_THRESHOLD_GS = 2.0;
+    /** Whether the robot experienced an abrupt stop last loop iteration. Used to avoid multiple callbacks. */
+    private boolean previousAbruptStop = false;
+    /** A callback that will be called if the robot hits a wall or is otherwise abruptly accelerated. */
+    private static Runnable abruptStopCallback = null;
+
+    public static void setAbruptStopCommand(Command command) {
+        Drive.abruptStopCallback = command::schedule;
+    }
 
     /**
      * Constructs a new Drive subsystem.
@@ -120,6 +131,9 @@ public class Drive extends SubsystemBase {
             new SysIdRoutine.Config(null, null, null,
                 (state) -> Logger.recordOutput("Drive/SysIdState", state.toString())),
             new SysIdRoutine.Mechanism((voltage) -> runCharacterization(voltage.in(Volts)), null, this));
+
+        // This is a bit hacky, but I prefer it over singletons
+        LEDs.robotSpeedSupplier = this::getLinearSpeedMetersPerSec;
     }
 
     @Override
@@ -168,6 +182,16 @@ public class Drive extends SubsystemBase {
 
             // Apply update
             poseEstimator.updateWithTime(sampleTimestamps[i], rawGyroRotation, modulePositions);
+        }
+
+        // Call the abrupt stop callback if needed
+        if(abruptStopCallback != null) {
+            if(gyroInputs.accelerationGs > ABRUPT_STOP_THRESHOLD_GS && !previousAbruptStop) {
+                abruptStopCallback.run();
+                previousAbruptStop = true;
+            } else if(gyroInputs.accelerationGs < 0.5) {
+                previousAbruptStop = false;
+            }
         }
 
         // Update gyro alert
@@ -261,6 +285,14 @@ public class Drive extends SubsystemBase {
     @AutoLogOutput(key = "SwerveChassisSpeeds/Measured")
     private ChassisSpeeds getChassisSpeeds() {
         return kinematics.toChassisSpeeds(getModuleStates());
+    }
+
+    /** Returns the measured linear speed of the robot. */
+    @AutoLogOutput(key = "SwerveChassisSpeeds/MeasuredLinear")
+    public double getLinearSpeedMetersPerSec() {
+        ChassisSpeeds speeds = getChassisSpeeds();
+        return Math.sqrt(
+            speeds.vxMetersPerSecond * speeds.vxMetersPerSecond + speeds.vyMetersPerSecond * speeds.vyMetersPerSecond);
     }
 
     /** Returns the position of each module in radians. */

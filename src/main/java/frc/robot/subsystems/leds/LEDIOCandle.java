@@ -15,7 +15,6 @@ import edu.wpi.first.wpilibj.util.Color8Bit;
  */
 public class LEDIOCandle implements LEDIO {
     private final CANdle candle;
-    private final Color8Bit[] ledBuffer;
 
     public LEDIOCandle() {
         candle = new CANdle(LEDConstants.candleId);
@@ -27,25 +26,23 @@ public class LEDIOCandle implements LEDIO {
         configSettings.brightnessScalar = 1.0;
         configSettings.vBatOutputMode = VBatOutputMode.Modulated;
         candle.configAllSettings(configSettings, 100);
-
-        ledBuffer = new Color8Bit[LEDConstants.ledCount];
-        for(int i = 0; i < LEDConstants.ledCount; i++) {
-            ledBuffer[i] = convertTo8Bit(Color.kBlack);
-        }
     }
 
-    public void pushLEDs() {
+    @Override
+    public void pushLEDs(Color[] colors) {
+        int span = 1;
         for(int i = 0; i < LEDConstants.ledCount; i++) {
-            int count = 1;
-            while(i + count < LEDConstants.ledCount && ledBuffer[i] == ledBuffer[i + count]) {
-                count++;
+            Color8Bit color8Bit = convertTo8Bit(colors[i]);
+
+            while(i + span < LEDConstants.ledCount && convertTo8Bit(colors[i + span]) == color8Bit) {
+                span++;
             }
-            candle.setLEDs(ledBuffer[i].red, ledBuffer[i].green, ledBuffer[i].blue, 0, i, count);
-        }
-    }
 
-    public void setLEDColor(int index, Color color) {
-        ledBuffer[index] = convertTo8Bit(color);
+            candle.setLEDs(color8Bit.red, color8Bit.green, color8Bit.blue, 0, i - span + 1, span);
+
+            i += span - 1;
+            span = 1;
+        }
     }
 
     private static Color8Bit convertTo8Bit(Color color) {

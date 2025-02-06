@@ -23,6 +23,7 @@ import frc.robot.subsystems.drive.ModuleIOSim;
 import frc.robot.subsystems.drive.ModuleIOSpark;
 import frc.robot.subsystems.leds.LEDIO;
 import frc.robot.subsystems.leds.LEDIORio;
+import frc.robot.subsystems.leds.LEDIOSim;
 import frc.robot.subsystems.leds.LEDs;
 import frc.robot.subsystems.vision.Vision;
 import frc.robot.subsystems.vision.VisionConstants;
@@ -88,7 +89,9 @@ public class RobotContainer {
                 SimulatedArena.getInstance().addDriveTrainSimulation(driveSimulation);
 
                 // Sim robot, instantiate physics sim IO implementations
-                drive = new Drive(new GyroIOSim(driveSimulation.getGyroSimulation()),
+                drive = new Drive(
+                    new GyroIOSim(driveSimulation.getGyroSimulation(),
+                        driveSimulation::getDriveTrainSimulatedChassisSpeedsRobotRelative),
                     new ModuleIOSim(driveSimulation.getModules()[0]), new ModuleIOSim(driveSimulation.getModules()[1]),
                     new ModuleIOSim(driveSimulation.getModules()[2]), new ModuleIOSim(driveSimulation.getModules()[3]),
                     driveSimulation::setSimulationWorldPose);
@@ -103,9 +106,7 @@ public class RobotContainer {
                     new VisionIOPhotonVisionSim(VisionConstants.camera3Name, VisionConstants.robotToCamera3,
                         driveSimulation::getSimulatedDriveTrainPose));
                 arm = new Arm(new ArmIOSim());
-                // TODO: LEDIoSim for Elastic multi color view
-                // https://frc-elastic.gitbook.io/docs/additional-features-and-references/widgets-list-and-properties-reference#multi-color-view
-                leds = new LEDs(new LEDIORio());
+                leds = new LEDs(new LEDIOSim());
                 break;
             default:
                 // Replayed robot, disable IO implementations

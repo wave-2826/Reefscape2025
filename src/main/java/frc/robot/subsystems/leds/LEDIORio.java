@@ -22,14 +22,19 @@ public class LEDIORio implements LEDIO {
         leds.start();
     }
 
-    public void pushLEDs() {
+    @Override
+    public void pushLEDs(Color[] colors) {
+        if(LEDConstants.isGRB) {
+            for(int i = 0; i < LEDConstants.ledCount; i++) {
+                colors[i] = convertToGRB(colors[i]);
+            }
+        }
+
+        for(int i = 0; i < LEDConstants.ledCount; i++) {
+            buffer.setLED(i, colors[i]);
+        }
+
         leds.setData(buffer);
-    }
-
-    public void setLEDColor(int index, Color color) {
-        if(LEDConstants.isGRB) color = convertToGRB(color);
-
-        buffer.setLED(index, color);
     }
 
     static Color convertToGRB(Color color) {
