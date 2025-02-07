@@ -1,5 +1,6 @@
 package frc.robot.subsystems.arm;
 
+import static edu.wpi.first.units.Units.Inches;
 import static edu.wpi.first.units.Units.Meters;
 
 import com.revrobotics.spark.ClosedLoopSlot;
@@ -7,6 +8,7 @@ import com.revrobotics.spark.config.ClosedLoopConfig;
 import com.revrobotics.spark.config.MAXMotionConfig;
 import com.revrobotics.spark.config.MAXMotionConfig.MAXMotionPositionMode;
 
+import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.units.measure.Distance;
 
@@ -41,7 +43,18 @@ public class ArmConstants {
 
         public static final Distance resetSwitchHeight = Meters.of(/* TODO */ 1.5);
 
-        public static final Distance maxElevatorHeight = Meters.of(/* TODO */ 2.5);
+        /**
+         * The maximum height of the outer stage relative to its hard stop.
+         */
+        public final static Distance outerStageMaximumHeight = Inches.of(34.);
+        /**
+         * The maximum height of the carriage relative to the outer stage.
+         */
+        public final static Distance carriageMaxHeight = Inches.of(26.);
+        /**
+         * The maximum elevator height.
+         */
+        public static final Distance maxElevatorHeight = outerStageMaximumHeight.plus(carriageMaxHeight);
     }
 
     public class PitchWristConstants {
@@ -74,6 +87,47 @@ public class ArmConstants {
         public static final double wristVelocityConversionFactor = wristPositionConversionFactor / 60.;
         public static final int wristMotorCurrentLimit = 10;
         public static final boolean wristMotorInverted = false;
+        /**
+         * The translation from the center of the robot at the floor to the center of the elevator support structure on
+         * the top of its plate.
+         */
+        private static final Translation3d elevatorOrigin = new Translation3d(Units.inchesToMeters(8), // Forward is +X
+            0, // Left is +Y
+            Units.inchesToMeters(0.65) // Upward is +Y
+        );
+
+        /**
+         * The translation from the elevator origin to the outer stage when the stage is at its minimum height. The
+         * stage origin is the center of the stage at the bottom of the aluminum extrusion.
+         */
+        private static final Translation3d elevatorToOuterStage = new Translation3d(Units.inchesToMeters(0), // Forward is +X
+            0, // Left is +Y
+            Units.inchesToMeters(1.81) // Upward is +Y
+        );
+        /**
+         * The translation from the elevator origin to the carriage when the arm is at its minimum height. The carriage
+         * origin is the center of the bottom plate.
+         */
+        private static final Translation3d elevatorToCarriage = new Translation3d(Units.inchesToMeters(0), // Forward is +X
+            0, // Left is +Y
+            Units.inchesToMeters(1.81) // Upward is +Y
+        );
+
+        /** The translation from the carriage origin to the pivot. */
+        private static final Translation3d carriageToPivot = new Translation3d(Units.inchesToMeters(3.0), // Forward is +X
+            Units.inchesToMeters(-0.223), // Left is +Y. Yes, it's off-center by design.
+            Units.inchesToMeters(6.0) // Upward is +Y
+        );
+
+        /** The translation from the pivot to the end effector. This must be rotated by the arm pitch. */
+        public static final Translation3d pivotToEndEffector = new Translation3d(Units.inchesToMeters(16.44), // Forward is +X
+            Units.inchesToMeters(0.0), // Left is +Y
+            Units.inchesToMeters(1.11) // Upward is +Y
+        );
+
+        /** The arm length. */
+        public static final Distance armLength = Meters.of(Math.sqrt(Math.pow(pivotToEndEffector.getX(), 2)
+            + Math.pow(pivotToEndEffector.getY(), 2) + Math.pow(pivotToEndEffector.getZ(), 2)));
     }
 
     public class EndEffectorConstants {

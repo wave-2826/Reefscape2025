@@ -6,14 +6,12 @@ import com.revrobotics.sim.SparkAbsoluteEncoderSim;
 import com.revrobotics.sim.SparkFlexSim;
 import com.revrobotics.sim.SparkLimitSwitchSim;
 import com.revrobotics.sim.SparkMaxSim;
-import com.revrobotics.spark.SparkSim;
 
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.math.system.plant.LinearSystemId;
 import edu.wpi.first.wpilibj.simulation.DCMotorSim;
 import edu.wpi.first.wpilibj.simulation.ElevatorSim;
-import edu.wpi.first.wpilibj.simulation.FlywheelSim;
 import edu.wpi.first.wpilibj.simulation.RoboRioSim;
 import edu.wpi.first.wpilibj.simulation.SingleJointedArmSim;
 
@@ -35,24 +33,26 @@ public class ArmIOSim extends ArmIOReal {
     private SparkMaxSim armWristMotorSim;
     private SparkFlexSim endEffectorMotorSim;
 
-    private SparkLimitSwitchSim elevatorReseLimitSwitchSim;
+    private SparkLimitSwitchSim elevatorResetLimitSwitchSim;
     private SparkAbsoluteEncoderSim armPitchEncoderSim;
     private SparkAbsoluteEncoderSim armWristEncoderSim;
     private SparkLimitSwitchSim verticalGamePieceSwitchSim;
     private SparkLimitSwitchSim horizontalGamePieceSwitchSim;
 
-    private static double elevatorCarriageMassKg = 3.;
+    private static final double elevatorCarriageMassKg = 3.;
 
     /** The arm moment of inertia around its pitch axis in kg m^2. */
-    private static double armMOI = 0.5; // TODO
-    private static double armLengthMeters = 1.0; // TODO
-    private static Rotation2d armMinAngle = Rotation2d.fromDegrees(-30.); // TODO
-    private static Rotation2d armMaxAngle = Rotation2d.fromDegrees(90.); // TODO
+    private static final double armMOI = 0.5; // TODO
+    private static final Rotation2d armMinAngle = Rotation2d.fromDegrees(-30.); // TODO
+    private static final Rotation2d armMaxAngle = Rotation2d.fromDegrees(90.); // TODO
 
     /** The arm moment of inertia around its roll axis in kg m^2 */
-    private static double armWristMOI = 0.02; // TODO
+    private static final double armWristMOI = 0.02; // TODO
 
-    private static double endEffectorMOI = 0.001; // TODO
+    private static final double endEffectorMOI = 0.001; // TODO
+
+    /** Whether there's currently a game piece in the end effector. */
+    private boolean gamePieceInEndEffector = false;
 
     public ArmIOSim() {
         super();
@@ -67,7 +67,7 @@ public class ArmIOSim extends ArmIOReal {
         armWristMotorSim = new SparkMaxSim(armWristMotor, armWristMotors);
         endEffectorMotorSim = new SparkFlexSim(endEffectorMotor, endEffectorMotors);
 
-        elevatorReseLimitSwitchSim = elevatorMotorSim.getForwardLimitSwitchSim();
+        elevatorResetLimitSwitchSim = elevatorMotorSim.getForwardLimitSwitchSim();
         armPitchEncoderSim = armPitchMotorSim.getAbsoluteEncoderSim();
         armWristEncoderSim = armWristMotorSim.getAbsoluteEncoderSim();
         verticalGamePieceSwitchSim = armWristMotorSim.getForwardLimitSwitchSim();
@@ -78,8 +78,8 @@ public class ArmIOSim extends ArmIOReal {
             ArmConstants.ElevatorConstants.maxElevatorHeight.in(Meters), true, 0.5);
 
         armSim = new SingleJointedArmSim(armMotors, ArmConstants.PitchWristConstants.elevatorPitchReduction, armMOI,
-            armLengthMeters, armMinAngle.getRadians(), armMaxAngle.getRadians(), true,
-            Rotation2d.fromDegrees(0.).getRadians());
+            ArmConstants.PitchWristConstants.armLength.in(Meters), armMinAngle.getRadians(), armMaxAngle.getRadians(),
+            true, Rotation2d.fromDegrees(0.).getRadians());
 
         armWristSim = new DCMotorSim(LinearSystemId.createDCMotorSystem(armWristMotors, armWristMOI,
             ArmConstants.PitchWristConstants.armWristReduction), armWristMotors);
@@ -93,10 +93,13 @@ public class ArmIOSim extends ArmIOReal {
         // Update simulated IO on motor controllers
         if(Math.abs(
             elevatorSim.getPositionMeters() - ArmConstants.ElevatorConstants.resetSwitchHeight.in(Meters)) < 0.03) {
-            elevatorReseLimitSwitchSim.setPressed(true);
+            elevatorResetLimitSwitchSim.setPressed(true);
         } else {
-            elevatorReseLimitSwitchSim.setPressed(false);
+            elevatorResetLimitSwitchSim.setPressed(false);
         }
+
+        verticalGamePieceSwitchSim.setPressed(gamePieceInEndEffector);
+        horizontalGamePieceSwitchSim.setPressed(gamePieceInEndEffector);
 
         armPitchEncoderSim.setPosition(armSim.getAngleRads());
         armPitchEncoderSim.setVelocity(armSim.getVelocityRadPerSec());
