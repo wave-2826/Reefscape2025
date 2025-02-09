@@ -52,8 +52,8 @@ public class ArmIOReal implements ArmIO {
         elevatorHeightMotor2 = new SparkFlex(ArmConstants.ElevatorConstants.elevatorHeightMotor2Id,
             MotorType.kBrushless);
 
-        armPitchMotor = new SparkMax(ArmConstants.PitchWristConstants.armPitchMotorId, MotorType.kBrushless);
-        armWristMotor = new SparkMax(ArmConstants.PitchWristConstants.armWristMotorId, MotorType.kBrushless);
+        armPitchMotor = new SparkMax(ArmConstants.ShoulderConstants.armPitchMotorId, MotorType.kBrushless);
+        armWristMotor = new SparkMax(ArmConstants.ShoulderConstants.armWristMotorId, MotorType.kBrushless);
 
         endEffectorMotor = new SparkFlex(ArmConstants.EndEffectorConstants.endEffectorMotorId, MotorType.kBrushless);
 
@@ -80,15 +80,15 @@ public class ArmIOReal implements ArmIO {
             ResetMode.kResetSafeParameters, PersistMode.kPersistParameters));
 
         SparkMaxConfig armPitchConfig = new SparkMaxConfig();
-        armPitchConfig.closedLoop.apply(ArmConstants.PitchWristConstants.armPitchClosedLoopConfig)
+        armPitchConfig.closedLoop.apply(ArmConstants.ShoulderConstants.armPitchClosedLoopConfig)
             .feedbackSensor(FeedbackSensor.kAbsoluteEncoder);
         armPitchConfig.absoluteEncoder
-            .positionConversionFactor(ArmConstants.PitchWristConstants.pitchPositionConversionFactor)
-            .velocityConversionFactor(ArmConstants.PitchWristConstants.pitchVelocityConversionFactor);
+            .positionConversionFactor(ArmConstants.ShoulderConstants.pitchPositionConversionFactor)
+            .velocityConversionFactor(ArmConstants.ShoulderConstants.pitchVelocityConversionFactor);
         armPitchConfig.idleMode(IdleMode.kBrake)
-            .smartCurrentLimit(ArmConstants.PitchWristConstants.pitchMotorCurrentLimit)
+            .smartCurrentLimit(ArmConstants.ShoulderConstants.pitchMotorCurrentLimit)
             .voltageCompensation(Constants.voltageCompensation)
-            .inverted(ArmConstants.PitchWristConstants.pitchMotorInverted);
+            .inverted(ArmConstants.ShoulderConstants.pitchMotorInverted);
         armPitchConfig.signals.apply(SparkUtil.defaultSignals) //
             .absoluteEncoderPositionAlwaysOn(true).absoluteEncoderVelocityAlwaysOn(true)
             .absoluteEncoderPositionPeriodMs(20).absoluteEncoderVelocityPeriodMs(20);
@@ -97,16 +97,16 @@ public class ArmIOReal implements ArmIO {
             PersistMode.kPersistParameters));
 
         SparkMaxConfig armWristConfig = new SparkMaxConfig();
-        armWristConfig.closedLoop.apply(ArmConstants.PitchWristConstants.armWristPositionClosedLoopConfig)
-            .apply(ArmConstants.PitchWristConstants.armWristVelocityClosedLoopConfig)
+        armWristConfig.closedLoop.apply(ArmConstants.ShoulderConstants.armWristPositionClosedLoopConfig)
+            .apply(ArmConstants.ShoulderConstants.armWristVelocityClosedLoopConfig)
             .feedbackSensor(FeedbackSensor.kAbsoluteEncoder);
         armWristConfig.absoluteEncoder
-            .positionConversionFactor(ArmConstants.PitchWristConstants.wristPositionConversionFactor)
-            .velocityConversionFactor(ArmConstants.PitchWristConstants.wristVelocityConversionFactor);
+            .positionConversionFactor(ArmConstants.ShoulderConstants.wristPositionConversionFactor)
+            .velocityConversionFactor(ArmConstants.ShoulderConstants.wristVelocityConversionFactor);
         armWristConfig.idleMode(IdleMode.kBrake)
-            .smartCurrentLimit(ArmConstants.PitchWristConstants.wristMotorCurrentLimit)
+            .smartCurrentLimit(ArmConstants.ShoulderConstants.wristMotorCurrentLimit)
             .voltageCompensation(Constants.voltageCompensation)
-            .inverted(ArmConstants.PitchWristConstants.wristMotorInverted);
+            .inverted(ArmConstants.ShoulderConstants.wristMotorInverted);
         // We use the forward and backward limit switch for the vertical and horizontal game piece
         // detectors respectvely. We don't want them to act as actual limit switches.
         armWristConfig.limitSwitch.forwardLimitSwitchEnabled(false).reverseLimitSwitchEnabled(false);
@@ -200,13 +200,13 @@ public class ArmIOReal implements ArmIO {
     @Override
     public void setArmWristPosition(Rotation2d position) {
         armWristController.setReference(position.getRadians(), ControlType.kPosition,
-            ArmConstants.PitchWristConstants.armWristPositionSlot);
+            ArmConstants.ShoulderConstants.armWristPositionSlot);
     }
 
     @Override
     public void setArmWristVelocity(double velocityRadPerSecond) {
         armWristController.setReference(velocityRadPerSecond, ControlType.kVelocity,
-            ArmConstants.PitchWristConstants.armWristVelocitySlot);
+            ArmConstants.ShoulderConstants.armWristVelocitySlot);
     }
 
     @Override

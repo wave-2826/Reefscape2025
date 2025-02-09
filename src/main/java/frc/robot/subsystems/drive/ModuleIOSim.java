@@ -67,7 +67,7 @@ public class ModuleIOSim implements ModuleIO {
 
         // Update turn inputs
         inputs.turnConnected = true;
-        inputs.turnPosition = moduleSimulation.getSteerAbsoluteFacing();
+        inputs.relativeTurnPosition = moduleSimulation.getSteerAbsoluteFacing();
         inputs.turnVelocityRadPerSec = moduleSimulation.getSteerAbsoluteEncoderSpeed().in(RadiansPerSecond);
         inputs.turnAppliedVolts = turnAppliedVolts;
         inputs.turnCurrentAmps = Math.abs(moduleSimulation.getSteerMotorStatorCurrent().in(Amps));
@@ -80,7 +80,7 @@ public class ModuleIOSim implements ModuleIO {
             inputs.drivePositionRad
         };
         inputs.odometryTurnPositions = new Rotation2d[] {
-            inputs.turnPosition
+            inputs.relativeTurnPosition
         };
     }
 
@@ -97,9 +97,9 @@ public class ModuleIOSim implements ModuleIO {
     }
 
     @Override
-    public void setDriveVelocity(double velocityRadPerSec) {
+    public void setDriveVelocity(double velocityRadPerSec, double feedforward) {
         driveClosedLoop = true;
-        driveFFVolts = driveSimKs * Math.signum(velocityRadPerSec) + driveSimKv * velocityRadPerSec;
+        driveFFVolts = feedforward;
         driveController.setSetpoint(velocityRadPerSec);
     }
 
@@ -107,5 +107,16 @@ public class ModuleIOSim implements ModuleIO {
     public void setTurnPosition(Rotation2d rotation) {
         turnClosedLoop = true;
         turnController.setSetpoint(rotation.getRadians());
+    }
+
+    @Override
+    public void setDrivePID(double kP, double kI, double kD) {
+        driveController.setPID(kP, kI, kD);
+    }
+
+    @Override
+    public void setTurnPID(double kP, double kI, double kD, double _dFilter) {
+        turnController.setPID(kP, kI, kD);
+        // D filter means nothing for the software PID
     }
 }

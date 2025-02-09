@@ -77,12 +77,12 @@ public class ArmIOSim extends ArmIOReal {
             elevatorCarriageMassKg, ArmConstants.ElevatorConstants.elevatorDrumRadiusMeters, 0,
             ArmConstants.ElevatorConstants.maxElevatorHeight.in(Meters), true, 0.5);
 
-        armSim = new SingleJointedArmSim(armMotors, ArmConstants.PitchWristConstants.elevatorPitchReduction, armMOI,
-            ArmConstants.PitchWristConstants.armLength.in(Meters), armMinAngle.getRadians(), armMaxAngle.getRadians(),
+        armSim = new SingleJointedArmSim(armMotors, ArmConstants.ShoulderConstants.elevatorPitchReduction, armMOI,
+            ArmConstants.ShoulderConstants.armLength.in(Meters), armMinAngle.getRadians(), armMaxAngle.getRadians(),
             true, Rotation2d.fromDegrees(0.).getRadians());
 
         armWristSim = new DCMotorSim(LinearSystemId.createDCMotorSystem(armWristMotors, armWristMOI,
-            ArmConstants.PitchWristConstants.armWristReduction), armWristMotors);
+            ArmConstants.ShoulderConstants.armWristReduction), armWristMotors);
 
         endEffectorSim = new DCMotorSim(LinearSystemId.createDCMotorSystem(endEffectorMotors, endEffectorMOI,
             ArmConstants.EndEffectorConstants.endEffectorReduction), endEffectorMotors);

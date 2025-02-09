@@ -1,5 +1,7 @@
 package frc.robot.subsystems.arm;
 
+import org.littletonrobotics.junction.Logger;
+
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 /**
@@ -12,6 +14,8 @@ public class Arm extends SubsystemBase {
     private final ArmIO io;
     private final ArmIOInputsAutoLogged inputs;
 
+    private final ArmVisualizer visualizer = new ArmVisualizer("arm");
+
     private ArmState targetState;
 
     public Arm(ArmIO io) {
@@ -21,6 +25,7 @@ public class Arm extends SubsystemBase {
 
     @Override
     public void periodic() {
-
+        io.updateInputs(inputs);
+        Logger.processInputs("Arm", inputs);
     }
 }

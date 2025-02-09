@@ -55,9 +55,34 @@ public class ArmConstants {
          * The maximum elevator height.
          */
         public static final Distance maxElevatorHeight = outerStageMaximumHeight.plus(carriageMaxHeight);
+
+        /**
+         * The translation from the center of the robot at the floor to the center of the elevator support structure on
+         * the top of its plate.
+         */
+        public static final Translation3d elevatorOrigin = new Translation3d(Units.inchesToMeters(8), // Forward is +X
+            0, // Left is +Y
+            Units.inchesToMeters(0.65) // Upward is +Y
+        );
+        /**
+         * The translation from the elevator origin to the outer stage when the stage is at its minimum height. The
+         * stage origin is the center of the stage at the bottom of the aluminum extrusion.
+         */
+        public static final Translation3d elevatorToOuterStage = new Translation3d(Units.inchesToMeters(0), // Forward is +X
+            0, // Left is +Y
+            Units.inchesToMeters(1.81) // Upward is +Y
+        );
+        /**
+         * The translation from the elevator origin to the carriage when the arm is at its minimum height. The carriage
+         * origin is the center of the bottom plate.
+         */
+        public static final Translation3d elevatorToCarriage = new Translation3d(Units.inchesToMeters(0), // Forward is +X
+            0, // Left is +Y
+            Units.inchesToMeters(1.81) // Upward is +Y
+        );
     }
 
-    public class PitchWristConstants {
+    public class ShoulderConstants {
         public static final int armPitchMotorId = /* TODO */ 52;
         public static final ClosedLoopConfig armPitchClosedLoopConfig = // Position
             new ClosedLoopConfig().pid(/* TODO */ 0.5, 0.0, 0.0);
@@ -87,38 +112,12 @@ public class ArmConstants {
         public static final double wristVelocityConversionFactor = wristPositionConversionFactor / 60.;
         public static final int wristMotorCurrentLimit = 10;
         public static final boolean wristMotorInverted = false;
-        /**
-         * The translation from the center of the robot at the floor to the center of the elevator support structure on
-         * the top of its plate.
-         */
-        private static final Translation3d elevatorOrigin = new Translation3d(Units.inchesToMeters(8), // Forward is +X
-            0, // Left is +Y
-            Units.inchesToMeters(0.65) // Upward is +Y
-        );
-
-        /**
-         * The translation from the elevator origin to the outer stage when the stage is at its minimum height. The
-         * stage origin is the center of the stage at the bottom of the aluminum extrusion.
-         */
-        private static final Translation3d elevatorToOuterStage = new Translation3d(Units.inchesToMeters(0), // Forward is +X
-            0, // Left is +Y
-            Units.inchesToMeters(1.81) // Upward is +Y
-        );
-        /**
-         * The translation from the elevator origin to the carriage when the arm is at its minimum height. The carriage
-         * origin is the center of the bottom plate.
-         */
-        private static final Translation3d elevatorToCarriage = new Translation3d(Units.inchesToMeters(0), // Forward is +X
-            0, // Left is +Y
-            Units.inchesToMeters(1.81) // Upward is +Y
-        );
 
         /** The translation from the carriage origin to the pivot. */
-        private static final Translation3d carriageToPivot = new Translation3d(Units.inchesToMeters(3.0), // Forward is +X
+        public static final Translation3d carriageToPivot = new Translation3d(Units.inchesToMeters(3.0), // Forward is +X
             Units.inchesToMeters(-0.223), // Left is +Y. Yes, it's off-center by design.
             Units.inchesToMeters(6.0) // Upward is +Y
         );
-
         /** The translation from the pivot to the end effector. This must be rotated by the arm pitch. */
         public static final Translation3d pivotToEndEffector = new Translation3d(Units.inchesToMeters(16.44), // Forward is +X
             Units.inchesToMeters(0.0), // Left is +Y

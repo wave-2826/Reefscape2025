@@ -8,6 +8,10 @@ public final class Constants {
      * value of "simMode" to switch between "sim" (physics sim) and "replay" (log replay from a file).
      */
     public static final Mode simMode = Mode.SIM;
+    /**
+     * If the robot is in "tuning mode". When in tuning mode, tunable constants are added to NetworkTables.
+     */
+    public static boolean tuningMode = true;
 
     public static final Mode currentMode = RobotBase.isReal() ? Mode.REAL : simMode;
 

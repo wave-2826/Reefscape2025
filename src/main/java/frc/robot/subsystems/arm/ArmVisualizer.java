@@ -9,10 +9,8 @@ import org.littletonrobotics.junction.mechanism.LoggedMechanismLigament2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
-import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.util.Units;
-import edu.wpi.first.wpilibj.RobotState;
 import edu.wpi.first.wpilibj.util.Color8Bit;
 
 public class ArmVisualizer {
@@ -28,11 +26,12 @@ public class ArmVisualizer {
         // TODO: Derive from robot base and elevator maximum extension
         armMechanism = new LoggedMechanism2d(Units.inchesToMeters(30), Units.feetToMeters(7), new Color8Bit("#FF0000"));
 
-        var armRoot = armMechanism.getRoot(name + "Root", elevatorOrigin.getX(), elevatorOrigin.getY());
+        var origin = ArmConstants.ElevatorConstants.elevatorOrigin;
+        var armRoot = armMechanism.getRoot(name + "Root", origin.getX(), origin.getY());
         elevatorHeightLigament = armRoot.append(new LoggedMechanismLigament2d(name + "Elevator",
             ArmConstants.ElevatorConstants.resetSwitchHeight.in(Meters), Math.PI / 2., 10.0, new Color8Bit("#00FF00")));
         armPitchLigament = armRoot.append(new LoggedMechanismLigament2d(name + "ArmPitch",
-            ArmConstants.PitchWristConstants.armLengthMeters, 0., 10.0, new Color8Bit("#0000FF")));
+            ArmConstants.ShoulderConstants.armLength.in(Meters), 0., 10.0, new Color8Bit("#0000FF")));
     }
 
     /**
@@ -54,30 +53,27 @@ public class ArmVisualizer {
             .max(elevatorHeightMeters - ArmConstants.ElevatorConstants.outerStageMaximumHeight.in(Meters), 0.0);
         final double carriageHeight = elevatorHeightMeters;
 
-        Pose3d armPose = new Pose3d(elevatorOrigin.plus(elevatorToCarriage).plus(carriageToPivot),
+        var elevatorOrigin = ArmConstants.ElevatorConstants.elevatorOrigin;
+
+        Pose3d armPose = new Pose3d(
+            elevatorOrigin.plus(ArmConstants.ElevatorConstants.elevatorToCarriage)
+                .plus(ArmConstants.ShoulderConstants.carriageToPivot),
             new Rotation3d(wristRotation.getRadians(), armPitch.getRadians(), 0.0));
 
         Logger.recordOutput("Mechanism3d/" + name + "/Arm",
             // Outer stage    
-            new Pose3d(elevatorOrigin.plus(elevatorToOuterStage)
+            new Pose3d(elevatorOrigin.plus(ArmConstants.ElevatorConstants.elevatorToOuterStage)
                 .plus(new Translation3d(outerStageHeight, new Rotation3d(0.0, 0.0, 0.0))), new Rotation3d()),
             // Inner stage (carriage)
-            new Pose3d(elevatorOrigin.plus(elevatorToCarriage)
+            new Pose3d(elevatorOrigin.plus(ArmConstants.ElevatorConstants.elevatorToCarriage)
                 .plus(new Translation3d(carriageHeight, new Rotation3d(0.0, 0.0, 0.0))), new Rotation3d()),
             // Arm
             armPose);
 
         if(hasGamePiece) {
-            Logger
-                .recordOutput("Mechanism3d/" + name + "/Algae",
-                    new Pose3d(RobotState.getInstance().getEstimatedPose())
-                        .transformBy(new Transform3d(Pose3d.kZero, pivotPose3d))
-                        .transformBy(new Transform3d(
-                            ArmConstants.PitchWristConstants.armLengthMeters + Units.inchesToMeters(4.0), 0.0, -0.1,
-                            Rotation3d.kZero))
-                        .getTranslation());
+            Logger.recordOutput("Mechanism3d/" + name + "/Coral", new Pose3d()); // TODO
         } else {
-            Logger.recordOutput("Mechanism3d/" + name + "/Algae", new Translation3d[] {});
+            Logger.recordOutput("Mechanism3d/" + name + "/Coral", new Translation3d[] {});
         }
     }
 }

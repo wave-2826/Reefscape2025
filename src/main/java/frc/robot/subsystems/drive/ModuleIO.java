@@ -13,7 +13,11 @@ public interface ModuleIO {
         public double driveCurrentAmps = 0.0;
 
         public boolean turnConnected = false;
-        public Rotation2d turnPosition = new Rotation2d();
+        public boolean turnEncoderConnected = false;
+
+        public Rotation2d relativeTurnPosition = new Rotation2d();
+        public Rotation2d absoluteTurnPosition = new Rotation2d();
+        public Rotation2d offsetAbsoluteTurnPosition = new Rotation2d();
         public double turnVelocityRadPerSec = 0.0;
         public double turnAppliedVolts = 0.0;
         public double turnCurrentAmps = 0.0;
@@ -36,10 +40,25 @@ public interface ModuleIO {
     }
 
     /** Run the drive motor at the specified velocity. */
-    public default void setDriveVelocity(double velocityRadPerSec) {
+    public default void setDriveVelocity(double velocityRadPerSec, double feedforward) {
     }
 
     /** Run the turn motor to the specified rotation. */
     public default void setTurnPosition(Rotation2d rotation) {
+    }
+
+    /** Set P, I, and D gains for closed loop control on drive motor. */
+    public default void setDrivePID(double kP, double kI, double kD) {
+    }
+
+    /** Resets the relative encoder to absolute if one is used. */
+    public default void resetToAbsolute() {
+    }
+
+    /**
+     * Set P gain, I gain, D gain, allowed closed loop error, and derivative filter for closed loop control on turn
+     * motor.
+     */
+    public default void setTurnPID(double kP, double kI, double kD, double derivativeFilter) {
     }
 }

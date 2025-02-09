@@ -244,32 +244,18 @@ public class LEDs extends SubsystemBase {
     }
 
     /**
-     * An InstantCommand that runs when the robot is disabled.
-     */
-    private static class InstantDisabledCommand extends InstantCommand {
-        public InstantDisabledCommand(Runnable toRun, Subsystem... requirements) {
-            super(toRun, requirements);
-        }
-
-        @Override
-        public boolean runsWhenDisabled() {
-            return true;
-        }
-    }
-
-    /**
      * Creates a command that enables the given state.
      * @return
      */
     public Command enableStateCommand(LEDState state) {
-        return new InstantDisabledCommand(() -> enableState(state));
+        return new InstantCommand(() -> enableState(state)).ignoringDisable(true);
     }
 
     /**
      * Creates a command that disables the given state.
      */
     public Command disableStateCommand(LEDState state) {
-        return new InstantDisabledCommand(() -> disableState(state));
+        return new InstantCommand(() -> disableState(state)).ignoringDisable(true);
     }
 
     /**

@@ -78,7 +78,7 @@ public class Drive extends SubsystemBase {
 
     private final Consumer<Pose2d> resetSimulationPoseCallBack;
     /** The acceleration that needs to be experienced for an "abrupt stop". */
-    private final static double ABRUPT_STOP_THRESHOLD_GS = 2.0;
+    private final static double ABRUPT_STOP_THRESHOLD_GS = 10.0;
     /** Whether the robot experienced an abrupt stop last loop iteration. Used to avoid multiple callbacks. */
     private boolean previousAbruptStop = false;
     /** A callback that will be called if the robot hits a wall or is otherwise abruptly accelerated. */
@@ -103,10 +103,10 @@ public class Drive extends SubsystemBase {
         this.gyroIO = gyroIO;
         this.resetSimulationPoseCallBack = resetSimulationPoseCallBack;
 
-        modules[0] = new Module(flModuleIO, 0);
-        modules[1] = new Module(frModuleIO, 1);
-        modules[2] = new Module(blModuleIO, 2);
-        modules[3] = new Module(brModuleIO, 3);
+        modules[0] = new Module(flModuleIO, "FrontLeft");
+        modules[1] = new Module(frModuleIO, "FrontRight");
+        modules[2] = new Module(blModuleIO, "BackLeft");
+        modules[3] = new Module(brModuleIO, "BackRight");
 
         // Start odometry thread
         SparkOdometryThread.getInstance().start();
