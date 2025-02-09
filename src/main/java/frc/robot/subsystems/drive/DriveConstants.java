@@ -23,7 +23,7 @@ public class DriveConstants {
     }
 
     // TODO: Measure our effective maximum speed once robot is built
-    public static final double maxSpeedMetersPerSec = 4.8; // 2.0;
+    public static final double maxSpeedMetersPerSec = 4.74; // "Magic" number from max speed measurement
     public static final double odometryFrequency = 100.0; // Hz
     public static final double trackWidth = Units.inchesToMeters(23.5);
     public static final double wheelBase = Units.inchesToMeters(23.5);
@@ -52,8 +52,8 @@ public class DriveConstants {
     public static final boolean USE_SETPOINT_GENERATOR = false;
 
     // Drive motor configuration
-    public static final int driveMotorCurrentLimit = 60;
-    public static final double wheelRadiusMeters = Units.inchesToMeters(2);
+    public static final int driveMotorCurrentLimit = 49; // "Magic" number from slip current measurement
+    public static final double wheelRadiusMeters = Units.inchesToMeters(1.961); // "Magic" number from wheel radius characterization
     public static final double driveMotorReduction = Mk4Reductions.L2.reduction;
     public static final DCMotor driveSimMotor = DCMotor.getNeoVortex(1);
 
@@ -65,9 +65,9 @@ public class DriveConstants {
     public static final double driveKp = 0.015;
     public static final double driveKd = 0.0;
     /** The static feedforward gain in volts. */
-    public static final double driveKs = 0.0;
+    public static final double driveKs = 0.1261675; // "Magic" number from SysID
     /** The velocity gain in volts per (radian per second of wheel) */
-    public static final double driveKv = 0.115;
+    public static final double driveKv = 0.11339; // "Magic" number from SysID
     /** The acceleration gain in volts per (radian per second per second of wheel) */
     public static final double driveKa = 0.0225;
 
@@ -101,11 +101,12 @@ public class DriveConstants {
     public static final double turnPIDMaxInput = Math.PI; // Radians
 
     // PathPlanner configuration
-    public static final double robotMassKg = Units.lbsToKilograms(100.); // TODO: Update for real robot
-    public static final double robotMOI = 6.883; // TODO: Measure for real robot
-    public static final double wheelCOF = 0.9; // TODO: Measure for TPU wheels
+    public static final double robotMassKg = Units.lbsToKilograms(64.);
+    /** The moment of inertia of the robot, in KG*M^2 */
+    public static final double robotMOIKgSqM = 2.953;
+    public static final double wheelCOF = 0.9; // TODO: Determine from the other things I guess?
 
-    public static final RobotConfig pathplannerConfig = new RobotConfig(robotMassKg, robotMOI,
+    public static final RobotConfig pathplannerConfig = new RobotConfig(robotMassKg, robotMOIKgSqM,
         new ModuleConfig(wheelRadiusMeters, maxSpeedMetersPerSec, wheelCOF,
             driveSimMotor.withReduction(driveMotorReduction), driveMotorCurrentLimit, 1),
         moduleTranslations);

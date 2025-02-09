@@ -191,6 +191,7 @@ public class ModuleIOSpark implements ModuleIO {
     public void resetToAbsolute() {
         // Both the turn encoder and turn absolute encoder have conversion factors
         // that represent radians of the output, so this requires no conversion.
+        // TODO: Linear filtering on the absolute encoder input to avoid jittering caused by signal noise?
         turnEncoder.setPosition(MathUtil.inputModulus(turnAbsoluteEncoder.getPosition() - zeroRotation.getRadians(),
             turnPIDMinInput, turnPIDMaxInput));
     }
