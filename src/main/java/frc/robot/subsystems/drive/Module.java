@@ -7,7 +7,6 @@ import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
-import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
 import frc.robot.util.LoggedTunableNumber;
@@ -34,7 +33,7 @@ public class Module {
 
         driveS.initDefault(DriveConstants.driveKs);
         driveV.initDefault(DriveConstants.driveKv);
-        driveT.initDefault(DriveConstants.driveMotorReduction / DCMotor.getNeoVortex(1).KtNMPerAmp);
+        driveT.initDefault(DriveConstants.driveKt);
         driveA.initDefault(DriveConstants.driveKa);
 
         turnP.initDefault(DriveConstants.turnKp);
@@ -194,5 +193,10 @@ public class Module {
     /** Returns the module velocity in rad/sec. */
     public double getFFCharacterizationVelocity() {
         return inputs.driveVelocityRadPerSec;
+    }
+
+    /** Returns the drive motor current draw in amps. */
+    public double getSlipMeasurementCurrent() {
+        return inputs.driveCurrentAmps;
     }
 }

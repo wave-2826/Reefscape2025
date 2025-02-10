@@ -68,6 +68,8 @@ public class DriveConstants {
     public static final double driveKs = 0.1261675; // "Magic" number from SysID
     /** The velocity gain in volts per (radian per second of wheel) */
     public static final double driveKv = 0.11339; // "Magic" number from SysID
+    /** The torque gain in volts per Nm */
+    public static final double driveKt = driveMotorReduction / driveSimMotor.KtNMPerAmp;
     /** The acceleration gain in volts per (radian per second per second of wheel) */
     public static final double driveKa = 0.0225;
 
@@ -103,8 +105,8 @@ public class DriveConstants {
     // PathPlanner configuration
     public static final double robotMassKg = Units.lbsToKilograms(64.);
     /** The moment of inertia of the robot, in KG*M^2 */
-    public static final double robotMOIKgSqM = 2.953;
-    public static final double wheelCOF = 0.9; // TODO: Determine from the other things I guess?
+    public static final double robotMOIKgSqM = 2.953; // TODO: Estimate with angular SysID
+    public static final double wheelCOF = 1.6065; // "Magic" number from slip current measurement
 
     public static final RobotConfig pathplannerConfig = new RobotConfig(robotMassKg, robotMOIKgSqM,
         new ModuleConfig(wheelRadiusMeters, maxSpeedMetersPerSec, wheelCOF,
