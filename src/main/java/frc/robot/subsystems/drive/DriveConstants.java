@@ -49,10 +49,10 @@ public class DriveConstants {
     public static final SwerveModuleConfiguration backRightModule = new SwerveModuleConfiguration(31, 32,
         Rotation2d.fromRadians(4.41693));
 
-    public static final boolean USE_SETPOINT_GENERATOR = false;
+    public static final boolean USE_SETPOINT_GENERATOR = true;
 
     // Drive motor configuration
-    public static final int driveMotorCurrentLimit = 49; // "Magic" number from slip current measurement
+    public static final int driveMotorCurrentLimit = 50; // "Magic" number from slip current measurement
     public static final double wheelRadiusMeters = Units.inchesToMeters(1.961); // "Magic" number from wheel radius characterization
     public static final double driveMotorReduction = Mk4Reductions.L2.reduction;
     public static final DCMotor driveSimMotor = DCMotor.getNeoVortex(1);

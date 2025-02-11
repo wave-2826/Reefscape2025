@@ -291,9 +291,16 @@ public class Drive extends SubsystemBase {
     }
 
     /** Returns the average drive motor current draw in amps. */
-    public double getSlipMeasurementCurrent() {
+    public double[] getSlipMeasurementCurrents() {
+        double[] values = new double[4];
+        for(int i = 0; i < 4; i++) values[i] = modules[i].getSlipMeasurementCurrent();
+        return values;
+    }
+
+    /** Returns the average drive motor position in radians. */
+    public double getSlipMeasurementPosition() {
         double output = 0.0;
-        for(int i = 0; i < 4; i++) output += modules[i].getSlipMeasurementCurrent() / 4.0;
+        for(int i = 0; i < 4; i++) output += modules[i].getWheelRadiusCharacterizationPosition() / 4.0;
         return output;
     }
 
