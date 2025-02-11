@@ -26,8 +26,10 @@ public class DriveTuningCommands {
     private static final double FF_START_DELAY = 2.0; // Secs
     private static final double FF_RAMP_RATE = 0.1; // Volts/Sec
 
-    private static final double SLIP_START_DELAY = 2.0; // Secs
-    private static final double SLIP_RAMP_RATE = 0.1; // Volts/Sec
+    private static final double SLIP_START_DELAY = 1.0; // Secs
+    private static final double SLIP_START_VOLTAGE = 0.4; // Volts
+    private static final double SLIP_RAMP_RATE = 0.075; // Volts/Sec
+    private static final double SLIP_TRAVEL_AMOUNT = Units.degreesToRadians(15); // Rad
 
     private static final double WHEEL_RADIUS_MAX_VELOCITY = 0.25; // Rad/Sec
     private static final double WHEEL_RADIUS_RAMP_RATE = 0.05; // Rad/Sec^2
@@ -172,21 +174,26 @@ public class DriveTuningCommands {
                     })));
     }
 
+    private static class SlipCurrentState {
+        double startPosition = 0.0;
+    }
+
     /**
      * Measures the current at which the robot slips by progressively increasing the wheel voltage and measuring when
-     * their velocity jumps.  
-     * The robot _must_ be placed against a wall for this to work.
+     * their velocity jumps. The robot _must_ be placed against a wall for this to work.
      */
     public static Command slipCurrentMeasurement(Drive drive) {
-        List<Double> currentSamples = new LinkedList<>();
-        List<Double> velocitySamples = new LinkedList<>();
+        List<double[]> currentSamples = new LinkedList<>();
         Timer timer = new Timer();
+
+        SlipCurrentState state = new SlipCurrentState();
+
+        // TODO: Increase drive current limit for slip measurement
 
         return Commands.sequence(
             // Reset data
             Commands.runOnce(() -> {
-                velocitySamples.clear();
-                velocitySamples.clear();
+                currentSamples.clear();
             }),
 
             // Allow modules to orient
@@ -194,44 +201,53 @@ public class DriveTuningCommands {
                 drive.runCharacterization(0.0);
             }, drive).withTimeout(SLIP_START_DELAY),
 
+            // Reset the start position
+            Commands.runOnce(() -> state.startPosition = drive.getSlipMeasurementPosition()),
+
             // Start timer
             Commands.runOnce(timer::restart),
-            
+
             // Accelerate and gather data
             Commands.run(() -> {
-                double voltage = timer.get() * SLIP_RAMP_RATE;
+                double voltage = timer.get() * SLIP_RAMP_RATE + SLIP_START_VOLTAGE;
                 drive.runCharacterization(voltage);
 
-                currentSamples.add(drive.getSlipMeasurementCurrent());
-                velocitySamples.add(Math.abs(drive.getFFCharacterizationVelocity())); // Absolute value so noise at 0 doesn't matter
+                currentSamples.add(drive.getSlipMeasurementCurrents());
             }, drive).until(() -> {
-                // Stop when the velocity is at least 2x the average of the first 5 samples
-                if(velocitySamples.size() < 5) return false;
-                double sum = 0.0;
-                for(int i = 0; i < 5; i++) sum += velocitySamples.get(i);
-
-                double lastSample = velocitySamples.get(velocitySamples.size() - 1);
-                return lastSample > sum / 5.0 * 2.0;
+                double distanceTraveled = Math.abs(drive.getSlipMeasurementPosition() - state.startPosition);
+                return distanceTraveled > SLIP_TRAVEL_AMOUNT;
             }),
 
             // Take a few samples behind when we stopped and print the result
-            Commands.run(() -> {
-                double slipCurrent = currentSamples.get(currentSamples.size() - 3);
-                double slipVoltage = timer.get() * SLIP_RAMP_RATE;
+            Commands.runOnce(() -> {
+                drive.runCharacterization(0.0);
+
+                double[] slipCurrents = currentSamples.get(currentSamples.size() - 4);
+                double averageSlipCurrent = 0.0;
+                for(int i = 0; i < 4; i++) averageSlipCurrent += slipCurrents[i] / 4.0;
+
+                double slipVoltage = timer.get() * SLIP_RAMP_RATE + SLIP_START_VOLTAGE;
 
                 System.out.println("********** Drive Slip Current Measurement Results **********");
-                System.out.println("\tSlip Current: " + (int)Math.floor(slipCurrent) + " amps");
-                System.out.println("\tSlip Voltage: " + slipVoltage + " volts");
+                System.out.println("\tAverage slip Current: " + (int) Math.floor(averageSlipCurrent) + " amps");
+                System.out.println("\tSlip \"Voltage\": " + slipVoltage + " volts");
+                String[] moduleNames = new String[] {
+                    "Front left", "Front right", "Back left", "Back right"
+                };
+                NumberFormat formatter = new DecimalFormat("#0.000");
+                System.out.println("\tIndividual module slip currents:");
+                for(int i = 0; i < 4; i++) {
+                    System.out.println("\t \t" + moduleNames[i] + ": " + formatter.format(slipCurrents[i]));
+                }
 
                 // Estimate the wheel's coefficient of friction
-                double motorTorque = slipCurrent * DriveConstants.driveSimMotor.KtNMPerAmp;
+                double motorTorque = averageSlipCurrent * DriveConstants.driveSimMotor.KtNMPerAmp;
                 double totalTorqueNm = 4 * DriveConstants.driveMotorReduction * motorTorque;
                 double robotMassN = DriveConstants.robotMassKg * 9.81;
                 double wheelCOF = totalTorqueNm / (robotMassN * DriveConstants.wheelRadiusMeters);
-                NumberFormat formatter = new DecimalFormat("#0.0000");
-                System.out.println("\tWheel COF: " + formatter.format(wheelCOF));
-            })
-        );
+                NumberFormat cofFormatter = new DecimalFormat("#0.0000");
+                System.out.println("\tWheel COF: " + cofFormatter.format(wheelCOF));
+            }));
     }
 
     /** Configures the SysId routine if it hasn't been configured yet. */
