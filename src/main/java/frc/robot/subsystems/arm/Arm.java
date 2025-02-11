@@ -2,6 +2,8 @@ package frc.robot.subsystems.arm;
 
 import org.littletonrobotics.junction.Logger;
 
+import edu.wpi.first.wpilibj.Alert;
+import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 /**
@@ -18,6 +20,12 @@ public class Arm extends SubsystemBase {
 
     private ArmState targetState;
 
+    private final Alert elevatorMotorDisconnectedAlert = new Alert("Elevator motor disconnected!", AlertType.kError);
+    private final Alert armPitchMotorDisconnectedAlert = new Alert("Arm pitch motor disconnected!", AlertType.kError);
+    private final Alert armWristMotorDisconnectedAlert = new Alert("Arm wrist motor disconnected!", AlertType.kError);
+    private final Alert endEffectorMotorDisconnectedAlert = new Alert("End effector motor disconnected!",
+        AlertType.kError);
+
     public Arm(ArmIO io) {
         this.io = io;
         this.inputs = new ArmIOInputsAutoLogged();
@@ -27,5 +35,14 @@ public class Arm extends SubsystemBase {
     public void periodic() {
         io.updateInputs(inputs);
         Logger.processInputs("Arm", inputs);
+
+        visualizer.update(inputs.elevatorHeightMeters, inputs.armPitchPosition, inputs.armWristPosition,
+            inputs.gamePiecePresent);
+
+        // Update alerts
+        elevatorMotorDisconnectedAlert.set(!inputs.elevatorMotorsConnected);
+        armPitchMotorDisconnectedAlert.set(!inputs.armPitchMotorConnected);
+        armWristMotorDisconnectedAlert.set(!inputs.armWristMotorConnected);
+        endEffectorMotorDisconnectedAlert.set(!inputs.endEffectorMotorConnected);
     }
 }

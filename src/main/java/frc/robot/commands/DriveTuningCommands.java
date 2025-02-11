@@ -174,8 +174,8 @@ public class DriveTuningCommands {
 
     /**
      * Measures the current at which the robot slips by progressively increasing the wheel voltage and measuring when
-     * their velocity jumps.  
-     * The robot _must_ be placed against a wall for this to work.
+     * their velocity jumps. Also estimates the wheel's coefficient of friction. The robot _must_ be placed against a
+     * wall for this to work.
      */
     public static Command slipCurrentMeasurement(Drive drive) {
         List<Double> currentSamples = new LinkedList<>();
@@ -185,7 +185,7 @@ public class DriveTuningCommands {
         return Commands.sequence(
             // Reset data
             Commands.runOnce(() -> {
-                velocitySamples.clear();
+                currentSamples.clear();
                 velocitySamples.clear();
             }),
 
@@ -196,7 +196,7 @@ public class DriveTuningCommands {
 
             // Start timer
             Commands.runOnce(timer::restart),
-            
+
             // Accelerate and gather data
             Commands.run(() -> {
                 double voltage = timer.get() * SLIP_RAMP_RATE;
@@ -219,19 +219,18 @@ public class DriveTuningCommands {
                 double slipCurrent = currentSamples.get(currentSamples.size() - 3);
                 double slipVoltage = timer.get() * SLIP_RAMP_RATE;
 
-                System.out.println("********** Drive Slip Current Measurement Results **********");
-                System.out.println("\tSlip Current: " + (int)Math.floor(slipCurrent) + " amps");
-                System.out.println("\tSlip Voltage: " + slipVoltage + " volts");
-
                 // Estimate the wheel's coefficient of friction
                 double motorTorque = slipCurrent * DriveConstants.driveSimMotor.KtNMPerAmp;
                 double totalTorqueNm = 4 * DriveConstants.driveMotorReduction * motorTorque;
                 double robotMassN = DriveConstants.robotMassKg * 9.81;
                 double wheelCOF = totalTorqueNm / (robotMassN * DriveConstants.wheelRadiusMeters);
                 NumberFormat formatter = new DecimalFormat("#0.0000");
+
+                System.out.println("********** Drive Slip Current Measurement Results **********");
+                System.out.println("\tSlip Current: " + (int) Math.floor(slipCurrent) + " amps");
+                System.out.println("\tSlip Voltage: " + slipVoltage + " volts");
                 System.out.println("\tWheel COF: " + formatter.format(wheelCOF));
-            })
-        );
+            }));
     }
 
     /** Configures the SysId routine if it hasn't been configured yet. */

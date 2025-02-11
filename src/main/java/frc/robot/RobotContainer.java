@@ -3,17 +3,16 @@ package frc.robot;
 import com.pathplanner.lib.auto.AutoBuilder;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.Commands;
-import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
-import frc.robot.commands.DriveCommands;
 import frc.robot.commands.DriveTuningCommands;
 import frc.robot.subsystems.arm.Arm;
 import frc.robot.subsystems.arm.ArmIO;
 import frc.robot.subsystems.arm.ArmIOReal;
 import frc.robot.subsystems.arm.ArmIOSim;
 import frc.robot.subsystems.climber.Climber;
+import frc.robot.subsystems.climber.ClimberIO;
+import frc.robot.subsystems.climber.ClimberIOReal;
+import frc.robot.subsystems.climber.ClimberIOSim;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.drive.DriveConstants;
 import frc.robot.subsystems.drive.GyroIO;
@@ -22,6 +21,7 @@ import frc.robot.subsystems.drive.GyroIOSim;
 import frc.robot.subsystems.drive.ModuleIO;
 import frc.robot.subsystems.drive.ModuleIOSim;
 import frc.robot.subsystems.drive.ModuleIOSpark;
+import frc.robot.subsystems.intake.Intake;
 import frc.robot.subsystems.leds.LEDIO;
 import frc.robot.subsystems.leds.LEDIORio;
 import frc.robot.subsystems.leds.LEDIOSim;
@@ -33,13 +33,8 @@ import frc.robot.subsystems.vision.VisionIOPhotonVision;
 import frc.robot.subsystems.vision.VisionIOPhotonVisionSim;
 import frc.robot.util.DriverStationInterface;
 
-import static edu.wpi.first.units.Units.Degrees;
-import static edu.wpi.first.units.Units.Meters;
-import static edu.wpi.first.units.Units.MetersPerSecond;
-
 import org.ironmaple.simulation.SimulatedArena;
 import org.ironmaple.simulation.drivesims.SwerveDriveSimulation;
-import org.ironmaple.simulation.seasonspecific.reefscape2025.ReefscapeCoralOnFly;
 import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
@@ -52,15 +47,14 @@ public class RobotContainer {
     private final Arm arm;
     @SuppressWarnings("unused")
     private final Climber climber;
+    @SuppressWarnings("unused")
+    private final Intake intake;
 
     @SuppressWarnings("unused")
     private final LEDs leds;
 
     // Only used in simulation
     private SwerveDriveSimulation driveSimulation = null;
-
-    // Controller
-    private final CommandXboxController controller = new CommandXboxController(0);
 
     // Dashboard inputs
     private final LoggedDashboardChooser<Command> autoChooser;
@@ -83,7 +77,8 @@ public class RobotContainer {
                     new VisionIOPhotonVision(VisionConstants.camera2Name, VisionConstants.robotToCamera2),
                     new VisionIOPhotonVision(VisionConstants.camera3Name, VisionConstants.robotToCamera3));
                 arm = new Arm(new ArmIOReal());
-                climber = new Climber();
+                climber = new Climber(new ClimberIOReal());
+                intake = new Intake();
 
                 leds = new LEDs(new LEDIORio());
                 break;
@@ -112,7 +107,8 @@ public class RobotContainer {
                     new VisionIOPhotonVisionSim(VisionConstants.camera3Name, VisionConstants.robotToCamera3,
                         driveSimulation::getSimulatedDriveTrainPose));
                 arm = new Arm(new ArmIOSim());
-                climber = new Climber();
+                climber = new Climber(new ClimberIOSim());
+                intake = new Intake();
 
                 leds = new LEDs(new LEDIOSim());
                 break;
@@ -143,7 +139,10 @@ public class RobotContainer {
                 arm = new Arm(new ArmIO() {
                     /** Replayed robot doesn't have IO */
                 });
-                climber = new Climber();
+                climber = new Climber(new ClimberIO() {
+                    /** Replayed robot doesn't have IO */
+                });
+                intake = new Intake();
 
                 leds = new LEDs(new LEDIO() {
                     /** Replayed robot doesn't have IO */
@@ -159,50 +158,7 @@ public class RobotContainer {
         DriveTuningCommands.addTuningCommandsToAutoChooser(drive, autoChooser);
 
         // Configure the button bindings
-        configureButtonBindings();
-    }
-
-    /** Defines button to command mappings. */
-    private void configureButtonBindings() {
-        // Default command, normal field-relative drive
-        drive.setDefaultCommand(DriveCommands.joystickDrive(drive, () -> -controller.getLeftY(),
-            () -> -controller.getLeftX(), () -> -controller.getRightX()));
-
-        // Lock to 0° when A button is held
-        controller.a().whileTrue(
-            DriveCommands.joystickDriveAtAngle(drive, () -> -controller.getLeftY(), () -> -controller.getLeftX(),
-                () -> Rotation2d.fromRadians(Math.atan2(controller.getRightY(), controller.getLeftY()))));
-
-        // Switch to X pattern when X button is pressed
-        controller.x().onTrue(Commands.runOnce(drive::stopWithX, drive));
-
-        // Reset gyro or odometry if in simulation
-        final Runnable resetGyro = Constants.currentMode == Constants.Mode.SIM
-            ? () -> drive.setPose(driveSimulation.getSimulatedDriveTrainPose()) // Reset odometry to actual robot pose during simulation
-            : () -> drive.setPose(new Pose2d(drive.getPose().getTranslation(), new Rotation2d())); // Zero gyro
-
-        controller.start().onTrue(Commands.runOnce(resetGyro, drive).ignoringDisable(true));
-
-        // Example Coral Placement Code
-        // TODO: Implement this for our actual robot logic
-        if(Constants.currentMode == Constants.Mode.SIM) {
-            // L4 placement
-            controller.y()
-                .onTrue(Commands.runOnce(() -> SimulatedArena.getInstance()
-                    .addGamePieceProjectile(new ReefscapeCoralOnFly(
-                        driveSimulation.getSimulatedDriveTrainPose().getTranslation(), new Translation2d(0.4, 0),
-                        driveSimulation.getDriveTrainSimulatedChassisSpeedsFieldRelative(),
-                        driveSimulation.getSimulatedDriveTrainPose().getRotation(), Meters.of(2),
-                        MetersPerSecond.of(1.5), Degrees.of(-80)))));
-            // L3 placement
-            controller.b()
-                .onTrue(Commands.runOnce(() -> SimulatedArena.getInstance()
-                    .addGamePieceProjectile(new ReefscapeCoralOnFly(
-                        driveSimulation.getSimulatedDriveTrainPose().getTranslation(), new Translation2d(0.4, 0),
-                        driveSimulation.getDriveTrainSimulatedChassisSpeedsFieldRelative(),
-                        driveSimulation.getSimulatedDriveTrainPose().getRotation(), Meters.of(1.35),
-                        MetersPerSecond.of(1.5), Degrees.of(-60)))));
-        }
+        Controls.getInstance().configureControls(drive, driveSimulation);
     }
 
     public Command getAutonomousCommand() {

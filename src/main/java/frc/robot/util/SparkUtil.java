@@ -4,10 +4,12 @@ import com.revrobotics.REVLibError;
 import com.revrobotics.spark.SparkBase;
 import com.revrobotics.spark.config.SignalsConfig;
 
+import edu.wpi.first.util.function.BooleanConsumer;
 import edu.wpi.first.wpilibj.Timer;
 
 import static edu.wpi.first.units.Units.Seconds;
 
+import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 import java.util.function.DoubleConsumer;
 import java.util.function.DoubleSupplier;
@@ -62,11 +64,31 @@ public class SparkUtil {
     }
 
     /** Processes a value from a Spark only if the value is valid. */
-    public static void ifOk(SparkBase spark, DoubleSupplier[] suppliers, Consumer<double[]> consumer) {
+    public static void ifOk(SparkBase spark, BooleanSupplier supplier, BooleanConsumer consumer) {
+        boolean value = supplier.getAsBoolean();
+        if(spark.getLastError() == REVLibError.kOk) consumer.accept(value);
+        else sparkStickyFault = true;
+    }
+
+    /** Processes a value from a Spark only if the value is valid. */
+    public static <T> void ifOk(SparkBase spark, DoubleSupplier[] suppliers, Consumer<double[]> consumer) {
         double[] values = new double[suppliers.length];
         for(int i = 0; i < suppliers.length; i++) {
             values[i] = suppliers[i].getAsDouble();
             if(spark.getLastError() != REVLibError.kOk) {
+                sparkStickyFault = true;
+                return;
+            }
+        }
+        consumer.accept(values);
+    }
+
+    /** Processes values from multiple Sparks only if the values are valid. */
+    public static void ifOk(SparkBase[] sparks, DoubleSupplier[] suppliers, Consumer<double[]> consumer) {
+        double[] values = new double[suppliers.length];
+        for(int i = 0; i < suppliers.length; i++) {
+            values[i] = suppliers[i].getAsDouble();
+            if(sparks[i].getLastError() != REVLibError.kOk) {
                 sparkStickyFault = true;
                 return;
             }

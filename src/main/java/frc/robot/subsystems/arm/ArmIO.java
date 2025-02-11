@@ -26,6 +26,11 @@ public interface ArmIO {
 
         /** The height of the elevator in meters. */
         public double elevatorHeightMeters = 0.;
+
+        public boolean elevatorMotorsConnected = false;
+        public boolean armPitchMotorConnected = false;
+        public boolean armWristMotorConnected = false;
+        public boolean endEffectorMotorConnected = false;
     }
 
     public default void setElevatorHeight(double heightMeters) {
