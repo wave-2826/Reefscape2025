@@ -99,6 +99,10 @@ public class Robot extends LoggedRobot {
 
         // Return to normal thread priority
         Threads.setCurrentThreadPriority(false, 10);
+
+        // Alert-related updates
+        RioAlerts.getInstance().update();
+        Controls.getInstance().update();
     }
 
     /** This function is called once when the robot is disabled. */
