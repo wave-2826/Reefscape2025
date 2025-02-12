@@ -4,9 +4,6 @@ import static edu.wpi.first.units.Units.Inches;
 import static edu.wpi.first.units.Units.Meters;
 
 import com.revrobotics.spark.ClosedLoopSlot;
-import com.revrobotics.spark.config.ClosedLoopConfig;
-import com.revrobotics.spark.config.MAXMotionConfig;
-import com.revrobotics.spark.config.MAXMotionConfig.MAXMotionPositionMode;
 
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.util.Units;
@@ -19,15 +16,11 @@ public class ArmConstants {
     public class ElevatorConstants {
         public static final int elevatorHeightMotor1Id = /* TODO */ 50;
         public static final int elevatorHeightMotor2Id = /* TODO */ 51;
-        public static final ClosedLoopConfig elevatorHeightClosedLoopConfig = new ClosedLoopConfig()
-            .pid(/* TODO */ 18.0, 0.0, 4.0); // Position PID
-        // .apply(new MAXMotionConfig().positionMode(MAXMotionPositionMode.kMAXMotionTrapezoidal)
-        //     // Affected by the velocity conversion factor, so this is in meters per second^2
-        //     .maxAcceleration(Units.inchesToMeters(999999))
-        //     // Affected by the velocity conversion factor, so this is in meters per second
-        //     .maxVelocity(Units.inchesToMeters(999999))
-        //     // Affected by the position conversion factor, so this is in meters
-        //     .allowedClosedLoopError(Units.inchesToMeters(0.1)));
+
+        // PID constants for the elevator position PID
+        public static final double elevatorKp = 18.0;
+        public static final double elevatorKi = 0.0;
+        public static final double elevatorKd = 4.0;
 
         public static final int elevatorMotorCurrentLimit = 30;
         public static final boolean elevatorMotorInverted = false;
@@ -84,8 +77,11 @@ public class ArmConstants {
 
     public class ShoulderConstants {
         public static final int armPitchMotorId = /* TODO */ 52;
-        public static final ClosedLoopConfig armPitchClosedLoopConfig = // Position
-            new ClosedLoopConfig().pid(/* TODO */ 0.5, 0.0, 0.0);
+
+        // The PID constants for the arm pitch position PID
+        public static final double armPitchKp = 0.5;
+        public static final double armPitchKi = 0.0;
+        public static final double armPitchKd = 0.0;
 
         public static final double elevatorPitchReduction = 5 * (84 / 48);
         /** The conversion factor from pitch motor rotations to radians. */
@@ -100,10 +96,16 @@ public class ArmConstants {
         public static final ClosedLoopSlot armWristPositionSlot = ClosedLoopSlot.kSlot0;
         public static final ClosedLoopSlot armWristVelocitySlot = ClosedLoopSlot.kSlot1;
 
-        public static final ClosedLoopConfig armWristPositionClosedLoopConfig = // Position
-            new ClosedLoopConfig().pid(/* TODO */ 0.5, 0.0, 0.0, armWristPositionSlot);
-        public static final ClosedLoopConfig armWristVelocityClosedLoopConfig = // Velocity
-            new ClosedLoopConfig().pidf(/* TODO */ 0.5, 0.0, 0.0, 0.0125, armWristVelocitySlot);
+        // The PID constants for the arm wrist position PID
+        public static final double armWristPositionKp = 0.5;
+        public static final double armWristPositionKi = 0.0;
+        public static final double armWristPositionKd = 0.0;
+
+        // The PID constants for the arm wrist velocity PID
+        public static final double armWristVelocityKp = 0.5;
+        public static final double armWristVelocityKi = 0.0;
+        public static final double armWristVelocityKd = 0.0;
+        public static final double armWristVelocityKf = 1. / 917; // 917 is the Neo 550 Kf value
 
         public static final double armWristReduction = 25.;
         /** The conversion factor from wrist motor rotations to radians. */
@@ -131,10 +133,16 @@ public class ArmConstants {
 
     public class EndEffectorConstants {
         public static final int endEffectorMotorId = /* TODO */ 54;
-        public static final ClosedLoopConfig endEffectorClosedLoopConfig = // Velocity
-            new ClosedLoopConfig().pid(/* TODO */ 0.5, 0.0, 0.0);
 
         public static final double endEffectorReduction = 5.;
+
+        // The PIDF constnats for the end effector velocity PID
+        public static final double endEffectorKp = 0.5;
+        public static final double endEffectorKi = 0.0;
+        public static final double endEffectorKd = 0.0;
+        // TODO: Find the proper value for this. Is it multiplied by the setpoint or motor speed? The REV docs are unclear.
+        public static final double endEffectorKf = 1. / 565;
+
         /** The conversion factor from end effector motor rotations to radians. */
         public static final double endEffectorPositionConversionFactor = 2 * Math.PI / endEffectorReduction;
         /** The conversion factor from wrist motor RPM to radians per second. */
