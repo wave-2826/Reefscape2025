@@ -2,6 +2,8 @@ package frc.robot.subsystems.arm;
 
 import static edu.wpi.first.units.Units.Meters;
 
+import org.littletonrobotics.junction.Logger;
+
 import com.revrobotics.sim.SparkAbsoluteEncoderSim;
 import com.revrobotics.sim.SparkFlexSim;
 import com.revrobotics.sim.SparkLimitSwitchSim;
@@ -10,6 +12,7 @@ import com.revrobotics.sim.SparkMaxSim;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.math.system.plant.LinearSystemId;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.simulation.DCMotorSim;
 import edu.wpi.first.wpilibj.simulation.ElevatorSim;
 import edu.wpi.first.wpilibj.simulation.RoboRioSim;
@@ -73,9 +76,11 @@ public class ArmIOSim extends ArmIOReal {
         verticalGamePieceSwitchSim = armWristMotorSim.getForwardLimitSwitchSim();
         horizontalGamePieceSwitchSim = armWristMotorSim.getReverseLimitSwitchSim();
 
-        elevatorSim = new ElevatorSim(elevatorMotors, ArmConstants.ElevatorConstants.elevatorPositionConversionFactor,
+        // Gravity simulation is turned off because the elevator and arm are counterweighted.
+
+        elevatorSim = new ElevatorSim(elevatorMotors, ArmConstants.ElevatorConstants.elevatorReduction,
             elevatorCarriageMassKg, ArmConstants.ElevatorConstants.elevatorDrumRadiusMeters, 0,
-            ArmConstants.ElevatorConstants.maxElevatorHeight.in(Meters), true, 0.5);
+            ArmConstants.ElevatorConstants.maxElevatorHeight.in(Meters), false, Units.inchesToMeters(15.0));
 
         armSim = new SingleJointedArmSim(armMotors, ArmConstants.ShoulderConstants.elevatorPitchReduction, armMOI,
             ArmConstants.ShoulderConstants.armLength.in(Meters), armMinAngle.getRadians(), armMaxAngle.getRadians(),

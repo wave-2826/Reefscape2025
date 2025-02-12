@@ -214,8 +214,8 @@ public class ArmIOReal implements ArmIO {
 
     @Override
     public void setElevatorHeight(double heightMeters) {
-        elevatorHeightController1.setReference(heightMeters, ControlType.kMAXMotionPositionControl);
-        elevatorHeightController2.setReference(heightMeters, ControlType.kMAXMotionPositionControl);
+        elevatorHeightController1.setReference(heightMeters, ControlType.kPosition);
+        elevatorHeightController2.setReference(heightMeters, ControlType.kPosition);
     }
 
     @Override

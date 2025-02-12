@@ -2,6 +2,7 @@ package frc.robot.subsystems.arm;
 
 import org.littletonrobotics.junction.Logger;
 
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -33,6 +34,9 @@ public class Arm extends SubsystemBase {
 
     @Override
     public void periodic() {
+        io.setElevatorHeight(0.5);
+        io.setArmPitchPosition(Rotation2d.fromDegrees(45));
+
         io.updateInputs(inputs);
         Logger.processInputs("Arm", inputs);
 

@@ -1,14 +1,12 @@
 package frc.robot.util;
 
+import static edu.wpi.first.units.Units.Seconds;
+
 import com.revrobotics.REVLibError;
 import com.revrobotics.spark.SparkBase;
 import com.revrobotics.spark.config.SignalsConfig;
-
 import edu.wpi.first.util.function.BooleanConsumer;
 import edu.wpi.first.wpilibj.Timer;
-
-import static edu.wpi.first.units.Units.Seconds;
-
 import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 import java.util.function.DoubleConsumer;

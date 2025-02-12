@@ -24,13 +24,14 @@ public class ArmVisualizer {
         this.name = name;
 
         // TODO: Derive from robot base and elevator maximum extension
-        armMechanism = new LoggedMechanism2d(Units.inchesToMeters(30), Units.feetToMeters(7), new Color8Bit("#FF0000"));
+        armMechanism = new LoggedMechanism2d(Units.inchesToMeters(30), Units.feetToMeters(7), new Color8Bit("#050515"));
 
         var origin = ArmConstants.ElevatorConstants.elevatorOrigin;
+
         var armRoot = armMechanism.getRoot(name + "Root", origin.getX(), origin.getY());
         elevatorHeightLigament = armRoot.append(new LoggedMechanismLigament2d(name + "Elevator",
-            ArmConstants.ElevatorConstants.resetSwitchHeight.in(Meters), Math.PI / 2., 10.0, new Color8Bit("#00FF00")));
-        armPitchLigament = armRoot.append(new LoggedMechanismLigament2d(name + "ArmPitch",
+            ArmConstants.ElevatorConstants.resetSwitchHeight.in(Meters), 90., 10.0, new Color8Bit("#00FF00")));
+        armPitchLigament = elevatorHeightLigament.append(new LoggedMechanismLigament2d(name + "ArmPitch",
             ArmConstants.ShoulderConstants.armLength.in(Meters), 0., 10.0, new Color8Bit("#0000FF")));
     }
 

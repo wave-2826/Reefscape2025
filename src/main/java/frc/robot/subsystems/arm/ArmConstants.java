@@ -20,28 +20,28 @@ public class ArmConstants {
         public static final int elevatorHeightMotor1Id = /* TODO */ 50;
         public static final int elevatorHeightMotor2Id = /* TODO */ 51;
         public static final ClosedLoopConfig elevatorHeightClosedLoopConfig = new ClosedLoopConfig()
-            .pid(/* TODO */ 0.5, 0.0, 0.0) // Position PID
-            .apply(new MAXMotionConfig().positionMode(MAXMotionPositionMode.kMAXMotionTrapezoidal)
-                // Affected by the velocity conversion factor, so this is in meters per second^2
-                .maxAcceleration(Units.inchesToMeters(10))
-                // Affected by the velocity conversion factor, so this is in meters per second
-                .maxVelocity(Units.inchesToMeters(10))
-                // Affected by the position conversion factor, so this is in meters
-                .allowedClosedLoopError(Units.inchesToMeters(0.1)));
+            .pid(/* TODO */ 18.0, 0.0, 4.0); // Position PID
+        // .apply(new MAXMotionConfig().positionMode(MAXMotionPositionMode.kMAXMotionTrapezoidal)
+        //     // Affected by the velocity conversion factor, so this is in meters per second^2
+        //     .maxAcceleration(Units.inchesToMeters(999999))
+        //     // Affected by the velocity conversion factor, so this is in meters per second
+        //     .maxVelocity(Units.inchesToMeters(999999))
+        //     // Affected by the position conversion factor, so this is in meters
+        //     .allowedClosedLoopError(Units.inchesToMeters(0.1)));
 
-        public static final int elevatorMotorCurrentLimit = 20;
+        public static final int elevatorMotorCurrentLimit = 30;
         public static final boolean elevatorMotorInverted = false;
 
-        public static final double elevatorReduction = 5.;
+        public static final double elevatorReduction = 25.;
         public static final double elevatorDrumRadiusMeters = Units.inchesToMeters(2);
         /** The conversion factor from elevator motor rotations to height in meters. */
-        public static final double elevatorPositionConversionFactor = Math.PI * elevatorDrumRadiusMeters
+        public static final double elevatorPositionConversionFactor = 2 * Math.PI * elevatorDrumRadiusMeters
             / elevatorReduction;
 
         /** The conversion factor from elevator motor RPM to velocity in meters per second. */
         public static final double elevatorVelocityConversionFactor = elevatorPositionConversionFactor / 60.;
 
-        public static final Distance resetSwitchHeight = Meters.of(/* TODO */ 1.5);
+        public static final Distance resetSwitchHeight = Meters.of(/* TODO */ 0.4);
 
         /**
          * The maximum height of the outer stage relative to its hard stop.
