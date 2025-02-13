@@ -50,20 +50,4 @@ public interface ArmIO {
 
     public default void updateInputs(ArmIOInputs inputs) {
     }
-
-    // PID value setters for tunables
-    public default void setElevatorGains(double p, double i, double d) {
-    }
-
-    public default void setArmPitchGains(double p, double i, double d) {
-    }
-
-    public default void setArmWristPositionGains(double p, double i, double d) {
-    }
-
-    public default void setArmWristVelocityGains(double p, double i, double d, double f) {
-    }
-
-    public default void setEndEffectorGains(double p, double i, double d, double f) {
-    }
 }

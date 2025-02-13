@@ -68,8 +68,7 @@ public class ArmIOReal implements ArmIO {
 
         // Configure motor controllers
         SparkFlexConfig elevatorMotorConfig = new SparkFlexConfig();
-        elevatorMotorConfig.closedLoop.pid(ArmConstants.ElevatorConstants.elevatorKp,
-            ArmConstants.ElevatorConstants.elevatorKi, ArmConstants.ElevatorConstants.elevatorKd)
+        elevatorMotorConfig.closedLoop.apply(ArmConstants.ElevatorConstants.elevatorPID.getConfig())
             .feedbackSensor(FeedbackSensor.kPrimaryEncoder);
         elevatorMotorConfig.encoder
             .positionConversionFactor(ArmConstants.ElevatorConstants.elevatorPositionConversionFactor)
@@ -90,9 +89,8 @@ public class ArmIOReal implements ArmIO {
             ResetMode.kResetSafeParameters, PersistMode.kPersistParameters));
 
         SparkMaxConfig armPitchConfig = new SparkMaxConfig();
-        armPitchConfig.closedLoop.feedbackSensor(FeedbackSensor.kAbsoluteEncoder).pid(
-            ArmConstants.ShoulderConstants.armPitchKp, ArmConstants.ShoulderConstants.armPitchKi,
-            ArmConstants.ShoulderConstants.armPitchKd);
+        armPitchConfig.closedLoop.apply(ArmConstants.ShoulderConstants.armPitchPID.getConfig())
+            .feedbackSensor(FeedbackSensor.kAbsoluteEncoder);
         armPitchConfig.absoluteEncoder
             .positionConversionFactor(ArmConstants.ShoulderConstants.pitchPositionConversionFactor)
             .velocityConversionFactor(ArmConstants.ShoulderConstants.pitchVelocityConversionFactor);
@@ -108,12 +106,7 @@ public class ArmIOReal implements ArmIO {
             PersistMode.kPersistParameters));
 
         SparkMaxConfig armWristConfig = new SparkMaxConfig();
-        armWristConfig.closedLoop
-            .pid(ArmConstants.ShoulderConstants.armWristPositionKp, ArmConstants.ShoulderConstants.armWristPositionKi,
-                ArmConstants.ShoulderConstants.armWristPositionKd, ArmConstants.ShoulderConstants.armWristPositionSlot)
-            .pidf(ArmConstants.ShoulderConstants.armWristVelocityKp, ArmConstants.ShoulderConstants.armWristVelocityKi,
-                ArmConstants.ShoulderConstants.armWristVelocityKd, ArmConstants.ShoulderConstants.armWristVelocityKf,
-                ArmConstants.ShoulderConstants.armWristVelocitySlot)
+        armWristConfig.closedLoop.apply(ArmConstants.ShoulderConstants.armWristPID.getConfig())
             .feedbackSensor(FeedbackSensor.kAbsoluteEncoder);
         armWristConfig.absoluteEncoder
             .positionConversionFactor(ArmConstants.ShoulderConstants.wristPositionConversionFactor)
@@ -133,9 +126,8 @@ public class ArmIOReal implements ArmIO {
             PersistMode.kPersistParameters));
 
         SparkMaxConfig endEffectorConfig = new SparkMaxConfig();
-        endEffectorConfig.closedLoop.feedbackSensor(FeedbackSensor.kPrimaryEncoder).pidf(
-            ArmConstants.EndEffectorConstants.endEffectorKp, ArmConstants.EndEffectorConstants.endEffectorKi,
-            ArmConstants.EndEffectorConstants.endEffectorKd, ArmConstants.EndEffectorConstants.endEffectorKf);
+        endEffectorConfig.closedLoop.apply(ArmConstants.EndEffectorConstants.endEffectorPID.getConfig())
+            .feedbackSensor(FeedbackSensor.kPrimaryEncoder);
         endEffectorConfig.encoder
             .positionConversionFactor(ArmConstants.EndEffectorConstants.endEffectorPositionConversionFactor)
             .velocityConversionFactor(ArmConstants.EndEffectorConstants.endEffectorVelocityConversionFactor);
@@ -149,6 +141,13 @@ public class ArmIOReal implements ArmIO {
 
         tryUntilOk(endEffectorMotor, 5, () -> endEffectorMotor.configure(endEffectorConfig,
             ResetMode.kResetSafeParameters, PersistMode.kPersistParameters));
+
+        // Register the tunable PIDs
+        ArmConstants.ElevatorConstants.elevatorPID.configureSparkOnChange(elevatorHeightMotor1);
+        ArmConstants.ElevatorConstants.elevatorPID.configureSparkOnChange(elevatorHeightMotor2);
+        ArmConstants.ShoulderConstants.armPitchPID.configureSparkOnChange(armPitchMotor);
+        ArmConstants.ShoulderConstants.armWristPID.configureSparkOnChange(armWristMotor);
+        ArmConstants.EndEffectorConstants.endEffectorPID.configureSparkOnChange(endEffectorMotor);
 
         // Create closed loop controllers
         elevatorHeightController1 = elevatorHeightMotor1.getClosedLoopController();
@@ -245,47 +244,5 @@ public class ArmIOReal implements ArmIO {
     @Override
     public void setEndEffectorVelocity(double velocityRadPerSecond) {
         endEffectorController.setReference(velocityRadPerSecond, ControlType.kVelocity);
-    }
-
-    @Override
-    public void setElevatorGains(double p, double i, double d) {
-        SparkFlexConfig newConfig = new SparkFlexConfig();
-        newConfig.closedLoop.pid(p, i, d);
-        tryUntilOk(elevatorHeightMotor1, 5, () -> elevatorHeightMotor1.configure(newConfig,
-            ResetMode.kNoResetSafeParameters, PersistMode.kNoPersistParameters));
-        tryUntilOk(elevatorHeightMotor2, 5, () -> elevatorHeightMotor2.configure(newConfig,
-            ResetMode.kNoResetSafeParameters, PersistMode.kNoPersistParameters));
-    }
-
-    @Override
-    public void setArmPitchGains(double p, double i, double d) {
-        SparkMaxConfig newConfig = new SparkMaxConfig();
-        newConfig.closedLoop.pid(p, i, d);
-        tryUntilOk(armPitchMotor, 5, () -> armPitchMotor.configure(newConfig, ResetMode.kNoResetSafeParameters,
-            PersistMode.kNoPersistParameters));
-    }
-
-    @Override
-    public void setArmWristPositionGains(double p, double i, double d) {
-        SparkMaxConfig newConfig = new SparkMaxConfig();
-        newConfig.closedLoop.pid(p, i, d, ArmConstants.ShoulderConstants.armWristPositionSlot);
-        tryUntilOk(armWristMotor, 5, () -> armWristMotor.configure(newConfig, ResetMode.kNoResetSafeParameters,
-            PersistMode.kNoPersistParameters));
-    }
-
-    @Override
-    public void setArmWristVelocityGains(double p, double i, double d, double f) {
-        SparkMaxConfig newConfig = new SparkMaxConfig();
-        newConfig.closedLoop.pidf(p, i, d, f, ArmConstants.ShoulderConstants.armWristVelocitySlot);
-        tryUntilOk(armWristMotor, 5, () -> armWristMotor.configure(newConfig, ResetMode.kNoResetSafeParameters,
-            PersistMode.kNoPersistParameters));
-    }
-
-    @Override
-    public void setEndEffectorGains(double p, double i, double d, double f) {
-        SparkFlexConfig newConfig = new SparkFlexConfig();
-        newConfig.closedLoop.pidf(p, i, d, f);
-        tryUntilOk(endEffectorMotor, 5, () -> endEffectorMotor.configure(newConfig, ResetMode.kNoResetSafeParameters,
-            PersistMode.kNoPersistParameters));
     }
 }

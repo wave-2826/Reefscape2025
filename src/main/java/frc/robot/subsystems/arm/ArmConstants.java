@@ -8,6 +8,7 @@ import com.revrobotics.spark.ClosedLoopSlot;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.units.measure.Distance;
+import frc.robot.util.LoggedTunableSparkPID;
 
 /**
  * Constants related to the arm subsystem.
@@ -18,9 +19,8 @@ public class ArmConstants {
         public static final int elevatorHeightMotor2Id = /* TODO */ 51;
 
         // PID constants for the elevator position PID
-        public static final double elevatorKp = 18.0;
-        public static final double elevatorKi = 0.0;
-        public static final double elevatorKd = 4.0;
+        public static final LoggedTunableSparkPID elevatorPID = new LoggedTunableSparkPID("Arm/Elevator")
+            .addRealRobotGains(18.0, 0.0, 4.0).addSimGains(18.0, 0.0, 4.0);
 
         public static final int elevatorMotorCurrentLimit = 30;
         public static final boolean elevatorMotorInverted = false;
@@ -78,10 +78,8 @@ public class ArmConstants {
     public class ShoulderConstants {
         public static final int armPitchMotorId = /* TODO */ 52;
 
-        // The PID constants for the arm pitch position PID
-        public static final double armPitchKp = 0.5;
-        public static final double armPitchKi = 0.0;
-        public static final double armPitchKd = 0.0;
+        public static final LoggedTunableSparkPID armPitchPID = new LoggedTunableSparkPID("Arm/Pitch")
+            .addRealRobotGains(0.5, 0.0, 0.0).addSimGains(0.5, 0.0, 0.0);
 
         public static final double elevatorPitchReduction = 5 * (84 / 48);
         /** The conversion factor from pitch motor rotations to radians. */
@@ -96,16 +94,10 @@ public class ArmConstants {
         public static final ClosedLoopSlot armWristPositionSlot = ClosedLoopSlot.kSlot0;
         public static final ClosedLoopSlot armWristVelocitySlot = ClosedLoopSlot.kSlot1;
 
-        // The PID constants for the arm wrist position PID
-        public static final double armWristPositionKp = 0.5;
-        public static final double armWristPositionKi = 0.0;
-        public static final double armWristPositionKd = 0.0;
-
-        // The PID constants for the arm wrist velocity PID
-        public static final double armWristVelocityKp = 0.5;
-        public static final double armWristVelocityKi = 0.0;
-        public static final double armWristVelocityKd = 0.0;
-        public static final double armWristVelocityKf = 1. / 917; // 917 is the Neo 550 Kf value
+        public static final LoggedTunableSparkPID armWristPID = new LoggedTunableSparkPID("Arm/Wrist")
+            .addRealRobotGains(0.5, 0.0, 0.0, armWristPositionSlot).addSimGains(0.5, 0.0, 0.0, armWristPositionSlot)
+            .addRealRobotGains(0.5, 0.0, 1 / 917, armWristVelocitySlot)
+            .addSimGains(0.5, 0.0, 0.0, 1 / 917, armWristVelocitySlot); // 917 is the Neo 550 Kf value
 
         public static final double armWristReduction = 25.;
         /** The conversion factor from wrist motor rotations to radians. */
@@ -136,12 +128,9 @@ public class ArmConstants {
 
         public static final double endEffectorReduction = 5.;
 
-        // The PIDF constnats for the end effector velocity PID
-        public static final double endEffectorKp = 0.5;
-        public static final double endEffectorKi = 0.0;
-        public static final double endEffectorKd = 0.0;
         // TODO: Find the proper value for this. Is it multiplied by the setpoint or motor speed? The REV docs are unclear.
-        public static final double endEffectorKf = 1. / 565;
+        public static final LoggedTunableSparkPID endEffectorPID = new LoggedTunableSparkPID("Arm/EndEffector")
+            .addRealRobotGains(0.5, 0.0, 0.0, 1. / 565).addSimGains(0.5, 0.0, 0.0);
 
         /** The conversion factor from end effector motor rotations to radians. */
         public static final double endEffectorPositionConversionFactor = 2 * Math.PI / endEffectorReduction;

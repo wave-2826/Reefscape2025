@@ -14,12 +14,7 @@ public class IntakeConstants {
     public static ClosedLoopConfig frontTopClosedLoopConfig = new ClosedLoopConfig() // Velocity
         .pid(/* TODO */ 0.5, 0.0, 0.0);
 
-    public static int agitatorMotor1Id = 46;
-    public static int agitatorMotor2Id = 47;
-    public static ClosedLoopConfig agitatorClosedLoopConfig = new ClosedLoopConfig() // Velocity
-        .pid(/* TODO */ 0.5, 0.0, 0.0);
-
-    public static int beltMotorId = 48;
+    public static int beltMotorId = 46;
     public static ClosedLoopConfig beltClosedLoopConfig = new ClosedLoopConfig() // Velocity
         .pid(/* TODO */ 0.5, 0.0, 0.0);
 }
