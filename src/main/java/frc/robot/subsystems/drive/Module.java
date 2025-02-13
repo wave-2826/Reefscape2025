@@ -141,6 +141,12 @@ public class Module {
         io.setTurnPosition(state.angle);
     }
 
+    /** Sets if the drive and turn motors are in brake mode. */
+    public void setBrakeMode(boolean enable) {
+        io.setDriveBrakeMode(enable);
+        io.setTurnBrakeMode(enable);
+    }
+
     /**
      * Runs the module with the specified output while controlling to zero degrees.
      */

@@ -47,6 +47,14 @@ public interface ModuleIO {
     public default void setTurnPosition(Rotation2d rotation) {
     }
 
+    /** Sets if the drive motor brake is enabled. */
+    public default void setDriveBrakeMode(boolean enable) {
+    }
+
+    /** Sets if the turn motor brake is enabled. */
+    public default void setTurnBrakeMode(boolean enable) {
+    }
+
     /** Set P, I, and D gains for closed loop control on drive motor. */
     public default void setDrivePID(double kP, double kI, double kD) {
     }
@@ -56,8 +64,7 @@ public interface ModuleIO {
     }
 
     /**
-     * Set P gain, I gain, D gain, allowed closed loop error, and derivative filter for closed loop control on turn
-     * motor.
+     * Set P gain, I gain, D gain, and derivative filter for closed loop control on turn motor.
      */
     public default void setTurnPID(double kP, double kI, double kD, double derivativeFilter) {
     }

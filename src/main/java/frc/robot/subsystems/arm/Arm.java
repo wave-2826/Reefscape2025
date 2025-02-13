@@ -6,6 +6,8 @@ import org.littletonrobotics.junction.Logger;
 
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
+import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 /**
@@ -33,6 +35,24 @@ public class Arm extends SubsystemBase {
         this.inputs = new ArmIOInputsAutoLogged();
     }
 
+    public Command goToStateCommand(ArmState state) {
+        return Commands.runOnce(() -> {
+            targetState = state;
+        }, this).until(this::isAtTarget);
+    }
+
+    private static final double TARGET_HEIGHT_TOLERANCE_METERS = 0.05;
+    private static final double TARGET_PITCH_TOLERANCE_DEGREES = 2.0;
+    private static final double TARGET_WRIST_TOLERANCE_DEGREES = 2.0;
+
+    private boolean isAtTarget() {
+        return Math.abs(inputs.elevatorHeightMeters - targetState.height().in(Meters)) < TARGET_HEIGHT_TOLERANCE_METERS
+            && Math.abs(inputs.armPitchPosition.getDegrees()
+                - targetState.pitch().getDegrees()) < TARGET_PITCH_TOLERANCE_DEGREES
+            && Math.abs(inputs.armWristPosition.getDegrees()
+                - targetState.wristRotation().rotation.getDegrees()) < TARGET_WRIST_TOLERANCE_DEGREES;
+    }
+
     @Override
     public void periodic() {
         io.updateInputs(inputs);
@@ -42,6 +62,12 @@ public class Arm extends SubsystemBase {
         io.setArmPitchPosition(targetState.pitch());
         io.setWristRotation(targetState.wristRotation());
         io.setEndEffectorState(targetState.endEffectorState());
+
+        Logger.recordOutput("Arm/TargetHeight", targetState.height().in(Meters));
+        Logger.recordOutput("Arm/TargetPitch", targetState.pitch().getDegrees());
+        Logger.recordOutput("Arm/TargetWrist", targetState.wristRotation().rotation.getDegrees());
+        Logger.recordOutput("Arm/TargetEndEffector", targetState.endEffectorState().getVelocityControl().orElse(0.0));
+        Logger.recordOutput("Arm/AtTarget", isAtTarget());
 
         visualizer.update(inputs.elevatorHeightMeters, inputs.armPitchPosition, inputs.armWristPosition,
             inputs.gamePiecePresent);

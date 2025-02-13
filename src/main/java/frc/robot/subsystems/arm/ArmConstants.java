@@ -104,6 +104,12 @@ public class ArmConstants {
         public static final double wristPositionConversionFactor = 2 * Math.PI / armWristReduction;
         /** The conversion factor from wrist motor RPM to radians per second. */
         public static final double wristVelocityConversionFactor = wristPositionConversionFactor / 60.;
+
+        /** The conversion factor from wrist absolute encoder rotations to radians. */
+        public static final double wristAbsolutePositionFactor = 2 * Math.PI;
+        /** The conversion factor from wrist absolute encoder RPM to radians per second. */
+        public static final double wristAbsoluteVelocityFactor = wristPositionConversionFactor / 60.;
+
         public static final int wristMotorCurrentLimit = 10;
         public static final boolean wristMotorInverted = false;
 

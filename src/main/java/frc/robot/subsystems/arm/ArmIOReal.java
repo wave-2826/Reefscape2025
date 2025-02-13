@@ -45,6 +45,7 @@ public class ArmIOReal implements ArmIO {
     private RelativeEncoder elevatorHeightEncoder2;
     private AbsoluteEncoder armPitchEncoder;
     private AbsoluteEncoder armWristEncoder;
+    private RelativeEncoder armWristRelativeEncoder;
     private RelativeEncoder endEffectorEncoder;
 
     private SparkLimitSwitch elevatorResetSwitch;
@@ -119,9 +120,11 @@ public class ArmIOReal implements ArmIO {
         SparkMaxConfig armWristConfig = new SparkMaxConfig();
         armWristConfig.closedLoop.apply(ArmConstants.ShoulderConstants.armWristPID.getConfig())
             .feedbackSensor(FeedbackSensor.kAbsoluteEncoder);
-        armWristConfig.absoluteEncoder
-            .positionConversionFactor(ArmConstants.ShoulderConstants.wristPositionConversionFactor)
+        armWristConfig.encoder.positionConversionFactor(ArmConstants.ShoulderConstants.wristPositionConversionFactor)
             .velocityConversionFactor(ArmConstants.ShoulderConstants.wristVelocityConversionFactor);
+        armWristConfig.absoluteEncoder
+            .positionConversionFactor(ArmConstants.ShoulderConstants.wristAbsolutePositionFactor)
+            .velocityConversionFactor(ArmConstants.ShoulderConstants.wristAbsoluteVelocityFactor);
         armWristConfig.idleMode(IdleMode.kBrake)
             .smartCurrentLimit(ArmConstants.ShoulderConstants.wristMotorCurrentLimit)
             .voltageCompensation(Constants.voltageCompensation)
@@ -175,6 +178,7 @@ public class ArmIOReal implements ArmIO {
 
         armPitchEncoder = armPitchMotor.getAbsoluteEncoder();
         armWristEncoder = armWristMotor.getAbsoluteEncoder();
+        armWristRelativeEncoder = armWristMotor.getEncoder();
 
         endEffectorEncoder = endEffectorMotor.getEncoder();
 
@@ -263,7 +267,7 @@ public class ArmIOReal implements ArmIO {
             // Holding mode
             if(!endEffectorWasHolding) {
                 // Store the current wrist and end effector positions
-                startHoldWristPosition = Rotation2d.fromRadians(armWristEncoder.getPosition());
+                startHoldWristPosition = Rotation2d.fromRadians(armWristRelativeEncoder.getPosition());
                 startHoldEndEffectorPosition = Rotation2d.fromRadians(endEffectorEncoder.getPosition());
             }
             endEffectorWasHolding = true;
@@ -272,8 +276,7 @@ public class ArmIOReal implements ArmIO {
             double couplingFactor = Constants.currentMode == Constants.Mode.SIM ? 0
                 : ArmConstants.EndEffectorConstants.endEffectorCouplingFactor;
             double holdPositionRad = startHoldEndEffectorPosition.getRadians()
-                // TODO: Handle looping around at 0 by using the internal encoder on the arm wrist?
-                + (armWristEncoder.getPosition() - startHoldWristPosition.getRadians()) * couplingFactor;
+                + (armWristRelativeEncoder.getPosition() - startHoldWristPosition.getRadians()) * couplingFactor;
             endEffectorController.setReference(holdPositionRad, ControlType.kPosition,
                 ArmConstants.EndEffectorConstants.endEffectorPositionSlot);
         }

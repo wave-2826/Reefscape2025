@@ -16,6 +16,7 @@ import com.pathplanner.lib.util.swerve.SwerveSetpoint;
 import com.pathplanner.lib.util.swerve.SwerveSetpointGenerator;
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
+import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Twist2d;
@@ -81,6 +82,11 @@ public class Drive extends SubsystemBase {
     /** A callback that will be called if the robot hits a wall or is otherwise abruptly accelerated. */
     private static Runnable abruptStopCallback = null;
 
+    /** A debouncer that automatically unlocks the wheels after the robot has been disabled for a period of time. */
+    private final Debouncer unlockWheelsDebouncer = new Debouncer(2.0);
+    /** If the wheels are currently in brake mode. */
+    private boolean wheelsLocked = true;
+
     public static void setAbruptStopCommand(Command command) {
         Drive.abruptStopCallback = command::schedule;
     }
@@ -138,6 +144,13 @@ public class Drive extends SubsystemBase {
         // Stop moving when disabled
         if(DriverStation.isDisabled()) {
             for(var module : modules) module.stop();
+        }
+
+        // Unlock wheels if we've been disabled for a while
+        boolean shouldLock = unlockWheelsDebouncer.calculate(DriverStation.isEnabled()) || DriverStation.isEnabled();
+        if(shouldLock != wheelsLocked) {
+            wheelsLocked = shouldLock;
+            for(var module : modules) module.setBrakeMode(wheelsLocked);
         }
 
         // Log empty setpoint states when disabled

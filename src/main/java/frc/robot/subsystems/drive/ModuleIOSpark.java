@@ -188,6 +188,22 @@ public class ModuleIOSpark implements ModuleIO {
     }
 
     @Override
+    public void setDriveBrakeMode(boolean enable) {
+        SparkFlexConfig newConfig = new SparkFlexConfig();
+        newConfig.idleMode(enable ? IdleMode.kBrake : IdleMode.kCoast);
+        tryUntilOk(driveSpark, 5,
+            () -> driveSpark.configure(newConfig, ResetMode.kNoResetSafeParameters, PersistMode.kNoPersistParameters));
+    }
+
+    @Override
+    public void setTurnBrakeMode(boolean enable) {
+        SparkMaxConfig newConfig = new SparkMaxConfig();
+        newConfig.idleMode(enable ? IdleMode.kBrake : IdleMode.kCoast);
+        tryUntilOk(turnSpark, 5,
+            () -> turnSpark.configure(newConfig, ResetMode.kNoResetSafeParameters, PersistMode.kNoPersistParameters));
+    }
+
+    @Override
     public void resetToAbsolute() {
         // Both the turn encoder and turn absolute encoder have conversion factors
         // that represent radians of the output, so this requires no conversion.

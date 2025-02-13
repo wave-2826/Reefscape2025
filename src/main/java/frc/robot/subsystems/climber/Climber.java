@@ -11,6 +11,8 @@ public class Climber extends SubsystemBase {
     ClimberIO io;
     ClimberIOInputsAutoLogged inputs = new ClimberIOInputsAutoLogged();
 
+    ClimberVisualizer visualizer = new ClimberVisualizer("climber");
+
     public Climber(ClimberIO io) {
         this.io = io;
     }
@@ -19,5 +21,7 @@ public class Climber extends SubsystemBase {
     public void periodic() {
         io.updateInputs(inputs);
         Logger.processInputs("Climber", inputs);
+
+        visualizer.update(inputs.climberPosition);
     }
 }
