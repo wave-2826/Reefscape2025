@@ -24,6 +24,8 @@ import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.math.geometry.Rotation2d;
 import frc.robot.Constants;
+import frc.robot.subsystems.arm.ArmState.EndEffectorState;
+import frc.robot.subsystems.arm.ArmState.WristRotation;
 import frc.robot.util.SparkUtil;
 
 public class ArmIOReal implements ArmIO {
@@ -53,6 +55,15 @@ public class ArmIOReal implements ArmIO {
     private Debouncer armPitchConnectedDebouncer = new Debouncer(0.25);
     private Debouncer armWristConnectedDebouncer = new Debouncer(0.25);
     private Debouncer endEffectorConnectedDebouncer = new Debouncer(0.25);
+
+    // This holding logic is in the IO implementation because we don't recreate it in
+    // simulation.
+    /** If the end effector was in hold mode last update. Used to store the held position. */
+    private boolean endEffectorWasHolding = false;
+    /** The wrist position when we last started holding. */
+    private Rotation2d startHoldWristPosition = Rotation2d.fromDegrees(0.);
+    /** The end effector position when we last started holding. */
+    private Rotation2d startHoldEndEffectorPosition = Rotation2d.fromDegrees(0.);
 
     public ArmIOReal() {
         // Create motor contorllers 
@@ -230,8 +241,8 @@ public class ArmIOReal implements ArmIO {
     }
 
     @Override
-    public void setArmWristPosition(Rotation2d position) {
-        armWristController.setReference(position.getRadians(), ControlType.kPosition,
+    public void setWristRotation(WristRotation rotation) {
+        armWristController.setReference(rotation.rotation.getRadians(), ControlType.kPosition,
             ArmConstants.ShoulderConstants.armWristPositionSlot);
     }
 
@@ -242,7 +253,29 @@ public class ArmIOReal implements ArmIO {
     }
 
     @Override
-    public void setEndEffectorVelocity(double velocityRadPerSecond) {
-        endEffectorController.setReference(velocityRadPerSecond, ControlType.kVelocity);
+    public void setEndEffectorState(EndEffectorState state) {
+        var velocity = state.getVelocityControl();
+        if(velocity.isPresent()) {
+            endEffectorController.setReference(velocity.get(), ControlType.kVelocity,
+                ArmConstants.EndEffectorConstants.endEffectorVelocitySlot);
+            endEffectorWasHolding = false;
+        } else {
+            // Holding mode
+            if(!endEffectorWasHolding) {
+                // Store the current wrist and end effector positions
+                startHoldWristPosition = Rotation2d.fromRadians(armWristEncoder.getPosition());
+                startHoldEndEffectorPosition = Rotation2d.fromRadians(endEffectorEncoder.getPosition());
+            }
+            endEffectorWasHolding = true;
+
+            // We don't simulate the coaxial coupling in simulation, so we turn it off.
+            double couplingFactor = Constants.currentMode == Constants.Mode.SIM ? 0
+                : ArmConstants.EndEffectorConstants.endEffectorCouplingFactor;
+            double holdPositionRad = startHoldEndEffectorPosition.getRadians()
+                // TODO: Handle looping around at 0 by using the internal encoder on the arm wrist?
+                + (armWristEncoder.getPosition() - startHoldWristPosition.getRadians()) * couplingFactor;
+            endEffectorController.setReference(holdPositionRad, ControlType.kPosition,
+                ArmConstants.EndEffectorConstants.endEffectorPositionSlot);
+        }
     }
 }

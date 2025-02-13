@@ -128,9 +128,25 @@ public class ArmConstants {
 
         public static final double endEffectorReduction = 5.;
 
+        // The PID slot used for end effector position control. We need to use position control because
+        // the coaxial drive system has a coupling factor that could cause the piece to be spit out if
+        // the wrist is spun.
+        public static final ClosedLoopSlot endEffectorPositionSlot = ClosedLoopSlot.kSlot0;
+        // The PID slot used for end effector velocity control.
+        public static final ClosedLoopSlot endEffectorVelocitySlot = ClosedLoopSlot.kSlot1;
+
+        // The coupling factor between wrist rotation and end effector wheel rotation. Because we use
+        // a coaxial drive system, the end effector wheel's rotation is linked to the wrist rotation.
+        // We need to compensate for this by using position control on the end effector motor.
+        // For every 1 rotation of the wrist, the end effector wheel rotates endEffectorCouplingFactor times.
+        public static final double endEffectorCouplingFactor = 1.0; // TODO: Find the proper value for this. Maybe from empirical testing?
+
         // TODO: Find the proper value for this. Is it multiplied by the setpoint or motor speed? The REV docs are unclear.
         public static final LoggedTunableSparkPID endEffectorPID = new LoggedTunableSparkPID("Arm/EndEffector")
-            .addRealRobotGains(0.5, 0.0, 0.0, 1. / 565).addSimGains(0.5, 0.0, 0.0);
+            .addRealRobotGains(0.5, 0.0, 0.0, 1. / 565, endEffectorVelocitySlot)
+            .addSimGains(0.5, 0.0, 0.0, 1. / 565, endEffectorVelocitySlot)
+            .addRealRobotGains(0.5, 0.0, 0.0, endEffectorPositionSlot)
+            .addSimGains(0.5, 0.0, 0.0, endEffectorPositionSlot);
 
         /** The conversion factor from end effector motor rotations to radians. */
         public static final double endEffectorPositionConversionFactor = 2 * Math.PI / endEffectorReduction;

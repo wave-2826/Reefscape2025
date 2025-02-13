@@ -12,6 +12,7 @@ import org.ironmaple.simulation.drivesims.configs.SwerveModuleSimulationConfig;
 
 import com.pathplanner.lib.config.ModuleConfig;
 import com.pathplanner.lib.config.RobotConfig;
+
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.system.plant.DCMotor;
@@ -92,6 +93,15 @@ public class DriveConstants {
     public static final double turnEncoderVelocityFactor = turnEncoderPositionFactor / 60.0; // RPM -> Rad/Sec
     public static final double turnAbsoluteEncoderVelocityFactor = turnAbsoluteEncoderPositionFactor; // Volts/Sec -> Rad/Sec
 
+    // The coupling factor between module rotation and drive wheel rotation.
+    // In other words, 1 rotation of the azimuth results in turnDriveCouplingFactor drive wheel turns.
+    // Because the serve modules are coaxial, the drive wheel's rotation is linked to the module rotation.
+    // In practice, this has a very minimal effect on accuracy. However, it's pretty simple to account for,
+    // so we do.
+    // The coupling ratio is the inverse of the first stage of the drive gear ratio (which is the case for all current COTS modules).
+    public static final double turnDriveCouplingFactor = 1. / Mk4Reductions.L2.firstStageReduction
+        / driveMotorReduction;
+
     // Turn PID configuration
     public static final double turnKp = 3.0;
     public static final double turnKd = 2.0;
@@ -121,17 +131,24 @@ public class DriveConstants {
 
     private enum Mk4Reductions {
         // @formatter:off
-        L1((50.0 / 14.0) * (19.0 / 25.0) * (45.0 / 15.0)),
-        L2((50.0 / 14.0) * (17.0 / 27.0) * (45.0 / 15.0)),
-        L3((50.0 / 14.0) * (16.0 / 28.0) * (45.0 / 15.0)),
-        L4((48.0 / 16.0) * (16.0 / 28.0) * (45.0 / 15.0)),
+        L1(50.0 / 14.0, 19.0 / 25.0, 45.0 / 15.0),
+        L2(50.0 / 14.0, 17.0 / 27.0, 45.0 / 15.0),
+        L3(50.0 / 14.0, 16.0 / 28.0, 45.0 / 15.0),
+        L4(48.0 / 16.0, 16.0 / 28.0, 45.0 / 15.0),
         Turn((12.8 / 1.0));
         // @formatter:on
 
+        final double firstStageReduction;
         final double reduction;
 
         Mk4Reductions(double reduction) {
+            this.firstStageReduction = reduction;
             this.reduction = reduction;
+        }
+
+        Mk4Reductions(double firstStage, double secondStage, double thirdStage) {
+            this.reduction = firstStage * secondStage * thirdStage;
+            this.firstStageReduction = firstStage;
         }
     }
 }

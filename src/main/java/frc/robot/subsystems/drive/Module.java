@@ -9,6 +9,7 @@ import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
+import frc.robot.Constants;
 import frc.robot.util.LoggedTunableNumber;
 
 import org.littletonrobotics.junction.Logger;
@@ -117,7 +118,11 @@ public class Module {
         state.cosineScale(inputs.relativeTurnPosition);
 
         // Apply setpoints
-        double speedRadPerSec = state.speedMetersPerSecond / DriveConstants.wheelRadiusMeters;
+        // The simulation doesn't account for swerve azimuth coupling, so we don't do
+        // couple calculation in simulation.
+        double coupleRadPerSecond = Constants.currentMode == Constants.Mode.SIM ? 0
+            : DriveConstants.turnDriveCouplingFactor * inputs.turnVelocityRadPerSec;
+        double speedRadPerSec = state.speedMetersPerSecond / DriveConstants.wheelRadiusMeters + coupleRadPerSecond;
         io.setDriveVelocity(speedRadPerSec, ffModel.calculate(speedRadPerSec)); // TODO: Acceleration feedforward   
         io.setTurnPosition(state.angle);
     }

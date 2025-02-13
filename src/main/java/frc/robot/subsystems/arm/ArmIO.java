@@ -3,6 +3,8 @@ package frc.robot.subsystems.arm;
 import org.littletonrobotics.junction.AutoLog;
 
 import edu.wpi.first.math.geometry.Rotation2d;
+import frc.robot.subsystems.arm.ArmState.EndEffectorState;
+import frc.robot.subsystems.arm.ArmState.WristRotation;
 
 public interface ArmIO {
     @AutoLog
@@ -39,13 +41,13 @@ public interface ArmIO {
     public default void setArmPitchPosition(Rotation2d position) {
     }
 
-    public default void setArmWristPosition(Rotation2d position) {
+    public default void setWristRotation(WristRotation rotation) {
     }
 
     public default void setArmWristVelocity(double velocityRadPerSecond) {
     }
 
-    public default void setEndEffectorVelocity(double velocityRadPerSecond) {
+    public default void setEndEffectorState(EndEffectorState mode) {
     }
 
     public default void updateInputs(ArmIOInputs inputs) {
