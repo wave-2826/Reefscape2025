@@ -83,7 +83,7 @@ public class Drive extends SubsystemBase {
     private static Runnable abruptStopCallback = null;
 
     /** A debouncer that automatically unlocks the wheels after the robot has been disabled for a period of time. */
-    private final Debouncer unlockWheelsDebouncer = new Debouncer(2.0);
+    private final Debouncer unlockWheelsDebouncer = new Debouncer(2.0, Debouncer.DebounceType.kFalling);
     /** If the wheels are currently in brake mode. */
     private boolean wheelsLocked = true;
 
@@ -147,7 +147,7 @@ public class Drive extends SubsystemBase {
         }
 
         // Unlock wheels if we've been disabled for a while
-        boolean shouldLock = unlockWheelsDebouncer.calculate(DriverStation.isEnabled()) || DriverStation.isEnabled();
+        boolean shouldLock = unlockWheelsDebouncer.calculate(DriverStation.isEnabled());
         if(shouldLock != wheelsLocked) {
             wheelsLocked = shouldLock;
             for(var module : modules) module.setBrakeMode(wheelsLocked);

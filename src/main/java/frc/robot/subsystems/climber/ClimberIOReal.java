@@ -13,15 +13,17 @@ import com.revrobotics.AbsoluteEncoder;
 import com.revrobotics.spark.SparkClosedLoopController;
 import com.revrobotics.spark.SparkMax;
 
+import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.math.geometry.Rotation2d;
 import frc.robot.Constants;
 import frc.robot.util.SparkUtil;
 
 public class ClimberIOReal implements ClimberIO {
-    SparkMax climberMotor;
-    AbsoluteEncoder climberEncoder;
+    private SparkMax climberMotor;
+    private AbsoluteEncoder climberEncoder;
+    private SparkClosedLoopController climberMotorController;
 
-    SparkClosedLoopController climberMotorController;
+    private Debouncer climberConnectedDebouncer = new Debouncer(0.25);
 
     public ClimberIOReal() {
         climberMotor = new SparkMax(ClimberConstants.climberMotorId, MotorType.kBrushless);
@@ -50,7 +52,7 @@ public class ClimberIOReal implements ClimberIO {
     public void updateInputs(ClimberIOInputs inputs) {
         sparkStickyFault = false;
         ifOk(climberMotor, climberEncoder::getPosition, a -> inputs.climberPosition = Rotation2d.fromRadians(a));
-        inputs.climberMotorConnected = !sparkStickyFault;
+        inputs.climberMotorConnected = climberConnectedDebouncer.calculate(!sparkStickyFault);
     }
 
     @Override

@@ -2,6 +2,8 @@ package frc.robot.subsystems.climber;
 
 import org.littletonrobotics.junction.Logger;
 
+import edu.wpi.first.wpilibj.Alert;
+import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 /**
@@ -13,6 +15,9 @@ public class Climber extends SubsystemBase {
 
     ClimberVisualizer visualizer = new ClimberVisualizer("climber");
 
+    private final Alert climberDisconnectedAlert = new Alert("Disconnected gyro, using kinematics as fallback.",
+        AlertType.kError);
+
     public Climber(ClimberIO io) {
         this.io = io;
     }
@@ -23,5 +28,7 @@ public class Climber extends SubsystemBase {
         Logger.processInputs("Climber", inputs);
 
         visualizer.update(inputs.climberPosition);
+
+        climberDisconnectedAlert.set(!inputs.climberMotorConnected);
     }
 }

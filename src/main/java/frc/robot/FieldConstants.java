@@ -70,7 +70,7 @@ public class FieldConstants {
         /** The right branch of the face on the left when at driver stations. */
         L(ReefFace.FrontLeft.getRightBranchPose());
 
-        Pose2d pose;
+        public Pose2d pose;
 
         ReefBranch(Pose2d pose) {
             this.pose = pose;
