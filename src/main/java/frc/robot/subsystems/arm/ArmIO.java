@@ -3,15 +3,12 @@ package frc.robot.subsystems.arm;
 import org.littletonrobotics.junction.AutoLog;
 
 import edu.wpi.first.math.geometry.Rotation2d;
-import frc.robot.subsystems.arm.ArmState.EndEffectorState;
 import frc.robot.subsystems.arm.ArmState.WristRotation;
 
 public interface ArmIO {
     @AutoLog
     public static class ArmIOInputs {
         public boolean gamePiecePresent = false;
-
-        public boolean elevatorLimitSwitchActive = false;
 
         /** The recorded arm pitch position. 0 degrees is upward and positive is clockwise. */
         public Rotation2d armPitchPosition = new Rotation2d();

@@ -19,10 +19,11 @@ import frc.robot.util.ReefTarget;
 
 public class AutoScoreCommands {
     public static Command autoAlignCommand(Drive drive, Pose2d target) {
-        return Commands.sequence(new PathfindingCommand(target,
-            new PathConstraints(MetersPerSecond.of(DriveConstants.maxSpeedMetersPerSec / 1.2),
-                MetersPerSecondPerSecond.of(10.), RadiansPerSecond.of(10.), RadiansPerSecondPerSecond.of(10.)),
-            null, null, null, null, null, null));
+        // return Commands.sequence(new PathfindingCommand(target,
+        //     new PathConstraints(MetersPerSecond.of(DriveConstants.maxSpeedMetersPerSec / 1.2),
+        //         MetersPerSecondPerSecond.of(10.), RadiansPerSecond.of(10.), RadiansPerSecondPerSecond.of(10.)),
+        //     null, null, null, null, null, null));
+        return Commands.none();
     }
 
     public static Command autoScoreCommand(Drive drive, Arm arm) {

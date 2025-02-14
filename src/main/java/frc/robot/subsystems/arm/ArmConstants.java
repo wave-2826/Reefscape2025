@@ -20,7 +20,7 @@ public class ArmConstants {
 
         // PID constants for the elevator position PID
         public static final LoggedTunableSparkPID elevatorPID = new LoggedTunableSparkPID("Arm/Elevator")
-            .addRealRobotGains(18.0, 0.0, 4.0).addSimGains(18.0, 0.0, 4.0);
+            .addRealRobotGains(18.0, 0.0, 4.0).addSimGains(10.0, 0.0, 8.0);
 
         public static final int elevatorMotorCurrentLimit = 30;
         public static final boolean elevatorMotorInverted = false;
@@ -132,7 +132,7 @@ public class ArmConstants {
     public class EndEffectorConstants {
         public static final int endEffectorMotorId = /* TODO */ 54;
 
-        public static final double endEffectorReduction = 5.;
+        public static final double endEffectorReduction = 32. / 11.;
 
         // The PID slot used for end effector position control. We need to use position control because
         // the coaxial drive system has a coupling factor that could cause the piece to be spit out if
@@ -145,7 +145,7 @@ public class ArmConstants {
         // a coaxial drive system, the end effector wheel's rotation is linked to the wrist rotation.
         // We need to compensate for this by using position control on the end effector motor.
         // For every 1 rotation of the wrist, the end effector wheel rotates endEffectorCouplingFactor times.
-        public static final double endEffectorCouplingFactor = 1.0; // TODO: Find the proper value for this. Maybe from empirical testing?
+        public static final double endEffectorCouplingFactor = endEffectorReduction / 2.; // TODO: Find the proper value for this. Maybe from empirical testing?
 
         // TODO: Find the proper value for this. Is it multiplied by the setpoint or motor speed? The REV docs are unclear.
         public static final LoggedTunableSparkPID endEffectorPID = new LoggedTunableSparkPID("Arm/EndEffector")

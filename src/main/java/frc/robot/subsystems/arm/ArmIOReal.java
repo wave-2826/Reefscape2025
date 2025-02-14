@@ -1,6 +1,5 @@
 package frc.robot.subsystems.arm;
 
-import static edu.wpi.first.units.Units.Meters;
 import static frc.robot.util.SparkUtil.*;
 
 import java.util.function.DoubleSupplier;
@@ -9,7 +8,6 @@ import com.revrobotics.AbsoluteEncoder;
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.spark.SparkClosedLoopController;
 import com.revrobotics.spark.SparkFlex;
-import com.revrobotics.spark.SparkLimitSwitch;
 import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.SparkBase;
 import com.revrobotics.spark.SparkBase.ControlType;
@@ -24,19 +22,20 @@ import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.math.geometry.Rotation2d;
 import frc.robot.Constants;
-import frc.robot.subsystems.arm.ArmState.EndEffectorState;
 import frc.robot.subsystems.arm.ArmState.WristRotation;
 import frc.robot.util.SparkUtil;
 
+import au.grapplerobotics.LaserCan;
+import au.grapplerobotics.ConfigurationFailedException;
+
 public class ArmIOReal implements ArmIO {
-    protected SparkFlex elevatorHeightMotor1;
-    protected SparkFlex elevatorHeightMotor2;
+    protected SparkFlex elevatorHeightMotorLeader;
+    protected SparkFlex elevatorHeightMotorFollower;
     protected SparkMax armPitchMotor;
     protected SparkMax armWristMotor;
     protected SparkFlex endEffectorMotor;
 
-    private SparkClosedLoopController elevatorHeightController1;
-    private SparkClosedLoopController elevatorHeightController2;
+    private SparkClosedLoopController elevatorHeightController;
     private SparkClosedLoopController armPitchController;
     private SparkClosedLoopController armWristController;
     private SparkClosedLoopController endEffectorController;
@@ -47,10 +46,6 @@ public class ArmIOReal implements ArmIO {
     private AbsoluteEncoder armWristEncoder;
     private RelativeEncoder armWristRelativeEncoder;
     private RelativeEncoder endEffectorEncoder;
-
-    private SparkLimitSwitch elevatorResetSwitch;
-    private SparkLimitSwitch verticalGamePieceSwitch;
-    private SparkLimitSwitch horizontalGamePieceSwitch;
 
     private Debouncer elevatorConnectedDebouncer = new Debouncer(0.25);
     private Debouncer armPitchConnectedDebouncer = new Debouncer(0.25);
@@ -66,11 +61,13 @@ public class ArmIOReal implements ArmIO {
     /** The end effector position when we last started holding. */
     private Rotation2d startHoldEndEffectorPosition = Rotation2d.fromDegrees(0.);
 
+    private LaserCan elevatorHeightSensor;
+
     public ArmIOReal() {
         // Create motor contorllers 
-        elevatorHeightMotor1 = new SparkFlex(ArmConstants.ElevatorConstants.elevatorHeightMotor1Id,
+        elevatorHeightMotorLeader = new SparkFlex(ArmConstants.ElevatorConstants.elevatorHeightMotor1Id,
             MotorType.kBrushless);
-        elevatorHeightMotor2 = new SparkFlex(ArmConstants.ElevatorConstants.elevatorHeightMotor2Id,
+        elevatorHeightMotorFollower = new SparkFlex(ArmConstants.ElevatorConstants.elevatorHeightMotor2Id,
             MotorType.kBrushless);
 
         armPitchMotor = new SparkMax(ArmConstants.ShoulderConstants.armPitchMotorId, MotorType.kBrushless);
@@ -79,26 +76,35 @@ public class ArmIOReal implements ArmIO {
         endEffectorMotor = new SparkFlex(ArmConstants.EndEffectorConstants.endEffectorMotorId, MotorType.kBrushless);
 
         // Configure motor controllers
-        SparkFlexConfig elevatorMotorConfig = new SparkFlexConfig();
-        elevatorMotorConfig.closedLoop.apply(ArmConstants.ElevatorConstants.elevatorPID.getConfig())
+        SparkFlexConfig elevatorMotorLeaderConfig = new SparkFlexConfig();
+        elevatorMotorLeaderConfig.closedLoop.apply(ArmConstants.ElevatorConstants.elevatorPID.getConfig())
             .feedbackSensor(FeedbackSensor.kPrimaryEncoder);
-        elevatorMotorConfig.encoder
+        elevatorMotorLeaderConfig.encoder
             .positionConversionFactor(ArmConstants.ElevatorConstants.elevatorPositionConversionFactor)
             .velocityConversionFactor(ArmConstants.ElevatorConstants.elevatorVelocityConversionFactor);
-        // We use the forward limit switch to reset the encoder, but don't actually disable actuation when it's pressed.
-        elevatorMotorConfig.limitSwitch.forwardLimitSwitchEnabled(false);
-        elevatorMotorConfig.idleMode(IdleMode.kBrake)
+        elevatorMotorLeaderConfig.idleMode(IdleMode.kBrake)
             .smartCurrentLimit(ArmConstants.ElevatorConstants.elevatorMotorCurrentLimit)
             .voltageCompensation(Constants.voltageCompensation)
             .inverted(ArmConstants.ElevatorConstants.elevatorMotorInverted);
-        elevatorMotorConfig.signals.apply(SparkUtil.defaultSignals).limitsPeriodMs(20)
+        elevatorMotorLeaderConfig.signals.apply(SparkUtil.defaultSignals).limitsPeriodMs(20)
             .primaryEncoderPositionAlwaysOn(true).primaryEncoderVelocityAlwaysOn(true)
             .primaryEncoderPositionPeriodMs(20).primaryEncoderVelocityPeriodMs(20);
 
-        tryUntilOk(elevatorHeightMotor1, 5, () -> elevatorHeightMotor1.configure(elevatorMotorConfig,
+        SparkFlexConfig elevatorMotorFollowerConfig = new SparkFlexConfig();
+        elevatorMotorFollowerConfig.encoder
+            .positionConversionFactor(ArmConstants.ElevatorConstants.elevatorPositionConversionFactor)
+            .velocityConversionFactor(ArmConstants.ElevatorConstants.elevatorVelocityConversionFactor);
+        elevatorMotorFollowerConfig.idleMode(IdleMode.kBrake)
+            .smartCurrentLimit(ArmConstants.ElevatorConstants.elevatorMotorCurrentLimit)
+            .voltageCompensation(Constants.voltageCompensation)
+            .inverted(ArmConstants.ElevatorConstants.elevatorMotorInverted);
+        elevatorMotorFollowerConfig.signals.apply(SparkUtil.defaultSignals);
+        elevatorMotorFollowerConfig.follow(ArmConstants.ElevatorConstants.elevatorHeightMotor1Id, true);
+
+        tryUntilOk(elevatorHeightMotorLeader, 5, () -> elevatorHeightMotorLeader.configure(elevatorMotorLeaderConfig,
             ResetMode.kResetSafeParameters, PersistMode.kPersistParameters));
-        tryUntilOk(elevatorHeightMotor2, 5, () -> elevatorHeightMotor2.configure(elevatorMotorConfig,
-            ResetMode.kResetSafeParameters, PersistMode.kPersistParameters));
+        tryUntilOk(elevatorHeightMotorFollower, 5, () -> elevatorHeightMotorFollower
+            .configure(elevatorMotorFollowerConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters));
 
         SparkMaxConfig armPitchConfig = new SparkMaxConfig();
         armPitchConfig.closedLoop.apply(ArmConstants.ShoulderConstants.armPitchPID.getConfig())
@@ -157,24 +163,20 @@ public class ArmIOReal implements ArmIO {
             ResetMode.kResetSafeParameters, PersistMode.kPersistParameters));
 
         // Register the tunable PIDs
-        ArmConstants.ElevatorConstants.elevatorPID.configureSparkOnChange(elevatorHeightMotor1);
-        ArmConstants.ElevatorConstants.elevatorPID.configureSparkOnChange(elevatorHeightMotor2);
+        ArmConstants.ElevatorConstants.elevatorPID.configureSparkOnChange(elevatorHeightMotorLeader);
         ArmConstants.ShoulderConstants.armPitchPID.configureSparkOnChange(armPitchMotor);
         ArmConstants.ShoulderConstants.armWristPID.configureSparkOnChange(armWristMotor);
         ArmConstants.EndEffectorConstants.endEffectorPID.configureSparkOnChange(endEffectorMotor);
 
         // Create closed loop controllers
-        elevatorHeightController1 = elevatorHeightMotor1.getClosedLoopController();
-        elevatorHeightController2 = elevatorHeightMotor2.getClosedLoopController();
+        elevatorHeightController = elevatorHeightMotorLeader.getClosedLoopController();
+
         armPitchController = armPitchMotor.getClosedLoopController();
         armWristController = armWristMotor.getClosedLoopController();
         endEffectorController = endEffectorMotor.getClosedLoopController();
 
-        // Create sensors
-        elevatorResetSwitch = elevatorHeightMotor1.getForwardLimitSwitch();
-
-        elevatorHeightEncoder1 = elevatorHeightMotor1.getEncoder();
-        elevatorHeightEncoder2 = elevatorHeightMotor2.getEncoder();
+        elevatorHeightEncoder1 = elevatorHeightMotorLeader.getEncoder();
+        elevatorHeightEncoder2 = elevatorHeightMotorFollower.getEncoder();
 
         armPitchEncoder = armPitchMotor.getAbsoluteEncoder();
         armWristEncoder = armWristMotor.getAbsoluteEncoder();
@@ -182,8 +184,15 @@ public class ArmIOReal implements ArmIO {
 
         endEffectorEncoder = endEffectorMotor.getEncoder();
 
-        verticalGamePieceSwitch = armWristMotor.getForwardLimitSwitch();
-        horizontalGamePieceSwitch = armWristMotor.getReverseLimitSwitch();
+        elevatorHeightSensor = new LaserCan(0);
+        // Optionally initialise the settings of the LaserCAN, if you haven't already done so in GrappleHook
+        try {
+            elevatorHeightSensor.setRangingMode(LaserCan.RangingMode.SHORT);
+            elevatorHeightSensor.setRegionOfInterest(new LaserCan.RegionOfInterest(8, 8, 16, 16));
+            elevatorHeightSensor.setTimingBudget(LaserCan.TimingBudget.TIMING_BUDGET_33MS);
+        } catch(ConfigurationFailedException e) {
+            System.out.println("Configuration failed! " + e);
+        }
     }
 
     @Override
@@ -191,19 +200,11 @@ public class ArmIOReal implements ArmIO {
         // Update elevator height motor inputs
         sparkStickyFault = false;
 
-        // TODO: Slightly more complicated logic to improve the precision of resetting by using our
-        // direction and resetting on the falling edge to the sensor top/bottom
-        ifOk(elevatorHeightMotor1, elevatorResetSwitch::isPressed, (v) -> inputs.elevatorLimitSwitchActive = v);
-        if(inputs.elevatorLimitSwitchActive) {
-            tryUntilOk(elevatorHeightMotor1, 1,
-                () -> elevatorHeightEncoder1.setPosition(ArmConstants.ElevatorConstants.resetSwitchHeight.in(Meters)));
-            tryUntilOk(elevatorHeightMotor2, 1,
-                () -> elevatorHeightEncoder2.setPosition(ArmConstants.ElevatorConstants.resetSwitchHeight.in(Meters)));
-        }
+        // TODO: Resetting elevator from laserCAN
 
         // We average the two encoders' readings because they may not be perfectly in sync.
         ifOk(new SparkBase[] {
-            elevatorHeightMotor1, elevatorHeightMotor2
+            elevatorHeightMotorLeader, elevatorHeightMotorFollower
         }, new DoubleSupplier[] {
             elevatorHeightEncoder1::getPosition, elevatorHeightEncoder2::getPosition
         }, (v) -> inputs.elevatorHeightMeters = (v[0] + v[1]) / 2.);
@@ -220,11 +221,9 @@ public class ArmIOReal implements ArmIO {
         sparkStickyFault = false;
         ifOk(armWristMotor, armWristEncoder::getPosition, (v) -> inputs.armWristPosition = Rotation2d.fromRadians(v));
         ifOk(armWristMotor, armWristEncoder::getVelocity, (v) -> inputs.armWristVelocity = v);
-        if(Math.abs(inputs.armWristPosition.getDegrees() % 180) < 45.) {
-            inputs.gamePiecePresent = verticalGamePieceSwitch.isPressed();
-        } else {
-            inputs.gamePiecePresent = horizontalGamePieceSwitch.isPressed();
-        }
+        // TODO: Update once we have game piece sensors
+        inputs.gamePiecePresent = false;
+
         inputs.armWristMotorConnected = armWristConnectedDebouncer.calculate(!sparkStickyFault);
 
         // Update end effector motor inputs
@@ -235,8 +234,7 @@ public class ArmIOReal implements ArmIO {
 
     @Override
     public void setElevatorHeight(double heightMeters) {
-        elevatorHeightController1.setReference(heightMeters, ControlType.kPosition);
-        elevatorHeightController2.setReference(heightMeters, ControlType.kPosition);
+        elevatorHeightController.setReference(heightMeters, ControlType.kPosition);
     }
 
     @Override

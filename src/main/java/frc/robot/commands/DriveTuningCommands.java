@@ -4,8 +4,8 @@ import static edu.wpi.first.units.Units.Volts;
 
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
-import java.util.LinkedList;
 import java.util.List;
+import java.util.LinkedList;
 
 import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;

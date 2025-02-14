@@ -15,8 +15,7 @@ public class Climber extends SubsystemBase {
 
     ClimberVisualizer visualizer = new ClimberVisualizer("climber");
 
-    private final Alert climberDisconnectedAlert = new Alert("Disconnected gyro, using kinematics as fallback.",
-        AlertType.kError);
+    private final Alert climberDisconnectedAlert = new Alert("Climber motor disconnected!", AlertType.kError);
 
     public Climber(ClimberIO io) {
         this.io = io;

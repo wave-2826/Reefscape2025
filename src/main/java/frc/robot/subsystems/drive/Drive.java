@@ -352,4 +352,9 @@ public class Drive extends SubsystemBase {
     public double getMaxAngularSpeedRadPerSec() {
         return maxSpeedMetersPerSec / driveBaseRadius;
     }
+
+    /**
+     * Gets a command that pathfinds to the target pose and precisely aligns to it. Gu
+     */
+    // TODO
 }

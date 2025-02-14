@@ -1,5 +1,10 @@
 package frc.robot.subsystems.climber;
 
 public class ClimberIOSim implements ClimberIO {
-    // TODO
+    @Override
+    public void updateInputs(ClimberIOInputs inputs) {
+        inputs.climberMotorConnected = true;
+
+        // TODO
+    }
 }

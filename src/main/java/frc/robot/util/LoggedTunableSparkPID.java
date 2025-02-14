@@ -44,10 +44,8 @@ public class LoggedTunableSparkPID {
         }
     }
 
-    /** The set of PID slots to be used when on a real robot. */
-    private ArrayList<PIDConstants> realRobotConstants;
     /** The set of PID slots to be used when on a simulated robot. */
-    private ArrayList<PIDConstants> simConstants;
+    private ArrayList<PIDConstants> pidSlots;
     /** The path to the tunable constants. */
     private String tunablePath;
     /** The list of sparks to be configured. */
@@ -74,8 +72,7 @@ public class LoggedTunableSparkPID {
      * @param tunablePath The path to the tunable constants.
      */
     public LoggedTunableSparkPID(String tunablePath) {
-        realRobotConstants = new ArrayList<>();
-        simConstants = new ArrayList<>();
+        pidSlots = new ArrayList<>();
         this.tunablePath = tunablePath;
 
         // Register a change listener to check for changes
@@ -92,9 +89,7 @@ public class LoggedTunableSparkPID {
      */
     public ClosedLoopConfig getConfig() {
         ClosedLoopConfig config = new ClosedLoopConfig();
-        ArrayList<PIDConstants> constants = Constants.currentMode == Constants.Mode.REAL ? realRobotConstants
-            : simConstants;
-        for(PIDConstants c : constants) {
+        for(PIDConstants c : pidSlots) {
             config.pidf(c.p.get(), c.i.get(), c.d.get(), c.f.get(), c.slot);
         }
         return config;
@@ -115,9 +110,7 @@ public class LoggedTunableSparkPID {
      * registered. This is called every loop iteration when in tuning mode.
      */
     private void checkChange() {
-        ArrayList<PIDConstants> constants = Constants.currentMode == Constants.Mode.REAL ? realRobotConstants
-            : simConstants;
-        for(PIDConstants c : constants) {
+        for(PIDConstants c : pidSlots) {
             if(c.hasChanged()) {
                 for(SparkBase spark : sparks) {
                     boolean isFlex = spark instanceof SparkFlex;
@@ -126,7 +119,6 @@ public class LoggedTunableSparkPID {
 
                     tryUntilOk(spark, 5, () -> spark.configure(config, ResetMode.kNoResetSafeParameters,
                         PersistMode.kNoPersistParameters));
-                    System.out.println("Configured " + spark.getDeviceId() + " with new PID constants");
                 }
                 return;
             }
@@ -144,7 +136,7 @@ public class LoggedTunableSparkPID {
      * @param slot
      */
     public LoggedTunableSparkPID addRealRobotGains(double p, double i, double d, double f, ClosedLoopSlot slot) {
-        realRobotConstants.add(new PIDConstants(p, i, d, f, slot));
+        if(Constants.currentMode == Constants.Mode.REAL) pidSlots.add(new PIDConstants(p, i, d, f, slot));
         return this;
     }
 
@@ -157,7 +149,7 @@ public class LoggedTunableSparkPID {
      * @param slot
      */
     public LoggedTunableSparkPID addSimGains(double p, double i, double d, double f, ClosedLoopSlot slot) {
-        simConstants.add(new PIDConstants(p, i, d, f, slot));
+        if(Constants.currentMode != Constants.Mode.REAL) pidSlots.add(new PIDConstants(p, i, d, f, slot));
         return this;
     }
 

@@ -4,11 +4,14 @@ import static edu.wpi.first.units.Units.Meters;
 
 import org.littletonrobotics.junction.Logger;
 
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.subsystems.arm.ArmState.WristRotation;
+import frc.robot.util.DriverStationInterface;
 
 /**
  * The arm subsystem. Manages the elevator, arm pitch, arm wrist rotation, and end effector. We combine all these into
@@ -22,7 +25,8 @@ public class Arm extends SubsystemBase {
 
     private final ArmVisualizer visualizer = new ArmVisualizer("arm");
 
-    private ArmState targetState;
+    private ArmState targetState = new ArmState(Rotation2d.fromDegrees(0.0), Meters.of(1.0), WristRotation.Vertical,
+        new EndEffectorState(EndEffectorState.Mode.Hold));
 
     private final Alert elevatorMotorDisconnectedAlert = new Alert("Elevator motor disconnected!", AlertType.kError);
     private final Alert armPitchMotorDisconnectedAlert = new Alert("Arm pitch motor disconnected!", AlertType.kError);
@@ -57,6 +61,10 @@ public class Arm extends SubsystemBase {
     public void periodic() {
         io.updateInputs(inputs);
         Logger.processInputs("Arm", inputs);
+
+        targetState = new ArmState(targetState.pitch(),
+            DriverStationInterface.getInstance().getReefTarget().level().height, targetState.wristRotation(),
+            targetState.endEffectorState());
 
         io.setElevatorHeight(targetState.height().in(Meters));
         io.setArmPitchPosition(targetState.pitch());
