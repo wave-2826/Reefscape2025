@@ -26,6 +26,8 @@ import frc.robot.subsystems.arm.ArmState.WristRotation;
 import frc.robot.util.SparkUtil;
 
 import au.grapplerobotics.LaserCan;
+import au.grapplerobotics.interfaces.LaserCanInterface;
+import au.grapplerobotics.interfaces.LaserCanInterface.Measurement;
 import au.grapplerobotics.ConfigurationFailedException;
 
 public class ArmIOReal implements ArmIO {
@@ -48,6 +50,7 @@ public class ArmIOReal implements ArmIO {
     private RelativeEncoder endEffectorEncoder;
 
     private Debouncer elevatorConnectedDebouncer = new Debouncer(0.25);
+    private Debouncer elevatorHeightSensorConnectedDebouncer = new Debouncer(0.25);
     private Debouncer armPitchConnectedDebouncer = new Debouncer(0.25);
     private Debouncer armWristConnectedDebouncer = new Debouncer(0.25);
     private Debouncer endEffectorConnectedDebouncer = new Debouncer(0.25);
@@ -61,9 +64,14 @@ public class ArmIOReal implements ArmIO {
     /** The end effector position when we last started holding. */
     private Rotation2d startHoldEndEffectorPosition = Rotation2d.fromDegrees(0.);
 
-    private LaserCan elevatorHeightSensor;
+    /** The elevator height sensor. Uses an interface to allow for simulation. */
+    protected LaserCanInterface elevatorHeightSensor;
 
     public ArmIOReal() {
+        this(null);
+    }
+
+    public ArmIOReal(LaserCanInterface overrideLaserCan) {
         // Create motor contorllers 
         elevatorHeightMotorLeader = new SparkFlex(ArmConstants.ElevatorConstants.elevatorHeightMotor1Id,
             MotorType.kBrushless);
@@ -156,8 +164,8 @@ public class ArmIOReal implements ArmIO {
             .voltageCompensation(Constants.voltageCompensation)
             .inverted(ArmConstants.EndEffectorConstants.endEffectorMotorInverted);
         endEffectorConfig.signals.apply(SparkUtil.defaultSignals) //
-            .primaryEncoderPositionAlwaysOn(false).primaryEncoderVelocityAlwaysOn(true)
-            .primaryEncoderVelocityPeriodMs(20);
+            .primaryEncoderPositionAlwaysOn(true).primaryEncoderPositionPeriodMs(20)
+            .primaryEncoderVelocityAlwaysOn(true).primaryEncoderVelocityPeriodMs(20);
 
         tryUntilOk(endEffectorMotor, 5, () -> endEffectorMotor.configure(endEffectorConfig,
             ResetMode.kResetSafeParameters, PersistMode.kPersistParameters));
@@ -184,12 +192,15 @@ public class ArmIOReal implements ArmIO {
 
         endEffectorEncoder = endEffectorMotor.getEncoder();
 
-        elevatorHeightSensor = new LaserCan(0);
-        // Optionally initialise the settings of the LaserCAN, if you haven't already done so in GrappleHook
+        if(overrideLaserCan != null) {
+            elevatorHeightSensor = overrideLaserCan;
+        } else {
+            elevatorHeightSensor = new LaserCan(ArmConstants.ElevatorConstants.elevatorHeightSensorId);
+        }
         try {
-            elevatorHeightSensor.setRangingMode(LaserCan.RangingMode.SHORT);
-            elevatorHeightSensor.setRegionOfInterest(new LaserCan.RegionOfInterest(8, 8, 16, 16));
-            elevatorHeightSensor.setTimingBudget(LaserCan.TimingBudget.TIMING_BUDGET_33MS);
+            elevatorHeightSensor.setRangingMode(LaserCan.RangingMode.LONG);
+            elevatorHeightSensor.setRegionOfInterest(new LaserCan.RegionOfInterest(8, 8, 4, 4));
+            elevatorHeightSensor.setTimingBudget(LaserCan.TimingBudget.TIMING_BUDGET_20MS);
         } catch(ConfigurationFailedException e) {
             System.out.println("Configuration failed! " + e);
         }
@@ -200,16 +211,30 @@ public class ArmIOReal implements ArmIO {
         // Update elevator height motor inputs
         sparkStickyFault = false;
 
-        // TODO: Resetting elevator from laserCAN
-
         // We average the two encoders' readings because they may not be perfectly in sync.
         ifOk(new SparkBase[] {
             elevatorHeightMotorLeader, elevatorHeightMotorFollower
         }, new DoubleSupplier[] {
             elevatorHeightEncoder1::getPosition, elevatorHeightEncoder2::getPosition
         }, (v) -> inputs.elevatorHeightMeters = (v[0] + v[1]) / 2.);
-
+        ifOk(new SparkBase[] {
+            elevatorHeightMotorLeader, elevatorHeightMotorFollower
+        }, new DoubleSupplier[] {
+            elevatorHeightEncoder1::getVelocity, elevatorHeightEncoder2::getVelocity
+        }, (v) -> inputs.elevatorVelocityMetersPerSecond = (v[0] + v[1]) / 2.);
         inputs.elevatorMotorsConnected = elevatorConnectedDebouncer.calculate(!sparkStickyFault);
+
+        // If the elevator is moving slowly, we can reset the encoder position to the elevator height
+        // from our sensor.
+        Measurement measurement = elevatorHeightSensor.getMeasurement();
+        inputs.elevatorHeightSensorConnected = elevatorHeightSensorConnectedDebouncer.calculate(measurement != null);
+        if(inputs.elevatorVelocityMetersPerSecond < 0.1 && inputs.elevatorMotorsConnected) {
+            if(measurement != null) {
+                double position = (double) (measurement.distance_mm) / 1000.;
+                elevatorHeightEncoder1.setPosition(position);
+                elevatorHeightEncoder2.setPosition(position);
+            }
+        }
 
         // Update arm pitch motor inputs
         sparkStickyFault = false;

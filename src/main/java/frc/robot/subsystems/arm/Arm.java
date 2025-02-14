@@ -29,6 +29,8 @@ public class Arm extends SubsystemBase {
         new EndEffectorState(EndEffectorState.Mode.Hold));
 
     private final Alert elevatorMotorDisconnectedAlert = new Alert("Elevator motor disconnected!", AlertType.kError);
+    private final Alert elevatorHeightSensorDisconnectedAlert = new Alert("Elevator height sensor disconnected!",
+        AlertType.kError);
     private final Alert armPitchMotorDisconnectedAlert = new Alert("Arm pitch motor disconnected!", AlertType.kError);
     private final Alert armWristMotorDisconnectedAlert = new Alert("Arm wrist motor disconnected!", AlertType.kError);
     private final Alert endEffectorMotorDisconnectedAlert = new Alert("End effector motor disconnected!",
@@ -42,7 +44,11 @@ public class Arm extends SubsystemBase {
     public Command goToStateCommand(ArmState state) {
         return Commands.runOnce(() -> {
             targetState = state;
-        }, this).until(this::isAtTarget);
+        }, this).until(this::isAtTarget).handleInterrupt(() -> {
+            // If we are interrupted, set the target state to the current state
+            targetState = new ArmState(inputs.armPitchPosition, Meters.of(inputs.elevatorHeightMeters),
+                WristRotation.Vertical, new EndEffectorState(EndEffectorState.Mode.Hold));
+        });
     }
 
     private static final double TARGET_HEIGHT_TOLERANCE_METERS = 0.05;
@@ -82,6 +88,7 @@ public class Arm extends SubsystemBase {
 
         // Update alerts
         elevatorMotorDisconnectedAlert.set(!inputs.elevatorMotorsConnected);
+        elevatorHeightSensorDisconnectedAlert.set(!inputs.elevatorHeightSensorConnected);
         armPitchMotorDisconnectedAlert.set(!inputs.armPitchMotorConnected);
         armWristMotorDisconnectedAlert.set(!inputs.armWristMotorConnected);
         endEffectorMotorDisconnectedAlert.set(!inputs.endEffectorMotorConnected);

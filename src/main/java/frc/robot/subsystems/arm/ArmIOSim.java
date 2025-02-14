@@ -10,10 +10,12 @@ import com.revrobotics.sim.SparkMaxSim;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.math.system.plant.LinearSystemId;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.simulation.DCMotorSim;
 import edu.wpi.first.wpilibj.simulation.ElevatorSim;
 import edu.wpi.first.wpilibj.simulation.RoboRioSim;
 import edu.wpi.first.wpilibj.simulation.SingleJointedArmSim;
+import frc.robot.util.sim.LaserCanSim;
 
 public class ArmIOSim extends ArmIOReal {
     private ElevatorSim elevatorSim;
@@ -33,7 +35,6 @@ public class ArmIOSim extends ArmIOReal {
     private SparkMaxSim armWristMotorSim;
     private SparkFlexSim endEffectorMotorSim;
 
-    private SparkLimitSwitchSim elevatorResetLimitSwitchSim;
     private SparkAbsoluteEncoderSim armPitchEncoderSim;
     private SparkAbsoluteEncoderSim armWristEncoderSim;
     private SparkLimitSwitchSim verticalGamePieceSwitchSim;
@@ -55,7 +56,9 @@ public class ArmIOSim extends ArmIOReal {
     private boolean gamePieceInEndEffector = false;
 
     public ArmIOSim() {
-        super();
+        super(
+            // Override the elevator height sensor with a simulated one.
+            new LaserCanSim(ArmConstants.ElevatorConstants.elevatorHeightSensorId));
 
         elevatorMotors = DCMotor.getNeoVortex(2);
         armMotors = DCMotor.getNEO(1);
@@ -67,7 +70,6 @@ public class ArmIOSim extends ArmIOReal {
         armWristMotorSim = new SparkMaxSim(armWristMotor, armWristMotors);
         endEffectorMotorSim = new SparkFlexSim(endEffectorMotor, endEffectorMotors);
 
-        elevatorResetLimitSwitchSim = elevatorMotorSim.getForwardLimitSwitchSim();
         armPitchEncoderSim = armPitchMotorSim.getAbsoluteEncoderSim();
         armWristEncoderSim = armWristMotorSim.getAbsoluteEncoderSim();
         verticalGamePieceSwitchSim = armWristMotorSim.getForwardLimitSwitchSim();
@@ -77,8 +79,7 @@ public class ArmIOSim extends ArmIOReal {
 
         elevatorSim = new ElevatorSim(elevatorMotors, ArmConstants.ElevatorConstants.elevatorReduction,
             elevatorCarriageMassKg, ArmConstants.ElevatorConstants.elevatorDrumRadiusMeters, 0,
-            ArmConstants.ElevatorConstants.maxElevatorHeight.in(Meters), false,
-            ArmConstants.ElevatorConstants.resetSwitchHeight.in(Meters));
+            ArmConstants.ElevatorConstants.maxElevatorHeight.in(Meters), false, Units.inchesToMeters(5.0));
 
         armSim = new SingleJointedArmSim(armMotors, ArmConstants.ShoulderConstants.elevatorPitchReduction, armMOI,
             ArmConstants.ShoulderConstants.armLength.in(Meters), armMinAngle.getRadians(), armMaxAngle.getRadians(),
@@ -120,13 +121,7 @@ public class ArmIOSim extends ArmIOReal {
         armWristMotorSim.iterate(armWristSim.getAngularVelocityRadPerSec(), vinVoltage, 0.02);
         endEffectorMotorSim.iterate(endEffectorSim.getAngularVelocityRadPerSec(), vinVoltage, 0.02);
 
-        // Update simulated IO on motor controllers
-        if(Math.abs(
-            elevatorSim.getPositionMeters() - ArmConstants.ElevatorConstants.resetSwitchHeight.in(Meters)) < 0.03) {
-            elevatorResetLimitSwitchSim.setPressed(true);
-        } else {
-            elevatorResetLimitSwitchSim.setPressed(false);
-        }
+        ((LaserCanSim) elevatorHeightSensor).setMeasurement(0, (int) (elevatorSim.getPositionMeters() * 1000), 0);
 
         super.updateInputs(inputs);
 

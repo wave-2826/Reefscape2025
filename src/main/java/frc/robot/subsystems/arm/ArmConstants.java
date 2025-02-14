@@ -17,6 +17,7 @@ public class ArmConstants {
     public class ElevatorConstants {
         public static final int elevatorHeightMotor1Id = /* TODO */ 50;
         public static final int elevatorHeightMotor2Id = /* TODO */ 51;
+        public static final int elevatorHeightSensorId = /* TODO */ 57;
 
         // PID constants for the elevator position PID
         public static final LoggedTunableSparkPID elevatorPID = new LoggedTunableSparkPID("Arm/Elevator")
@@ -33,8 +34,6 @@ public class ArmConstants {
 
         /** The conversion factor from elevator motor RPM to velocity in meters per second. */
         public static final double elevatorVelocityConversionFactor = elevatorPositionConversionFactor / 60.;
-
-        public static final Distance resetSwitchHeight = Meters.of(/* TODO */ 0.4);
 
         /**
          * The maximum height of the outer stage relative to its hard stop.

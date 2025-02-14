@@ -1,5 +1,6 @@
 package frc.robot.subsystems.drive;
 
+import static edu.wpi.first.units.Units.MetersPerSecondPerSecond;
 import static frc.robot.subsystems.drive.DriveConstants.driveBaseRadius;
 import static frc.robot.subsystems.drive.DriveConstants.maxSpeedMetersPerSec;
 import static frc.robot.subsystems.drive.DriveConstants.maxSteerVelocity;
@@ -7,6 +8,7 @@ import static frc.robot.subsystems.drive.DriveConstants.moduleTranslations;
 import static frc.robot.subsystems.drive.DriveConstants.pathplannerConfig;
 
 import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.commands.PathfindingCommand;
 import com.pathplanner.lib.config.PIDConstants;
 import com.pathplanner.lib.controllers.PPHolonomicDriveController;
 import com.pathplanner.lib.pathfinding.Pathfinding;
@@ -26,6 +28,7 @@ import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
+import edu.wpi.first.units.measure.LinearAcceleration;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj.DriverStation;
@@ -115,7 +118,7 @@ public class Drive extends SubsystemBase {
         SparkOdometryThread.getInstance().start();
 
         // Configure AutoBuilder for PathPlanner
-        AutoBuilder.configure(this::getPose, this::setPose, this::getChassisSpeeds, this::runVelocity,
+        AutoBuilder.configure(this::getPose, this::setPose, this::getChassisSpeeds, this::runVelocityWithFeedforward,
             new PPHolonomicDriveController(new PIDConstants(5.0, 0.0, 0.0), new PIDConstants(5.0, 0.0, 0.0)),
             pathplannerConfig, () -> DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red, this);
         Pathfinding.setPathfinder(new LocalADStarAK());
@@ -125,6 +128,11 @@ public class Drive extends SubsystemBase {
         PathPlannerLogging.setLogTargetPoseCallback((targetPose) -> {
             Logger.recordOutput("Odometry/TrajectorySetpoint", targetPose);
         });
+
+        // Due to how Java works, the first run of pathfinding commands can have significantly higher delay than subsequent runs.
+        // This can be partially alleviated by running a warmup command in the background when code starts.
+        // It won't control the robot; it simply runs through a full pathfinding command to warm up the library.
+        PathfindingCommand.warmupCommand().schedule();
 
         setpointGenerator = new SwerveSetpointGenerator(pathplannerConfig, maxSteerVelocity);
         previousSetpoint = new SwerveSetpoint(getChassisSpeeds(), getModuleStates(), DriveFeedforwards.zeros(4));
@@ -206,19 +214,37 @@ public class Drive extends SubsystemBase {
     }
 
     /**
+     * Runs the drive at the desired velocity with the specified feedforwards.
+     *
+     * @param speeds Speeds in meters/sec
+     */
+    public void runVelocityWithFeedforward(ChassisSpeeds speeds, DriveFeedforwards feedforwards) {
+        runVelocity(speeds, feedforwards.accelerations());
+    }
+
+    /**
+     * Runs the drive at the desired velocity. Doesn't account for acceleration.
+     * @param speeds
+     * @param accelerations
+     */
+    public void runVelocity(ChassisSpeeds speeds) {
+        runVelocity(speeds, new LinearAcceleration[] {
+            MetersPerSecondPerSecond.of(0), MetersPerSecondPerSecond.of(0), MetersPerSecondPerSecond.of(0),
+            MetersPerSecondPerSecond.of(0)
+        });
+    }
+
+    /**
      * Runs the drive at the desired velocity.
      *
      * @param speeds Speeds in meters/sec
      */
-    public void runVelocity(ChassisSpeeds speeds) {
+    public void runVelocity(ChassisSpeeds speeds, LinearAcceleration[] accelerations) {
         // Calculate module setpoints
         SwerveModuleState[] setpointStates;
         if(DriveConstants.USE_SETPOINT_GENERATOR) {
             previousSetpoint = setpointGenerator.generateSetpoint(previousSetpoint, speeds, 0.02);
             setpointStates = previousSetpoint.moduleStates();
-
-            // TODO: Determine if this has any benefits while using the setpoint generator
-            // SwerveDriveKinematics.desaturateWheelSpeeds(setpointStates, maxSpeedMetersPerSec);
         } else {
             ChassisSpeeds discreteSpeeds = ChassisSpeeds.discretize(speeds, 0.02);
             setpointStates = kinematics.toSwerveModuleStates(discreteSpeeds);
@@ -229,7 +255,7 @@ public class Drive extends SubsystemBase {
         Logger.recordOutput("SwerveStates/Setpoints", setpointStates);
 
         // Send setpoints to modules
-        for(int i = 0; i < 4; i++) modules[i].runSetpoint(setpointStates[i]);
+        for(int i = 0; i < 4; i++) modules[i].runSetpoint(setpointStates[i], accelerations[i]);
 
         // Log optimized setpoints (runSetpoint mutates each state)
         Logger.recordOutput("SwerveStates/SetpointsOptimized", setpointStates);
@@ -352,9 +378,4 @@ public class Drive extends SubsystemBase {
     public double getMaxAngularSpeedRadPerSec() {
         return maxSpeedMetersPerSec / driveBaseRadius;
     }
-
-    /**
-     * Gets a command that pathfinds to the target pose and precisely aligns to it. Gu
-     */
-    // TODO
 }
