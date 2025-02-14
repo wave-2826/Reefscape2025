@@ -6,11 +6,11 @@
     "GLOBAL": {
       "font": "Droid Sans",
       "fps": "0",
-      "height": "837",
+      "height": "461",
       "maximized": "1",
       "style": "1",
       "userScale": "2",
-      "width": "1600",
+      "width": "484",
       "xpos": "2560",
       "ypos": "232"
     }
@@ -46,13 +46,13 @@
     },
     "###FMS": {
       "Collapsed": "0",
-      "Pos": "32,486",
+      "Pos": "266,218",
       "Size": "273,140"
     },
     "###Joysticks": {
       "Collapsed": "0",
-      "Pos": "35,704",
-      "Size": "796,73"
+      "Pos": "125,443",
+      "Size": "796,155"
     },
     "###Keyboard 0 Settings": {
       "Collapsed": "0",
@@ -61,12 +61,12 @@
     },
     "###NetworkTables": {
       "Collapsed": "0",
-      "Pos": "756,38",
+      "Pos": "465,38",
       "Size": "770,336"
     },
     "###NetworkTables Info": {
       "Collapsed": "0",
-      "Pos": "756,69",
+      "Pos": "465,69",
       "Size": "760,306"
     },
     "###Other Devices": {
@@ -76,7 +76,7 @@
     },
     "###Plot <0>": {
       "Collapsed": "0",
-      "Pos": "859,390",
+      "Pos": "465,390",
       "Size": "700,400"
     },
     "###PowerDistributions": {
@@ -91,13 +91,13 @@
     },
     "###System Joysticks": {
       "Collapsed": "0",
-      "Pos": "559,419",
+      "Pos": "465,419",
       "Size": "154,218"
     },
     "###Timing": {
       "Collapsed": "0",
-      "Pos": "31,296",
-      "Size": "159,150"
+      "Pos": "48,204",
+      "Size": "168,173"
     },
     "Debug##Default": {
       "Collapsed": "0",

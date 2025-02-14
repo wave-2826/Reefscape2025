@@ -11,4 +11,12 @@ public record ReefTarget(ReefBranch branch, ReefLevel level) {
         return new ArmState(new Rotation2d(level.pitch), level.height, ArmState.WristRotation.Vertical,
             new EndEffectorState(EndEffectorState.Mode.Hold));
     }
+
+    @Override
+    public boolean equals(Object obj) {
+        if(this == obj) { return true; }
+        if(obj == null || getClass() != obj.getClass()) { return false; }
+        ReefTarget other = (ReefTarget) obj;
+        return branch == other.branch && level == other.level;
+    }
 }

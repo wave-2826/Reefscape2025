@@ -1,5 +1,8 @@
 package frc.robot.commands.drive;
 
+import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.util.FlippingUtil;
+
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
@@ -10,7 +13,7 @@ import frc.robot.util.LoggedTunableNumber;
 
 public class CloseLineupCommand extends Command {
     private final Drive drive;
-    private Pose2d poseFinal, currentPose;
+    private Pose2d targetPose, currentPose;
 
     private final PIDController xController, yController;
     private final PIDController thetaController;
@@ -39,14 +42,25 @@ public class CloseLineupCommand extends Command {
         thetaRotationKi.initDefault(0.0);
         thetaRotationKd.initDefault(0.0);
 
-        xTranslationTolerance.initDefault(0.005);
-        yTranslationTolerance.initDefault(0.005);
+        xTranslationTolerance.initDefault(Units.inchesToMeters(0.2));
+        yTranslationTolerance.initDefault(Units.inchesToMeters(0.2));
         thetaRotationTolerance.initDefault(Units.degreesToRadians(2));
     }
 
-    public CloseLineupCommand(Drive drive, Pose2d finalPose) {
+    /**
+     * A command that lines up the robot to a target pose using PID control. Doesn't avoid obstacles. NOTE: This
+     * automatically flips the target pose for the correct alliance. Provide target poses relative to the blue alliance.
+     * @param drive
+     * @param targetPose
+     */
+    public CloseLineupCommand(Drive drive, Pose2d targetPose) {
+        if(AutoBuilder.shouldFlip()) {
+            targetPose = FlippingUtil.flipFieldPose(targetPose);
+        }
+
         this.drive = drive;
-        this.poseFinal = finalPose;
+        this.targetPose = targetPose;
+
         this.xController = new PIDController(translationKp.get(), translationKi.get(), translationKd.get());
         this.yController = new PIDController(translationKp.get(), translationKi.get(), translationKd.get());
         this.thetaController = new PIDController(thetaRotationKp.get(), thetaRotationKi.get(), thetaRotationKd.get());
@@ -66,9 +80,9 @@ public class CloseLineupCommand extends Command {
         yController.reset();
         thetaController.reset();
 
-        xController.setSetpoint(poseFinal.getX());
-        yController.setSetpoint(poseFinal.getY());
-        thetaController.setSetpoint(poseFinal.getRotation().getRadians());
+        xController.setSetpoint(targetPose.getX());
+        yController.setSetpoint(targetPose.getY());
+        thetaController.setSetpoint(targetPose.getRotation().getRadians());
     }
 
     @Override
@@ -92,7 +106,8 @@ public class CloseLineupCommand extends Command {
         double ySpeed = yController.calculate(currentPose.getY());
         double thetaSpeed = thetaController.calculate(currentPose.getRotation().getRadians());
 
-        ChassisSpeeds wheelSpeeds = new ChassisSpeeds(xSpeed, ySpeed, thetaSpeed);
+        ChassisSpeeds wheelSpeeds = ChassisSpeeds.fromFieldRelativeSpeeds(xSpeed, ySpeed, thetaSpeed,
+            currentPose.getRotation());
         drive.runVelocity(wheelSpeeds);
     }
 
@@ -104,8 +119,5 @@ public class CloseLineupCommand extends Command {
     @Override
     public void end(boolean interrupted) {
         drive.runVelocity(new ChassisSpeeds(0, 0, 0));
-        xController.close();
-        yController.close();
-        thetaController.close();
     }
 }

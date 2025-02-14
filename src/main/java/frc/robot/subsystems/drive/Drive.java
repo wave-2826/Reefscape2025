@@ -9,8 +9,6 @@ import static frc.robot.subsystems.drive.DriveConstants.pathplannerConfig;
 
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.commands.PathfindingCommand;
-import com.pathplanner.lib.config.PIDConstants;
-import com.pathplanner.lib.controllers.PPHolonomicDriveController;
 import com.pathplanner.lib.pathfinding.Pathfinding;
 import com.pathplanner.lib.util.DriveFeedforwards;
 import com.pathplanner.lib.util.PathPlannerLogging;
@@ -119,8 +117,8 @@ public class Drive extends SubsystemBase {
 
         // Configure AutoBuilder for PathPlanner
         AutoBuilder.configure(this::getPose, this::setPose, this::getChassisSpeeds, this::runVelocityWithFeedforward,
-            new PPHolonomicDriveController(new PIDConstants(5.0, 0.0, 0.0), new PIDConstants(5.0, 0.0, 0.0)),
-            pathplannerConfig, () -> DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red, this);
+            DriveConstants.holonomicDriveController, pathplannerConfig,
+            () -> DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red, this);
         Pathfinding.setPathfinder(new LocalADStarAK());
         PathPlannerLogging.setLogActivePathCallback((activePath) -> {
             Logger.recordOutput("Odometry/Trajectory", activePath.toArray(new Pose2d[activePath.size()]));
@@ -214,7 +212,7 @@ public class Drive extends SubsystemBase {
     }
 
     /**
-     * Runs the drive at the desired velocity with the specified feedforwards.
+     * Runs the drive at the desired robot-relative velocity with the specified feedforwards.
      *
      * @param speeds Speeds in meters/sec
      */
@@ -223,7 +221,7 @@ public class Drive extends SubsystemBase {
     }
 
     /**
-     * Runs the drive at the desired velocity. Doesn't account for acceleration.
+     * Runs the drive at the desired robot-relative velocity. Doesn't account for acceleration.
      * @param speeds
      * @param accelerations
      */

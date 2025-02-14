@@ -20,7 +20,9 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
+import frc.robot.commands.AutoScoreCommands;
 import frc.robot.commands.drive.DriveCommands;
+import frc.robot.subsystems.arm.Arm;
 import frc.robot.subsystems.drive.Drive;
 
 public class Controls {
@@ -48,7 +50,7 @@ public class Controls {
     }
 
     /** Configures the controls. */
-    public void configureControls(Drive drive, SwerveDriveSimulation driveSimulation) {
+    public void configureControls(Drive drive, SwerveDriveSimulation driveSimulation, Arm arm) {
         // Default command, normal field-relative drive
         drive.setDefaultCommand(DriveCommands.joystickDrive(drive, () -> -driver.getLeftY(), () -> -driver.getLeftX(),
             () -> -driver.getRightX()));
@@ -59,6 +61,8 @@ public class Controls {
 
         // Switch to X pattern when X button is pressed
         driver.x().onTrue(Commands.runOnce(drive::stopWithX, drive));
+
+        driver.b().whileTrue(AutoScoreCommands.autoScoreCommand(drive, arm));
 
         // Reset gyro or odometry if in simulation
         final Runnable resetGyro = Constants.currentMode == Constants.Mode.SIM

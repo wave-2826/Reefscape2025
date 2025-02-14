@@ -9,6 +9,7 @@ import edu.wpi.first.wpilibj2.command.CommandScheduler;
 public class RestartWhenCommand extends Command {
     private final Command command;
     private final BooleanSupplier condition;
+    private boolean firstCycle = true;
 
     public RestartWhenCommand(Command command, BooleanSupplier condition) {
         this.command = command;
@@ -22,12 +23,14 @@ public class RestartWhenCommand extends Command {
     @Override
     public void initialize() {
         command.initialize();
+        firstCycle = true;
     }
 
     @Override
     public void execute() {
         command.execute();
-        if(condition.getAsBoolean()) {
+        if(condition.getAsBoolean() && !firstCycle) {
+            firstCycle = false;
             command.end(true);
             command.initialize();
         }

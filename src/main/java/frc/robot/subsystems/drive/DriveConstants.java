@@ -11,7 +11,9 @@ import org.ironmaple.simulation.drivesims.configs.DriveTrainSimulationConfig;
 import org.ironmaple.simulation.drivesims.configs.SwerveModuleSimulationConfig;
 
 import com.pathplanner.lib.config.ModuleConfig;
+import com.pathplanner.lib.config.PIDConstants;
 import com.pathplanner.lib.config.RobotConfig;
+import com.pathplanner.lib.controllers.PPHolonomicDriveController;
 
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
@@ -78,6 +80,8 @@ public class DriveConstants {
     public static final double driveSimD = 0.0;
     public static final double driveSimKs = 0.0;
     public static final double driveSimKv = 0.12;
+    public static final double driveSimKt = 0.0;
+    public static final double driveSimKa = 0.0;
 
     // Turn motor configuration
     public static final boolean turnInverted = false;
@@ -122,6 +126,9 @@ public class DriveConstants {
         new ModuleConfig(wheelRadiusMeters, maxSpeedMetersPerSec, wheelCOF,
             driveSimMotor.withReduction(driveMotorReduction), driveMotorCurrentLimit, 1),
         moduleTranslations);
+
+    public static final PPHolonomicDriveController holonomicDriveController = new PPHolonomicDriveController(
+        new PIDConstants(13.0, 0.0, 0.0), new PIDConstants(5.0, 0.0, 0.0));
 
     public static final DriveTrainSimulationConfig mapleSimConfig = DriveTrainSimulationConfig.Default()
         .withCustomModuleTranslations(moduleTranslations).withRobotMass(Kilogram.of(robotMassKg))

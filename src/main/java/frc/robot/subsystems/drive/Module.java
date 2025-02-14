@@ -31,16 +31,18 @@ public class Module {
     private static final LoggedTunableNumber turnDerivativeFilter = new LoggedTunableNumber("Drive/TurnDFilter");
 
     static {
-        driveP.initDefault(DriveConstants.driveKp);
-        driveD.initDefault(DriveConstants.driveKd);
+        boolean isSim = Constants.currentMode == Constants.Mode.SIM;
 
-        driveS.initDefault(DriveConstants.driveKs);
-        driveV.initDefault(DriveConstants.driveKv);
-        driveT.initDefault(DriveConstants.driveKt);
-        driveA.initDefault(DriveConstants.driveKa);
+        driveP.initDefault(isSim ? DriveConstants.driveSimP : DriveConstants.driveKp);
+        driveD.initDefault(isSim ? DriveConstants.driveSimD : DriveConstants.driveKd);
 
-        turnP.initDefault(DriveConstants.turnKp);
-        turnD.initDefault(DriveConstants.turnKd);
+        driveS.initDefault(isSim ? DriveConstants.driveSimKs : DriveConstants.driveKs);
+        driveV.initDefault(isSim ? DriveConstants.driveSimKv : DriveConstants.driveKv);
+        driveT.initDefault(isSim ? DriveConstants.driveSimKt : DriveConstants.driveKt);
+        driveA.initDefault(isSim ? DriveConstants.driveSimKa : DriveConstants.driveKa);
+
+        turnP.initDefault(isSim ? DriveConstants.turnSimP : DriveConstants.turnKp);
+        turnD.initDefault(isSim ? DriveConstants.turnSimD : DriveConstants.turnKd);
 
         turnDerivativeFilter.initDefault(DriveConstants.turnDerivativeFilter);
     }
