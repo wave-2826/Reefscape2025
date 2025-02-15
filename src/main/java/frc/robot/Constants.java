@@ -7,7 +7,12 @@ public final class Constants {
      * Defines the runtime mode used by AdvantageKit. The mode is always "real" when running on a roboRIO. Change the
      * value of "simMode" to switch between "sim" (physics sim) and "replay" (log replay from a file).
      */
-    public static final Mode simMode = Mode.SIM;
+    public static final Mode simMode = Mode.REPLAY;
+    /**
+     * If the robot should log data in simulation.
+     */
+    public static final boolean logInSimulation = false;
+
     /**
      * If the robot is in "tuning mode". When in tuning mode, tunable constants are added to NetworkTables.
      */

@@ -54,6 +54,7 @@ public class Robot extends LoggedRobot {
                 break;
             case SIM:
                 // Running a physics simulator, log to NT
+                if(Constants.logInSimulation) Logger.addDataReceiver(new WPILOGWriter());
                 Logger.addDataReceiver(new NT4Publisher());
                 break;
             case REPLAY:
@@ -61,7 +62,7 @@ public class Robot extends LoggedRobot {
                 setUseTiming(false); // Run as fast as possible
                 String logPath = LogFileUtil.findReplayLog();
                 Logger.setReplaySource(new WPILOGReader(logPath));
-                Logger.addDataReceiver(new WPILOGWriter(LogFileUtil.addPathSuffix(logPath, "_sim")));
+                Logger.addDataReceiver(new WPILOGWriter(LogFileUtil.addPathSuffix(logPath, "_replay")));
                 break;
         }
 
