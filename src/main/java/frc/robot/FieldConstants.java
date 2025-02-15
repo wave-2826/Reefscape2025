@@ -115,11 +115,11 @@ public class FieldConstants {
         }
 
         public Pose2d getLeftBranchPose() {
-            return pose.transformBy(new Transform2d(0., reefBranchSeparation.in(Meters) / 2., new Rotation2d()));
+            return pose.transformBy(new Transform2d(0., -reefBranchSeparation.in(Meters) / 2., new Rotation2d()));
         }
 
         public Pose2d getRightBranchPose() {
-            return pose.transformBy(new Transform2d(0., -reefBranchSeparation.in(Meters) / 2., new Rotation2d()));
+            return pose.transformBy(new Transform2d(0., reefBranchSeparation.in(Meters) / 2., new Rotation2d()));
         }
     }
 }

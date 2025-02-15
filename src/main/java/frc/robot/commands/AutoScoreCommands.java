@@ -76,7 +76,7 @@ public class AutoScoreCommands {
 
         public Pose2d getLineupPose() {
             return target.branch().pose
-                .transformBy(new Transform2d(robotReefLineupDistance.get(), 0.0, new Rotation2d()));
+                .transformBy(new Transform2d(robotReefLineupDistance.get(), 0.0, Rotation2d.fromDegrees(180)));
         }
     }
 

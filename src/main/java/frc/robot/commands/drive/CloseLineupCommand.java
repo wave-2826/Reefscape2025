@@ -61,9 +61,10 @@ public class CloseLineupCommand extends Command {
         this.drive = drive;
         this.targetPose = targetPose;
 
-        this.xController = new PIDController(translationKp.get(), translationKi.get(), translationKd.get());
-        this.yController = new PIDController(translationKp.get(), translationKi.get(), translationKd.get());
-        this.thetaController = new PIDController(thetaRotationKp.get(), thetaRotationKi.get(), thetaRotationKd.get());
+        xController = new PIDController(translationKp.get(), translationKi.get(), translationKd.get());
+        yController = new PIDController(translationKp.get(), translationKi.get(), translationKd.get());
+        thetaController = new PIDController(thetaRotationKp.get(), thetaRotationKi.get(), thetaRotationKd.get());
+        thetaController.enableContinuousInput(0.0, Math.PI * 2);
 
         xController.setTolerance(xTranslationTolerance.get());
         yController.setTolerance(yTranslationTolerance.get());
