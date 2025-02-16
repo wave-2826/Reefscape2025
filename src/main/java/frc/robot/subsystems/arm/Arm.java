@@ -68,6 +68,7 @@ public class Arm extends SubsystemBase {
         io.updateInputs(inputs);
         Logger.processInputs("Arm", inputs);
 
+        // TEMPORARY
         targetState = new ArmState(targetState.pitch(),
             DriverStationInterface.getInstance().getReefTarget().level().height, targetState.wristRotation(),
             targetState.endEffectorState());

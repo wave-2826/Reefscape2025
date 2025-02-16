@@ -4,6 +4,8 @@ import static frc.robot.util.SparkUtil.*;
 
 import java.util.function.DoubleSupplier;
 
+import org.littletonrobotics.junction.Logger;
+
 import com.revrobotics.AbsoluteEncoder;
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.spark.SparkClosedLoopController;
@@ -31,8 +33,8 @@ import au.grapplerobotics.interfaces.LaserCanInterface.Measurement;
 import au.grapplerobotics.ConfigurationFailedException;
 
 public class ArmIOReal implements ArmIO {
-    protected SparkFlex elevatorHeightMotorLeader;
-    protected SparkFlex elevatorHeightMotorFollower;
+    protected SparkMax elevatorHeightMotorLeader;
+    protected SparkMax elevatorHeightMotorFollower;
     protected SparkMax armPitchMotor;
     protected SparkMax armWristMotor;
     protected SparkFlex endEffectorMotor;
@@ -73,9 +75,9 @@ public class ArmIOReal implements ArmIO {
 
     public ArmIOReal(LaserCanInterface overrideLaserCan) {
         // Create motor contorllers 
-        elevatorHeightMotorLeader = new SparkFlex(ArmConstants.ElevatorConstants.elevatorHeightMotor1Id,
+        elevatorHeightMotorLeader = new SparkMax(ArmConstants.ElevatorConstants.elevatorHeightMotor1Id,
             MotorType.kBrushless);
-        elevatorHeightMotorFollower = new SparkFlex(ArmConstants.ElevatorConstants.elevatorHeightMotor2Id,
+        elevatorHeightMotorFollower = new SparkMax(ArmConstants.ElevatorConstants.elevatorHeightMotor2Id,
             MotorType.kBrushless);
 
         armPitchMotor = new SparkMax(ArmConstants.ShoulderConstants.armPitchMotorId, MotorType.kBrushless);
@@ -94,9 +96,8 @@ public class ArmIOReal implements ArmIO {
             .smartCurrentLimit(ArmConstants.ElevatorConstants.elevatorMotorCurrentLimit)
             .voltageCompensation(Constants.voltageCompensation)
             .inverted(ArmConstants.ElevatorConstants.elevatorMotorInverted);
-        elevatorMotorLeaderConfig.signals.apply(SparkUtil.defaultSignals).limitsPeriodMs(20)
-            .primaryEncoderPositionAlwaysOn(true).primaryEncoderVelocityAlwaysOn(true)
-            .primaryEncoderPositionPeriodMs(20).primaryEncoderVelocityPeriodMs(20);
+        elevatorMotorLeaderConfig.signals.apply(SparkUtil.defaultSignals).primaryEncoderPositionAlwaysOn(true)
+            .primaryEncoderVelocityAlwaysOn(true).primaryEncoderPositionPeriodMs(20).primaryEncoderVelocityPeriodMs(20);
 
         SparkFlexConfig elevatorMotorFollowerConfig = new SparkFlexConfig();
         elevatorMotorFollowerConfig.encoder
@@ -104,10 +105,10 @@ public class ArmIOReal implements ArmIO {
             .velocityConversionFactor(ArmConstants.ElevatorConstants.elevatorVelocityConversionFactor);
         elevatorMotorFollowerConfig.idleMode(IdleMode.kBrake)
             .smartCurrentLimit(ArmConstants.ElevatorConstants.elevatorMotorCurrentLimit)
-            .voltageCompensation(Constants.voltageCompensation)
-            .inverted(ArmConstants.ElevatorConstants.elevatorMotorInverted);
-        elevatorMotorFollowerConfig.signals.apply(SparkUtil.defaultSignals);
+            .voltageCompensation(Constants.voltageCompensation);
         elevatorMotorFollowerConfig.follow(ArmConstants.ElevatorConstants.elevatorHeightMotor1Id, true);
+        elevatorMotorFollowerConfig.signals.apply(SparkUtil.defaultSignals).primaryEncoderPositionAlwaysOn(true)
+            .primaryEncoderVelocityAlwaysOn(true).primaryEncoderPositionPeriodMs(20).primaryEncoderVelocityPeriodMs(20);
 
         tryUntilOk(elevatorHeightMotorLeader, 5, () -> elevatorHeightMotorLeader.configure(elevatorMotorLeaderConfig,
             ResetMode.kResetSafeParameters, PersistMode.kPersistParameters));
@@ -172,6 +173,8 @@ public class ArmIOReal implements ArmIO {
 
         // Register the tunable PIDs
         ArmConstants.ElevatorConstants.elevatorPID.configureSparkOnChange(elevatorHeightMotorLeader);
+        ArmConstants.ElevatorConstants.elevatorPID.configureSparkOnChange(elevatorHeightMotorFollower);
+
         ArmConstants.ShoulderConstants.armPitchPID.configureSparkOnChange(armPitchMotor);
         ArmConstants.ShoulderConstants.armWristPID.configureSparkOnChange(armWristMotor);
         ArmConstants.EndEffectorConstants.endEffectorPID.configureSparkOnChange(endEffectorMotor);
@@ -199,7 +202,7 @@ public class ArmIOReal implements ArmIO {
         }
         try {
             elevatorHeightSensor.setRangingMode(LaserCan.RangingMode.LONG);
-            elevatorHeightSensor.setRegionOfInterest(new LaserCan.RegionOfInterest(8, 8, 4, 4));
+            elevatorHeightSensor.setRegionOfInterest(new LaserCan.RegionOfInterest(8, 8, 8, 8));
             elevatorHeightSensor.setTimingBudget(LaserCan.TimingBudget.TIMING_BUDGET_20MS);
         } catch(ConfigurationFailedException e) {
             System.out.println("Configuration failed! " + e);
@@ -228,12 +231,14 @@ public class ArmIOReal implements ArmIO {
         // from our sensor.
         Measurement measurement = elevatorHeightSensor.getMeasurement();
         inputs.elevatorHeightSensorConnected = elevatorHeightSensorConnectedDebouncer.calculate(measurement != null);
-        if(inputs.elevatorVelocityMetersPerSecond < 0.1 && inputs.elevatorMotorsConnected) {
-            if(measurement != null) {
-                double position = (double) (measurement.distance_mm) / 1000.;
-                elevatorHeightEncoder1.setPosition(position);
-                elevatorHeightEncoder2.setPosition(position);
-            }
+        if(inputs.elevatorVelocityMetersPerSecond < 0.1 && inputs.elevatorMotorsConnected && measurement != null
+            && measurement.status == LaserCan.LASERCAN_STATUS_VALID_MEASUREMENT) {
+            double position = (double) (measurement.distance_mm) / 1000.;
+            elevatorHeightEncoder1.setPosition(position);
+            elevatorHeightEncoder2.setPosition(position);
+            Logger.recordOutput("Arm/ElevatorResetting", true);
+        } else {
+            Logger.recordOutput("Arm/ElevatorResetting", false);
         }
 
         // Update arm pitch motor inputs

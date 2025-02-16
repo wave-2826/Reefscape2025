@@ -21,10 +21,10 @@ public class VisionConstants {
     public static AprilTagFieldLayout aprilTagLayout = AprilTagFieldLayout.loadField(AprilTagFields.kDefaultField);
 
     // Camera names; must match names configured in PhotonVision
-    public static String camera0Name = "frontLeftCamera";
-    public static String camera1Name = "frontRightCamera";
-    public static String camera2Name = "backLeftCamera";
-    public static String camera3Name = "backRightCamera";
+    public static String camera0Name = "2826_OV9281_Abe"; // Front left
+    public static String camera1Name = "2826_OV9281_Ben"; // Front right
+    public static String camera2Name = "2826_OV9281_Cal"; // Back left
+    public static String camera3Name = "2826_OV9281_Dan"; // Back right
 
     // Robot to camera transforms
     // Front left camera
@@ -36,13 +36,11 @@ public class VisionConstants {
         new Translation3d(Units.inchesToMeters(11), Units.inchesToMeters(-11.791), Units.inchesToMeters(14.285)),
         new Rotation3d(0.0, 0.319624, 0.610865));
     // Back left camera
-    public static Transform3d robotToCamera2 = new Transform3d(
-        new Translation3d(Units.inchesToMeters(0.0), Units.inchesToMeters(0.0), Units.inchesToMeters(0.0)),
-        new Rotation3d(0.0, -0.4, 0.0));
+    public static Transform3d robotToCamera2 = new Transform3d(new Translation3d(Units.inchesToMeters(4.006715),
+        Units.inchesToMeters(7.487012), Units.inchesToMeters(25.736304)), new Rotation3d(0.0, 0.0, 0.523598));
     // Back right camera
-    public static Transform3d robotToCamera3 = new Transform3d(
-        new Translation3d(Units.inchesToMeters(0.0), Units.inchesToMeters(0.0), Units.inchesToMeters(0.0)),
-        new Rotation3d(0.0, -0.4, Math.PI));
+    public static Transform3d robotToCamera3 = new Transform3d(new Translation3d(Units.inchesToMeters(4.006715),
+        Units.inchesToMeters(-7.487012), Units.inchesToMeters(25.736304)), new Rotation3d(0.0, 0.0, -0.523598));
 
     // Basic filtering thresholds
     public static double maxAmbiguity = 0.3;

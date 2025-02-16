@@ -30,7 +30,7 @@ public class ArmIOSim extends ArmIOReal {
 
     // We only use one spark flex sim for both elevator motors.
     // Maybe there's a better way to structure this?
-    private SparkFlexSim elevatorMotorSim;
+    private SparkMaxSim elevatorMotorSim;
     private SparkMaxSim armPitchMotorSim;
     private SparkMaxSim armWristMotorSim;
     private SparkFlexSim endEffectorMotorSim;
@@ -65,7 +65,7 @@ public class ArmIOSim extends ArmIOReal {
         armWristMotors = DCMotor.getNeo550(1);
         endEffectorMotors = DCMotor.getNeoVortex(1);
 
-        elevatorMotorSim = new SparkFlexSim(elevatorHeightMotorLeader, elevatorMotors);
+        elevatorMotorSim = new SparkMaxSim(elevatorHeightMotorLeader, elevatorMotors);
         armPitchMotorSim = new SparkMaxSim(armPitchMotor, armMotors);
         armWristMotorSim = new SparkMaxSim(armWristMotor, armWristMotors);
         endEffectorMotorSim = new SparkFlexSim(endEffectorMotor, endEffectorMotors);

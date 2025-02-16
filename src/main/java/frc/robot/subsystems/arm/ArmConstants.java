@@ -17,16 +17,16 @@ public class ArmConstants {
     public class ElevatorConstants {
         public static final int elevatorHeightMotor1Id = /* TODO */ 50;
         public static final int elevatorHeightMotor2Id = /* TODO */ 51;
-        public static final int elevatorHeightSensorId = /* TODO */ 57;
+        public static final int elevatorHeightSensorId = /* TODO */ 54;
 
         // PID constants for the elevator position PID
         public static final LoggedTunableSparkPID elevatorPID = new LoggedTunableSparkPID("Arm/Elevator")
-            .addRealRobotGains(18.0, 0.0, 4.0).addSimGains(10.0, 0.0, 8.0);
+            .addRealRobotGains(1.5, 0.0, 4.0).addSimGains(10.0, 0.0, 8.0);
 
-        public static final int elevatorMotorCurrentLimit = 30;
+        public static final int elevatorMotorCurrentLimit = 35;
         public static final boolean elevatorMotorInverted = false;
 
-        public static final double elevatorReduction = 25.;
+        public static final double elevatorReduction = 5.;
         public static final double elevatorDrumRadiusMeters = Units.inchesToMeters(2);
         /** The conversion factor from elevator motor rotations to height in meters. */
         public static final double elevatorPositionConversionFactor = 2 * Math.PI * elevatorDrumRadiusMeters

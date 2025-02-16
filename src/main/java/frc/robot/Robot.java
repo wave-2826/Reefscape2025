@@ -17,6 +17,8 @@ import org.littletonrobotics.junction.wpilog.WPILOGReader;
 import org.littletonrobotics.junction.wpilog.WPILOGWriter;
 import org.littletonrobotics.urcl.URCL;
 
+import au.grapplerobotics.CanBridge;
+
 /**
  * The VM is configured to automatically run this class, and to call the functions corresponding to each mode, as
  * described in the TimedRobot documentation. If you change the name of this class or the package after creating this
@@ -83,6 +85,11 @@ public class Robot extends LoggedRobot {
         // Instantiate our RobotContainer. This will perform all our button bindings,
         // and put our autonomous chooser on the dashboard.
         robotContainer = new RobotContainer();
+
+        // For GrappleHook
+        if(Constants.currentMode == Constants.Mode.REAL) {
+            CanBridge.runTCP();
+        }
     }
 
     /** This function is called periodically during all modes. */
