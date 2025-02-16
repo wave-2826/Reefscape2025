@@ -26,7 +26,7 @@ public class DriveConstants {
     }
 
     // TODO: Measure our effective maximum speed once robot is built
-    public static final double maxSpeedMetersPerSec = 4.74; // "Magic" number from max speed measurement
+    public static final double maxSpeedMetersPerSec = 4.5; // "Magic" number from max speed measurement
     public static final double odometryFrequency = 100.0; // Hz
     public static final double trackWidth = Units.inchesToMeters(23.5);
     public static final double wheelBase = Units.inchesToMeters(23.5);
@@ -117,9 +117,9 @@ public class DriveConstants {
     public static final double turnPIDMaxInput = Math.PI; // Radians
 
     // PathPlanner configuration
-    public static final double robotMassKg = Units.lbsToKilograms(64.);
+    public static final double robotMassKg = Units.lbsToKilograms(114.5);
     /** The moment of inertia of the robot, in KG*M^2 */
-    public static final double robotMOIKgSqM = 2.953; // TODO: Estimate with angular SysID
+    public static final double robotMOIKgSqM = 9.442; // TODO: Estimate with angular SysID
     public static final double wheelCOF = 1.6065; // "Magic" number from slip current measurement
 
     public static final RobotConfig pathplannerConfig = new RobotConfig(robotMassKg, robotMOIKgSqM,

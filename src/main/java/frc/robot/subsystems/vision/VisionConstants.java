@@ -10,12 +10,12 @@ import edu.wpi.first.math.util.Units;
 public class VisionConstants {
     // Enable drawing a wireframe visualization of the field to the camera streams in simulation mode.
     // This is extremely resource-intensive!
-    public static boolean enableWireframeDrawing = false;
+    public static boolean enableWireframeDrawing = true;
 
     // If we should enable vision simulation.
     // Turning off vision sim can dramatically improve loop times, but it's obviously less
     // representative of real robot odometry.
-    public static boolean enableVisionSimulation = false;
+    public static boolean enableVisionSimulation = true;
 
     // AprilTag layout
     public static AprilTagFieldLayout aprilTagLayout = AprilTagFieldLayout.loadField(AprilTagFields.kDefaultField);
@@ -26,21 +26,26 @@ public class VisionConstants {
     public static String camera2Name = "2826_OV9281_Cal"; // Back left
     public static String camera3Name = "2826_OV9281_Dan"; // Back right
 
+    private static Transform3d reflectCameraPosition(Transform3d pos) {
+        Translation3d translation = pos.getTranslation();
+        translation = new Translation3d(translation.getX(), -translation.getY(), translation.getZ());
+        Rotation3d rotation = pos.getRotation();
+        rotation = new Rotation3d(rotation.getX(), rotation.getY(), -rotation.getZ());
+        return new Transform3d(translation, rotation);
+    }
+
     // Robot to camera transforms
     // Front left camera
-    public static Transform3d robotToCamera0 = new Transform3d(
-        new Translation3d(Units.inchesToMeters(11.), Units.inchesToMeters(11.791), Units.inchesToMeters(14.285)),
-        new Rotation3d(0.0, 0.319624, -0.610865));
+    public static Transform3d robotToCamera0 = new Transform3d(new Translation3d(Units.inchesToMeters(11.55791101),
+        Units.inchesToMeters(12.07248480), Units.inchesToMeters(13.302)), new Rotation3d(0.0, 0.319624, -0.680146));
     // Front right camera
-    public static Transform3d robotToCamera1 = new Transform3d(
-        new Translation3d(Units.inchesToMeters(11), Units.inchesToMeters(-11.791), Units.inchesToMeters(14.285)),
-        new Rotation3d(0.0, 0.319624, 0.610865));
+    public static Transform3d robotToCamera1 = reflectCameraPosition(robotToCamera0);
     // Back left camera
     public static Transform3d robotToCamera2 = new Transform3d(new Translation3d(Units.inchesToMeters(4.006715),
-        Units.inchesToMeters(7.487012), Units.inchesToMeters(25.736304)), new Rotation3d(0.0, 0.0, 0.523598));
+        Units.inchesToMeters(7.487012), Units.inchesToMeters(25.736304)),
+        new Rotation3d(0.0, 0.0, -0.523598 - Math.PI));
     // Back right camera
-    public static Transform3d robotToCamera3 = new Transform3d(new Translation3d(Units.inchesToMeters(4.006715),
-        Units.inchesToMeters(-7.487012), Units.inchesToMeters(25.736304)), new Rotation3d(0.0, 0.0, -0.523598));
+    public static Transform3d robotToCamera3 = reflectCameraPosition(robotToCamera2);
 
     // Basic filtering thresholds
     public static double maxAmbiguity = 0.3;
