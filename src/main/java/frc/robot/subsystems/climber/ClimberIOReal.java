@@ -30,9 +30,11 @@ public class ClimberIOReal implements ClimberIO {
 
         SparkMaxConfig config = new SparkMaxConfig();
 
-        config.closedLoop.apply(ClimberConstants.climberPID.getConfig()).feedbackSensor(FeedbackSensor.kPrimaryEncoder);
-        config.encoder.positionConversionFactor(ClimberConstants.climberPositionConversionFactor)
-            .velocityConversionFactor(ClimberConstants.climberVelocityConversionFactor);
+        config.closedLoop.apply(ClimberConstants.climberPID.getConfig())
+            .feedbackSensor(FeedbackSensor.kAbsoluteEncoder);
+        config.absoluteEncoder.positionConversionFactor(ClimberConstants.climberPositionConversionFactor)
+            .velocityConversionFactor(ClimberConstants.climberVelocityConversionFactor)
+            .zeroOffset(ClimberConstants.climberZeroAngle);
         config.idleMode(IdleMode.kBrake).smartCurrentLimit(ClimberConstants.climberMotorCurrentLimit)
             .voltageCompensation(Constants.voltageCompensation).inverted(ClimberConstants.climberMotorInverted);
         config.signals.apply(SparkUtil.defaultSignals) //
@@ -44,6 +46,8 @@ public class ClimberIOReal implements ClimberIO {
             () -> climberMotor.configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters));
 
         ClimberConstants.climberPID.configureSparkOnChange(climberMotor);
+
+        climberMotorController = climberMotor.getClosedLoopController();
 
         climberEncoder = climberMotor.getAbsoluteEncoder();
     }

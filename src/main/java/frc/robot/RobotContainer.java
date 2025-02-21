@@ -1,14 +1,20 @@
 package frc.robot;
 
 import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.auto.NamedCommands;
+
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import frc.robot.commands.drive.DriveTuningCommands;
 import frc.robot.subsystems.arm.Arm;
 import frc.robot.subsystems.arm.ArmIO;
 import frc.robot.subsystems.arm.ArmIOReal;
 import frc.robot.subsystems.arm.ArmIOSim;
+import frc.robot.subsystems.arm.ArmState;
+import frc.robot.subsystems.arm.EndEffectorState;
+import frc.robot.subsystems.arm.ArmState.WristRotation;
 import frc.robot.subsystems.climber.Climber;
 import frc.robot.subsystems.climber.ClimberIO;
 import frc.robot.subsystems.climber.ClimberIOReal;
@@ -32,6 +38,8 @@ import frc.robot.subsystems.vision.VisionIO;
 import frc.robot.subsystems.vision.VisionIOPhotonVision;
 import frc.robot.subsystems.vision.VisionIOPhotonVisionSim;
 import frc.robot.util.DriverStationInterface;
+
+import static edu.wpi.first.units.Units.Meters;
 
 import org.ironmaple.simulation.SimulatedArena;
 import org.ironmaple.simulation.drivesims.SwerveDriveSimulation;
@@ -158,7 +166,21 @@ public class RobotContainer {
         DriveTuningCommands.addTuningCommandsToAutoChooser(drive, autoChooser);
 
         // Configure the button bindings
-        Controls.getInstance().configureControls(drive, driveSimulation, arm);
+        Controls.getInstance().configureControls(drive, driveSimulation, arm, climber);
+
+        configureAutoCommands();
+    }
+
+    private void configureAutoCommands() {
+        NamedCommands.registerCommand("L4", new SequentialCommandGroup(
+            // new CloseLineupCommand(drive, null)
+            arm.goToStateCommand(
+                new ArmState(Rotation2d.fromDegrees(60), FieldConstants.ReefLevel.L4.height.minus(Meters.of(0.2)),
+                    WristRotation.Vertical, new EndEffectorState(EndEffectorState.Mode.Hold))), // Line up
+            arm.goToStateCommand(
+                new ArmState(Rotation2d.fromDegrees(60), FieldConstants.ReefLevel.L4.height.minus(Meters.of(0.5)),
+                    WristRotation.Vertical, new EndEffectorState(EndEffectorState.Mode.VelocityControl, 2.0))) // Score
+        ));
     }
 
     public Command getAutonomousCommand() {

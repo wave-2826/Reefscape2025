@@ -9,6 +9,7 @@ import org.ironmaple.simulation.drivesims.SwerveDriveSimulation;
 import org.ironmaple.simulation.seasonspecific.reefscape2025.ReefscapeCoralOnFly;
 import org.littletonrobotics.junction.networktables.LoggedNetworkNumber;
 
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
@@ -19,11 +20,18 @@ import edu.wpi.first.wpilibj.GenericHID.RumbleType;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
+import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.commands.AutoScoreCommands;
+import frc.robot.commands.climber.ClimbCommands;
 import frc.robot.commands.drive.DriveCommands;
 import frc.robot.subsystems.arm.Arm;
+import frc.robot.subsystems.arm.ArmState;
+import frc.robot.subsystems.arm.EndEffectorState;
+import frc.robot.subsystems.arm.ArmState.WristRotation;
+import frc.robot.subsystems.climber.Climber;
 import frc.robot.subsystems.drive.Drive;
+import frc.robot.util.Container;
 
 public class Controls {
     private final Alert driverDisconnectedAlert = new Alert("Driver controller disconnected (port 0)",
@@ -50,7 +58,7 @@ public class Controls {
     }
 
     /** Configures the controls. */
-    public void configureControls(Drive drive, SwerveDriveSimulation driveSimulation, Arm arm) {
+    public void configureControls(Drive drive, SwerveDriveSimulation driveSimulation, Arm arm, Climber climber) {
         // Default command, normal field-relative drive
         drive.setDefaultCommand(DriveCommands.joystickDrive(drive, () -> -driver.getLeftY(), () -> -driver.getLeftX(),
             () -> -driver.getRightX()));
@@ -70,6 +78,25 @@ public class Controls {
             : () -> drive.setPose(new Pose2d(drive.getPose().getTranslation(), new Rotation2d())); // Zero gyro
 
         driver.start().onTrue(Commands.runOnce(resetGyro, drive).ignoringDisable(true));
+
+        RobotModeTriggers.teleop().onTrue(ClimbCommands.resetClimbPosition());
+        operator.start().whileTrue(ClimbCommands.climbCommand(climber, operator::getRightY));
+
+        Container<Double> height = new Container<Double>(0.0);
+        Container<Double> pitch = new Container<Double>(0.0);
+        Container<Boolean> horizontal = new Container<Boolean>(false);
+        operator.povLeft().onTrue(Commands.runOnce(() -> horizontal.value = !horizontal.value));
+        operator.a().toggleOnTrue(arm.setTargetStateCommand(() -> {
+            boolean controllingHeight = operator.leftBumper().getAsBoolean();
+            double eeSpeed = MathUtil.applyDeadband(controllingHeight ? 0. : operator.getLeftY(), 0.15) * 200.; // Rad/sec
+            EndEffectorState endEffectorState = eeSpeed == 0.0 ? new EndEffectorState(EndEffectorState.Mode.Hold)
+                : new EndEffectorState(EndEffectorState.Mode.VelocityControl, eeSpeed);
+            double speed = 1.5;
+            height.value -= controllingHeight ? (MathUtil.applyDeadband(operator.getLeftY(), 0.15) * speed * 0.02) : 0.;
+            pitch.value += MathUtil.applyDeadband(operator.getRightY(), 0.15) * 0.02 * 150.;
+            return new ArmState(Rotation2d.fromDegrees(pitch.value), Meters.of(height.value),
+                horizontal.value ? WristRotation.Horizontal : WristRotation.Vertical, endEffectorState);
+        }));
 
         // Example Coral Placement Code
         // TODO: Implement this for our actual robot logic

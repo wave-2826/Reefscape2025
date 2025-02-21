@@ -11,7 +11,7 @@ public class LEDConstants {
     public static int candleId = 53;
 
     /** If the LEDs have a GRB color order. */
-    public static boolean isGRB = true;
+    public static boolean isGRB = false;
 
     /** The number of LEDs on the robot. */
     public static int ledCount = 8 + 144;

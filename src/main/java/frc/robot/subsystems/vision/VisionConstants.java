@@ -10,7 +10,7 @@ import edu.wpi.first.math.util.Units;
 public class VisionConstants {
     // Enable drawing a wireframe visualization of the field to the camera streams in simulation mode.
     // This is extremely resource-intensive!
-    public static boolean enableWireframeDrawing = true;
+    public static boolean enableWireframeDrawing = false;
 
     // If we should enable vision simulation.
     // Turning off vision sim can dramatically improve loop times, but it's obviously less
@@ -53,15 +53,15 @@ public class VisionConstants {
 
     // Standard deviation baselines, for 1 meter distance and 1 tag
     // (Adjusted automatically based on distance and # of tags)
-    public static double linearStdDevBaseline = 0.02; // Meters
-    public static double angularStdDevBaseline = 0.06; // Radians
+    public static double linearStdDevBaseline = 0.015; // Meters
+    public static double angularStdDevBaseline = 1000.; // Radians
 
     // Standard deviation multipliers for each camera
     // (Adjust to trust some cameras more than others)
     public static double[] cameraStdDevFactors = new double[] {
         1.0, // Camera 0
         1.0, // Camera 1
-        1.0, // Camera 2
-        1.0 // Camera 3
+        1.5, // Camera 2
+        1.5 // Camera 3
     };
 }

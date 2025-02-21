@@ -2,7 +2,6 @@ package frc.robot.subsystems.climber;
 
 import static edu.wpi.first.units.Units.Meters;
 
-import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.units.measure.Distance;
 import frc.robot.util.LoggedTunableSparkPID;
@@ -12,10 +11,11 @@ import frc.robot.util.LoggedTunableSparkPID;
  */
 public class ClimberConstants {
     public static final int climberMotorId = /* TODO */ 36;
-    public static final Rotation2d climberZeroAngle = Rotation2d.fromDegrees(105.30);
+    /** The climber encoder zero angle, in radians. */
+    public static final double climberZeroAngle = 0.3248305;
     public static final boolean invertClimber = false;
     public static final LoggedTunableSparkPID climberPID = new LoggedTunableSparkPID("Climber")
-        .addRealRobotGains(0.5, 0.0, 0.0).addSimGains(0.5, 0.0, 0.0);
+        .addRealRobotGains(6.0, 0.0, 2.0).addSimGains(0.5, 0.0, 0.0);
 
     /** The climber motor current limit in amps. */
     public static final int climberMotorCurrentLimit = 40;

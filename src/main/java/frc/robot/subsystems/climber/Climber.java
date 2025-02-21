@@ -2,6 +2,7 @@ package frc.robot.subsystems.climber;
 
 import org.littletonrobotics.junction.Logger;
 
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -19,6 +20,15 @@ public class Climber extends SubsystemBase {
 
     public Climber(ClimberIO io) {
         this.io = io;
+    }
+
+    public void runClimber(Rotation2d position) {
+        io.setClimberBrakeMode(true);
+        io.setClimberTargetAngle(position);
+    }
+
+    public void disableClimber() {
+        io.setClimberBrakeMode(false);
     }
 
     @Override

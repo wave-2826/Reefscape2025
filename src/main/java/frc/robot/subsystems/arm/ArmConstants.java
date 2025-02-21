@@ -5,6 +5,7 @@ import static edu.wpi.first.units.Units.Meters;
 
 import com.revrobotics.spark.ClosedLoopSlot;
 
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.units.measure.Distance;
@@ -21,10 +22,14 @@ public class ArmConstants {
 
         // PID constants for the elevator position PID
         public static final LoggedTunableSparkPID elevatorPID = new LoggedTunableSparkPID("Arm/Elevator")
-            .addRealRobotGains(1.5, 0.0, 4.0).addSimGains(10.0, 0.0, 8.0);
+            .addRealRobotGains(2.0, 0.0, 10.0).addSimGains(10.0, 0.0, 8.0);
 
-        public static final int elevatorMotorCurrentLimit = 35;
-        public static final boolean elevatorMotorInverted = false;
+        // Feedforward constants for the elevator
+        /** The gravity gain in volts. */
+        public static final double elevatorKg = 0.5;
+
+        public static final int elevatorMotorCurrentLimit = 45;
+        public static final boolean elevatorMotorInverted = true;
 
         public static final double elevatorReduction = 5.;
         public static final double elevatorDrumRadiusMeters = Units.inchesToMeters(2);
@@ -76,29 +81,49 @@ public class ArmConstants {
 
     public class ShoulderConstants {
         public static final int armPitchMotorId = /* TODO */ 52;
+        public static final int armWristMotorId = /* TODO */ 53;
+
+        /** The wrist absolute encoder zero offset, in radians. */
+        public static final double wristZeroOffset = 0.1189006;
+        /** The pitch absolute encoder zero offset, in radians. */
+        public static final double pitchZeroOffset = 0.0652682;
+
+        /** The highest soft stop for the elevator. */
+        public static final Rotation2d maximumPitch = Rotation2d.fromDegrees(30.);
+        /** The lowest soft stop for the elevator. */
+        public static final Rotation2d minimumPitch = Rotation2d.fromDegrees(-35.);
+
+        /** The feedforward gravity constant for the arm in volts. */
+        public static final double armPitchKg = -0.9;
 
         public static final LoggedTunableSparkPID armPitchPID = new LoggedTunableSparkPID("Arm/Pitch")
-            .addRealRobotGains(0.5, 0.0, 0.0).addSimGains(0.5, 0.0, 0.0);
+            .addRealRobotGains(0.15, 0.0, 3.0).addSimGains(0.5, 0.0, 0.0);
 
         public static final double elevatorPitchReduction = 5 * (84 / 48);
         /** The conversion factor from pitch motor rotations to radians. */
         public static final double pitchPositionConversionFactor = 1 / elevatorPitchReduction * 2 * Math.PI;
         /** The conversion factor from pitch motor RPM to radians per second. */
         public static final double pitchVelocityConversionFactor = pitchPositionConversionFactor / 60.;
-        public static final int pitchMotorCurrentLimit = 15;
-        public static final boolean pitchMotorInverted = false;
 
-        public static final int armWristMotorId = /* TODO */ 53;
+        /** The conversion factor from pitch absolute encoder to radians. */
+        public static final double pitchAbsolutePositionFactor = 2 * Math.PI;
+        /** The conversion factor from pitch absolute encoder RPM to radians per second. */
+        public static final double pitchAbsoluteVelocityFactor = pitchPositionConversionFactor / 60.;
+
+        public static final int pitchMotorCurrentLimit = 50;
+        public static final boolean pitchMotorInverted = false;
+        public static final boolean pitchEncoderInverted = false;
 
         public static final ClosedLoopSlot armWristPositionSlot = ClosedLoopSlot.kSlot0;
         public static final ClosedLoopSlot armWristVelocitySlot = ClosedLoopSlot.kSlot1;
 
         public static final LoggedTunableSparkPID armWristPID = new LoggedTunableSparkPID("Arm/Wrist")
-            .addRealRobotGains(0.5, 0.0, 0.0, armWristPositionSlot).addSimGains(0.5, 0.0, 0.0, armWristPositionSlot)
-            .addRealRobotGains(0.5, 0.0, 1 / 917, armWristVelocitySlot)
-            .addSimGains(0.5, 0.0, 0.0, 1 / 917, armWristVelocitySlot); // 917 is the Neo 550 Kf value
+            .addRealRobotGains(0.3, 0.0, 3.0, armWristPositionSlot) //
+            .addSimGains(1.0, 0.0, 0.0, armWristPositionSlot) //
+            .addRealRobotGains(2.0, 0.0, 1 / 917, armWristVelocitySlot)
+            .addSimGains(2.0, 0.0, 0.0, 1 / 917, armWristVelocitySlot); // 917 is the Neo 550 Kf value
 
-        public static final double armWristReduction = 25.;
+        public static final double armWristReduction = 15.;
         /** The conversion factor from wrist motor rotations to radians. */
         public static final double wristPositionConversionFactor = 2 * Math.PI / armWristReduction;
         /** The conversion factor from wrist motor RPM to radians per second. */
@@ -109,7 +134,7 @@ public class ArmConstants {
         /** The conversion factor from wrist absolute encoder RPM to radians per second. */
         public static final double wristAbsoluteVelocityFactor = wristPositionConversionFactor / 60.;
 
-        public static final int wristMotorCurrentLimit = 10;
+        public static final int wristMotorCurrentLimit = 25;
         public static final boolean wristMotorInverted = false;
 
         /** The translation from the carriage origin to the pivot. */
@@ -144,20 +169,20 @@ public class ArmConstants {
         // a coaxial drive system, the end effector wheel's rotation is linked to the wrist rotation.
         // We need to compensate for this by using position control on the end effector motor.
         // For every 1 rotation of the wrist, the end effector wheel rotates endEffectorCouplingFactor times.
-        public static final double endEffectorCouplingFactor = endEffectorReduction / 2.; // TODO: Find the proper value for this. Maybe from empirical testing?
+        public static final double endEffectorCouplingFactor = (1 / endEffectorReduction) / 2.; // TODO: Find the proper value for this. Maybe from empirical testing?
 
         // TODO: Find the proper value for this. Is it multiplied by the setpoint or motor speed? The REV docs are unclear.
         public static final LoggedTunableSparkPID endEffectorPID = new LoggedTunableSparkPID("Arm/EndEffector")
-            .addRealRobotGains(0.5, 0.0, 0.0, 1. / 565, endEffectorVelocitySlot)
-            .addSimGains(0.5, 0.0, 0.0, 1. / 565, endEffectorVelocitySlot)
-            .addRealRobotGains(0.5, 0.0, 0.0, endEffectorPositionSlot)
-            .addSimGains(0.5, 0.0, 0.0, endEffectorPositionSlot);
+            .addRealRobotGains(0.001, 0.0, 0.5, 1. / 565, endEffectorVelocitySlot)
+            .addSimGains(0.001, 0.0, 0.5, 1. / 565, endEffectorVelocitySlot)
+            .addRealRobotGains(0.003, 0.0, 0.0, endEffectorPositionSlot)
+            .addSimGains(0.003, 0.0, 0.0, endEffectorPositionSlot);
 
         /** The conversion factor from end effector motor rotations to radians. */
         public static final double endEffectorPositionConversionFactor = 2 * Math.PI / endEffectorReduction;
         /** The conversion factor from wrist motor RPM to radians per second. */
         public static final double endEffectorVelocityConversionFactor = endEffectorPositionConversionFactor / 60.;
-        public static final int endEffectorMotorCurrentLimit = 10;
+        public static final int endEffectorMotorCurrentLimit = 50;
         public static final boolean endEffectorMotorInverted = false;
     }
 }

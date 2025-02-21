@@ -11,16 +11,19 @@ import com.revrobotics.RelativeEncoder;
 import com.revrobotics.spark.SparkClosedLoopController;
 import com.revrobotics.spark.SparkFlex;
 import com.revrobotics.spark.SparkMax;
+import com.revrobotics.spark.ClosedLoopSlot;
 import com.revrobotics.spark.SparkBase;
 import com.revrobotics.spark.SparkBase.ControlType;
 import com.revrobotics.spark.SparkBase.PersistMode;
 import com.revrobotics.spark.SparkBase.ResetMode;
+import com.revrobotics.spark.SparkClosedLoopController.ArbFFUnits;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.config.SparkFlexConfig;
 import com.revrobotics.spark.config.SparkMaxConfig;
 import com.revrobotics.spark.config.ClosedLoopConfig.FeedbackSensor;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.math.geometry.Rotation2d;
 import frc.robot.Constants;
@@ -117,14 +120,19 @@ public class ArmIOReal implements ArmIO {
 
         SparkMaxConfig armPitchConfig = new SparkMaxConfig();
         armPitchConfig.closedLoop.apply(ArmConstants.ShoulderConstants.armPitchPID.getConfig())
-            .feedbackSensor(FeedbackSensor.kAbsoluteEncoder);
-        armPitchConfig.absoluteEncoder
-            .positionConversionFactor(ArmConstants.ShoulderConstants.pitchPositionConversionFactor)
+            .feedbackSensor(FeedbackSensor.kAbsoluteEncoder).positionWrappingEnabled(true)
+            .positionWrappingInputRange(-Math.PI, Math.PI);
+        armPitchConfig.encoder.positionConversionFactor(ArmConstants.ShoulderConstants.pitchPositionConversionFactor)
             .velocityConversionFactor(ArmConstants.ShoulderConstants.pitchVelocityConversionFactor);
+        armPitchConfig.absoluteEncoder
+            .positionConversionFactor(ArmConstants.ShoulderConstants.pitchAbsolutePositionFactor)
+            .velocityConversionFactor(ArmConstants.ShoulderConstants.pitchAbsoluteVelocityFactor)
+            .zeroOffset(ArmConstants.ShoulderConstants.pitchZeroOffset).zeroCentered(true)
+            .inverted(ArmConstants.ShoulderConstants.pitchEncoderInverted);
         armPitchConfig.idleMode(IdleMode.kBrake)
             .smartCurrentLimit(ArmConstants.ShoulderConstants.pitchMotorCurrentLimit)
             .voltageCompensation(Constants.voltageCompensation)
-            .inverted(ArmConstants.ShoulderConstants.pitchMotorInverted);
+            .inverted(ArmConstants.ShoulderConstants.pitchMotorInverted).closedLoopRampRate(0.5);
         armPitchConfig.signals.apply(SparkUtil.defaultSignals) //
             .absoluteEncoderPositionAlwaysOn(true).absoluteEncoderVelocityAlwaysOn(true)
             .absoluteEncoderPositionPeriodMs(20).absoluteEncoderVelocityPeriodMs(20);
@@ -134,16 +142,18 @@ public class ArmIOReal implements ArmIO {
 
         SparkMaxConfig armWristConfig = new SparkMaxConfig();
         armWristConfig.closedLoop.apply(ArmConstants.ShoulderConstants.armWristPID.getConfig())
-            .feedbackSensor(FeedbackSensor.kAbsoluteEncoder);
+            .feedbackSensor(FeedbackSensor.kAbsoluteEncoder).positionWrappingEnabled(true)
+            .positionWrappingInputRange(-Math.PI, Math.PI);
         armWristConfig.encoder.positionConversionFactor(ArmConstants.ShoulderConstants.wristPositionConversionFactor)
             .velocityConversionFactor(ArmConstants.ShoulderConstants.wristVelocityConversionFactor);
         armWristConfig.absoluteEncoder
             .positionConversionFactor(ArmConstants.ShoulderConstants.wristAbsolutePositionFactor)
-            .velocityConversionFactor(ArmConstants.ShoulderConstants.wristAbsoluteVelocityFactor);
+            .velocityConversionFactor(ArmConstants.ShoulderConstants.wristAbsoluteVelocityFactor)
+            .zeroOffset(ArmConstants.ShoulderConstants.wristZeroOffset).zeroCentered(true);
         armWristConfig.idleMode(IdleMode.kBrake)
             .smartCurrentLimit(ArmConstants.ShoulderConstants.wristMotorCurrentLimit)
             .voltageCompensation(Constants.voltageCompensation)
-            .inverted(ArmConstants.ShoulderConstants.wristMotorInverted);
+            .inverted(ArmConstants.ShoulderConstants.wristMotorInverted).closedLoopRampRate(0.5);
         // We use the forward and backward limit switch for the vertical and horizontal game piece
         // detectors respectvely. We don't want them to act as actual limit switches.
         armWristConfig.limitSwitch.forwardLimitSwitchEnabled(false).reverseLimitSwitchEnabled(false);
@@ -163,7 +173,7 @@ public class ArmIOReal implements ArmIO {
         endEffectorConfig.idleMode(IdleMode.kBrake)
             .smartCurrentLimit(ArmConstants.EndEffectorConstants.endEffectorMotorCurrentLimit)
             .voltageCompensation(Constants.voltageCompensation)
-            .inverted(ArmConstants.EndEffectorConstants.endEffectorMotorInverted);
+            .inverted(ArmConstants.EndEffectorConstants.endEffectorMotorInverted).closedLoopRampRate(0.5);
         endEffectorConfig.signals.apply(SparkUtil.defaultSignals) //
             .primaryEncoderPositionAlwaysOn(true).primaryEncoderPositionPeriodMs(20)
             .primaryEncoderVelocityAlwaysOn(true).primaryEncoderVelocityPeriodMs(20);
@@ -202,8 +212,8 @@ public class ArmIOReal implements ArmIO {
         }
         try {
             elevatorHeightSensor.setRangingMode(LaserCan.RangingMode.LONG);
-            elevatorHeightSensor.setRegionOfInterest(new LaserCan.RegionOfInterest(8, 8, 8, 8));
-            elevatorHeightSensor.setTimingBudget(LaserCan.TimingBudget.TIMING_BUDGET_20MS);
+            elevatorHeightSensor.setRegionOfInterest(new LaserCan.RegionOfInterest(8, 8, 6, 6));
+            elevatorHeightSensor.setTimingBudget(LaserCan.TimingBudget.TIMING_BUDGET_50MS);
         } catch(ConfigurationFailedException e) {
             System.out.println("Configuration failed! " + e);
         }
@@ -231,11 +241,13 @@ public class ArmIOReal implements ArmIO {
         // from our sensor.
         Measurement measurement = elevatorHeightSensor.getMeasurement();
         inputs.elevatorHeightSensorConnected = elevatorHeightSensorConnectedDebouncer.calculate(measurement != null);
-        if(inputs.elevatorVelocityMetersPerSecond < 0.1 && inputs.elevatorMotorsConnected && measurement != null
+        if(inputs.elevatorVelocityMetersPerSecond < 0.03 && inputs.elevatorMotorsConnected && measurement != null
             && measurement.status == LaserCan.LASERCAN_STATUS_VALID_MEASUREMENT) {
             double position = (double) (measurement.distance_mm) / 1000.;
-            elevatorHeightEncoder1.setPosition(position);
-            elevatorHeightEncoder2.setPosition(position);
+            // elevatorHeightEncoder1.setPosition(position);
+            // elevatorHeightEncoder2.setPosition(position);
+            // This is hacky
+            // TODO: Wtf
             Logger.recordOutput("Arm/ElevatorResetting", true);
         } else {
             Logger.recordOutput("Arm/ElevatorResetting", false);
@@ -264,24 +276,20 @@ public class ArmIOReal implements ArmIO {
 
     @Override
     public void setElevatorHeight(double heightMeters) {
-        elevatorHeightController.setReference(heightMeters, ControlType.kPosition);
+        elevatorHeightController.setReference(heightMeters, ControlType.kPosition, ClosedLoopSlot.kSlot0,
+            ArmConstants.ElevatorConstants.elevatorKg, ArbFFUnits.kVoltage);
     }
 
     @Override
-    public void setArmPitchPosition(Rotation2d position) {
-        armPitchController.setReference(position.getRadians(), ControlType.kPosition);
+    public void setArmPitchPosition(Rotation2d position, double feedforward) {
+        armPitchController.setReference(MathUtil.angleModulus(position.getRadians()), ControlType.kPosition,
+            ClosedLoopSlot.kSlot0, feedforward, ArbFFUnits.kVoltage);
     }
 
     @Override
     public void setWristRotation(WristRotation rotation) {
-        armWristController.setReference(rotation.rotation.getRadians(), ControlType.kPosition,
+        armWristController.setReference(MathUtil.angleModulus(rotation.rotation.getRadians()), ControlType.kPosition,
             ArmConstants.ShoulderConstants.armWristPositionSlot);
-    }
-
-    @Override
-    public void setArmWristVelocity(double velocityRadPerSecond) {
-        armWristController.setReference(velocityRadPerSecond, ControlType.kVelocity,
-            ArmConstants.ShoulderConstants.armWristVelocitySlot);
     }
 
     @Override
@@ -304,7 +312,7 @@ public class ArmIOReal implements ArmIO {
             double couplingFactor = Constants.currentMode == Constants.Mode.SIM ? 0
                 : ArmConstants.EndEffectorConstants.endEffectorCouplingFactor;
             double holdPositionRad = startHoldEndEffectorPosition.getRadians()
-                + (armWristRelativeEncoder.getPosition() - startHoldWristPosition.getRadians()) * couplingFactor;
+                - (armWristRelativeEncoder.getPosition() - startHoldWristPosition.getRadians()) * couplingFactor;
             endEffectorController.setReference(holdPositionRad, ControlType.kPosition,
                 ArmConstants.EndEffectorConstants.endEffectorPositionSlot);
         }

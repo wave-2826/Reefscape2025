@@ -38,13 +38,10 @@ public interface ArmIO {
     public default void setElevatorHeight(double heightMeters) {
     }
 
-    public default void setArmPitchPosition(Rotation2d position) {
+    public default void setArmPitchPosition(Rotation2d position, double feedforward) {
     }
 
     public default void setWristRotation(WristRotation rotation) {
-    }
-
-    public default void setArmWristVelocity(double velocityRadPerSecond) {
     }
 
     public default void setEndEffectorState(EndEffectorState mode) {
