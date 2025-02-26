@@ -282,7 +282,7 @@ public class ArmIOReal implements ArmIO {
 
     @Override
     public void setArmPitchPosition(Rotation2d position, double feedforward) {
-        armPitchController.setReference(MathUtil.angleModulus(position.getRadians()), ControlType.kPosition,
+        armPitchController.setReference(-MathUtil.angleModulus(position.getRadians()), ControlType.kPosition,
             ClosedLoopSlot.kSlot0, feedforward, ArbFFUnits.kVoltage);
     }
 

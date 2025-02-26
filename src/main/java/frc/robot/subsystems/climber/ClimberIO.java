@@ -8,7 +8,15 @@ public interface ClimberIO {
     @AutoLog
     public static class ClimberIOInputs {
         public boolean climberMotorConnected = false;
-        public Rotation2d climberPosition = new Rotation2d();
+        public Rotation2d climberAbsolutePosition = new Rotation2d();
+    }
+
+    /**
+     * Reset the climber encoder to the absolute encoder's position. We don't use closed-loop control directly with the
+     * absolute encoder because otherwise we can get stuck turning the motor into an invalid state if the climber arm is
+     * resting on an object (e.g. the cage...).
+     */
+    public default void resetToAbsolute() {
     }
 
     public default void updateInputs(ClimberIOInputs inputs) {

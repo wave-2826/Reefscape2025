@@ -2,6 +2,8 @@ package frc.robot.subsystems.climber;
 
 import static frc.robot.util.SparkUtil.*;
 
+import org.littletonrobotics.junction.Logger;
+
 import com.revrobotics.spark.SparkBase.ControlType;
 import com.revrobotics.spark.SparkBase.PersistMode;
 import com.revrobotics.spark.SparkBase.ResetMode;
@@ -10,6 +12,7 @@ import com.revrobotics.spark.config.ClosedLoopConfig.FeedbackSensor;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import com.revrobotics.spark.config.SparkMaxConfig;
 import com.revrobotics.AbsoluteEncoder;
+import com.revrobotics.RelativeEncoder;
 import com.revrobotics.spark.SparkClosedLoopController;
 import com.revrobotics.spark.SparkMax;
 
@@ -20,7 +23,8 @@ import frc.robot.util.SparkUtil;
 
 public class ClimberIOReal implements ClimberIO {
     private SparkMax climberMotor;
-    private AbsoluteEncoder climberEncoder;
+    private RelativeEncoder climberEncoder;
+    private AbsoluteEncoder climberAbsoluteEncoder;
     private SparkClosedLoopController climberMotorController;
 
     private Debouncer climberConnectedDebouncer = new Debouncer(0.25);
@@ -31,10 +35,15 @@ public class ClimberIOReal implements ClimberIO {
         SparkMaxConfig config = new SparkMaxConfig();
 
         config.closedLoop.apply(ClimberConstants.climberPID.getConfig())
-            .feedbackSensor(FeedbackSensor.kAbsoluteEncoder);
-        config.absoluteEncoder.positionConversionFactor(ClimberConstants.climberPositionConversionFactor)
-            .velocityConversionFactor(ClimberConstants.climberVelocityConversionFactor)
-            .zeroOffset(ClimberConstants.climberZeroAngle);
+            // We don't use closed-loop control directly with the absolute encoder because
+            // otherwise we can get stuck turning the motor into an invalid state if the climber
+            // arm is resting on an object (e.g. the cage...).
+            .feedbackSensor(FeedbackSensor.kPrimaryEncoder);
+        config.absoluteEncoder.positionConversionFactor(ClimberConstants.climberAbsolutePositionFactor)
+            .velocityConversionFactor(ClimberConstants.climberAbsoluteVelocityFactor)
+            .zeroOffset(ClimberConstants.climberZeroAngle).zeroCentered(true);
+        config.encoder.positionConversionFactor(ClimberConstants.climberPositionConversionFactor)
+            .velocityConversionFactor(ClimberConstants.climberVelocityConversionFactor);
         config.idleMode(IdleMode.kBrake).smartCurrentLimit(ClimberConstants.climberMotorCurrentLimit)
             .voltageCompensation(Constants.voltageCompensation).inverted(ClimberConstants.climberMotorInverted);
         config.signals.apply(SparkUtil.defaultSignals) //
@@ -49,19 +58,40 @@ public class ClimberIOReal implements ClimberIO {
 
         climberMotorController = climberMotor.getClosedLoopController();
 
-        climberEncoder = climberMotor.getAbsoluteEncoder();
+        climberEncoder = climberMotor.getEncoder();
+        climberAbsoluteEncoder = climberMotor.getAbsoluteEncoder();
+
+        resetToAbsolute();
+    }
+
+    @Override
+    public void resetToAbsolute() {
+        tryUntilOk(climberMotor, 5, () -> climberEncoder.setPosition(climberAbsoluteEncoder.getPosition()));
     }
 
     @Override
     public void updateInputs(ClimberIOInputs inputs) {
         sparkStickyFault = false;
-        ifOk(climberMotor, climberEncoder::getPosition, a -> inputs.climberPosition = Rotation2d.fromRadians(a));
+        ifOk(climberMotor, climberAbsoluteEncoder::getPosition,
+            a -> inputs.climberAbsolutePosition = Rotation2d.fromRadians(a));
         inputs.climberMotorConnected = climberConnectedDebouncer.calculate(!sparkStickyFault);
     }
 
     @Override
     public void setClimberTargetAngle(Rotation2d angle) {
-        climberMotorController.setReference(angle.getRadians(), ControlType.kPosition);
+        // Lmaoo wtf
+        double theta = Math.PI * (3 / 4.) - angle.getRadians();
+        double requiredClimberStrapLength = Math
+            .sqrt(ClimberConstants.climberArmStrapPosition * ClimberConstants.climberArmStrapPosition
+                + ClimberConstants.climberPulleyToPivotDistance * ClimberConstants.climberPulleyToPivotDistance
+                - 2 * ClimberConstants.climberArmStrapPosition * ClimberConstants.climberPulleyToPivotDistance
+                    * Math.cos(theta));
+        double climberCircumference = 2 * Math.PI * ClimberConstants.climberPulleyRadius;
+        Logger.recordOutput("Climber/RequiredStrapLength", requiredClimberStrapLength);
+        double requiredPulleyPosition = (ClimberConstants.climberRestingLength - requiredClimberStrapLength)
+            / climberCircumference * 2 * Math.PI;
+        Logger.recordOutput("Climber/PulleyPositionTarget", requiredPulleyPosition);
+        climberMotorController.setReference(requiredPulleyPosition, ControlType.kPosition);
     }
 
     @Override

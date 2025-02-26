@@ -3,6 +3,7 @@ package frc.robot.subsystems.climber;
 import static edu.wpi.first.units.Units.Meters;
 
 import edu.wpi.first.math.geometry.Translation3d;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.units.measure.Distance;
 import frc.robot.util.LoggedTunableSparkPID;
 
@@ -23,8 +24,26 @@ public class ClimberConstants {
     public static final boolean climberMotorInverted = false;
 
     /** The position conversion factor from absolute encoder rotations to climber radians. */
-    public static final double climberPositionConversionFactor = 2 * Math.PI;
+    public static final double climberAbsolutePositionFactor = 2 * Math.PI;
     /** The velocity conversion factor from absolute encoder RPM to climber radians per second. */
+    public static final double climberAbsoluteVelocityFactor = climberAbsolutePositionFactor / 60.0;
+
+    /** The climber reduction. */
+    public static final double climberReduction = 125. * 2.;
+    /** The position on the climber arm that the strap is at, in meters. */
+    public static final double climberArmStrapPosition = Units.inchesToMeters(5.5);
+    /** The radius of the climber pulley, in meters. */
+    public static final double climberPulleyRadius = Units.inchesToMeters(1.2 / 2.);
+    /** The length of the triangle leg from the climber pulley center to the climber pivot center, in meters. */
+    public static final double climberPulleyToPivotDistance = Units.inchesToMeters(8.);
+    /** The inclanation of the triangle leg from the... whatever you get it, in radians */
+    public static final double climberLegAngle = Units.degreesToRadians(45.);
+    /** The length of the climber strap in the resting position, in meters. */
+    public static final double climberRestingLength = Units.inchesToMeters(12.5);
+
+    /** The position conversion factor from motor encoder rotations to climber radians. */
+    public static final double climberPositionConversionFactor = 2 * Math.PI / climberReduction;
+    /** The velocity conversion factor from motor encoder RPM to climber radians per second. */
     public static final double climberVelocityConversionFactor = climberPositionConversionFactor / 60.0;
 
     public static final Translation3d climberOrigin = new Translation3d(0, 0, 0); // TODO: Determine from CAD

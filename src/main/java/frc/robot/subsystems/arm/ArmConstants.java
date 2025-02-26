@@ -84,9 +84,9 @@ public class ArmConstants {
         public static final int armWristMotorId = /* TODO */ 53;
 
         /** The wrist absolute encoder zero offset, in radians. */
-        public static final double wristZeroOffset = 0.1189006;
+        public static final double wristZeroOffset = 0.8604457;
         /** The pitch absolute encoder zero offset, in radians. */
-        public static final double pitchZeroOffset = 0.0652682;
+        public static final double pitchZeroOffset = 0.7356733;
 
         /** The highest soft stop for the elevator. */
         public static final Rotation2d maximumPitch = Rotation2d.fromDegrees(30.);
@@ -94,10 +94,10 @@ public class ArmConstants {
         public static final Rotation2d minimumPitch = Rotation2d.fromDegrees(-35.);
 
         /** The feedforward gravity constant for the arm in volts. */
-        public static final double armPitchKg = -0.9;
+        public static final double armPitchKg = 0.0;
 
         public static final LoggedTunableSparkPID armPitchPID = new LoggedTunableSparkPID("Arm/Pitch")
-            .addRealRobotGains(0.15, 0.0, 3.0).addSimGains(0.5, 0.0, 0.0);
+            .addRealRobotGains(0.3, 0.0, 5.0).addSimGains(0.5, 0.0, 0.0);
 
         public static final double elevatorPitchReduction = 5 * (84 / 48);
         /** The conversion factor from pitch motor rotations to radians. */
@@ -112,7 +112,7 @@ public class ArmConstants {
 
         public static final int pitchMotorCurrentLimit = 50;
         public static final boolean pitchMotorInverted = false;
-        public static final boolean pitchEncoderInverted = false;
+        public static final boolean pitchEncoderInverted = true;
 
         public static final ClosedLoopSlot armWristPositionSlot = ClosedLoopSlot.kSlot0;
         public static final ClosedLoopSlot armWristVelocitySlot = ClosedLoopSlot.kSlot1;
