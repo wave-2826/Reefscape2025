@@ -88,9 +88,11 @@ public class Robot extends LoggedRobot {
         robotContainer = new RobotContainer();
 
         // For GrappleHook
-        if(Constants.currentMode == Constants.Mode.REAL) {
+        if(Constants.currentMode == Constants.Mode.REAL && Constants.tuningMode) {
             CanBridge.runTCP();
         }
+
+        robotContainer.resetSimulatedRobot();
     }
 
     /** This function is called periodically during all modes. */
@@ -160,6 +162,8 @@ public class Robot extends LoggedRobot {
     public void testInit() {
         // Cancels all running commands at the start of test mode.
         CommandScheduler.getInstance().cancelAll();
+
+        robotContainer.resetSimulatedRobot();
     }
 
     /** This function is called periodically during test mode. */

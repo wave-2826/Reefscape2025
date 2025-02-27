@@ -1,13 +1,21 @@
 {
   "HALProvider": {
     "Other Devices": {
-      "window": {
-        "visible": false
+      "SPARK Flex [50]": {
+        "header": {
+          "open": true
+        }
       }
     },
     "RoboRIO": {
+      "6V Rail": {
+        "open": true
+      },
       "RoboRIO Input": {
         "open": true
+      },
+      "window": {
+        "visible": true
       }
     }
   },
@@ -47,6 +55,9 @@
     "transitory": {
       "DriverStationInterface": {
         "open": true
+      },
+      "FMSInfo": {
+        "open": true
       }
     }
   },
@@ -68,7 +79,7 @@
             0.05999999865889549,
             0.9399999976158142
           ],
-          "height": 332,
+          "height": -43,
           "series": [
             {
               "color": [

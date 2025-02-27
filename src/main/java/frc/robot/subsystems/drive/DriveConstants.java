@@ -28,6 +28,7 @@ public class DriveConstants {
     // TODO: Measure our effective maximum speed once robot is built
     public static final double maxSpeedMetersPerSec = 4.5; // "Magic" number from max speed measurement
     public static final double odometryFrequency = 100.0; // Hz
+    public static final double bumperSizeMeters = Units.inchesToMeters(37.625);
     public static final double trackWidth = Units.inchesToMeters(24.);
     public static final double wheelBase = Units.inchesToMeters(24.);
     public static final double driveBaseRadius = Math.hypot(trackWidth / 2.0, wheelBase / 2.0);
@@ -74,14 +75,14 @@ public class DriveConstants {
     /** The torque gain in volts per Nm */
     public static final double driveKt = driveMotorReduction / driveSimMotor.KtNMPerAmp;
     /** The acceleration gain in volts per (radian per second per second of wheel) */
-    public static final double driveKa = 0.0225;
+    public static final double driveKa = 0.0225; // Estimate... we should measure this with a full SysID run
 
     public static final double driveSimP = 0.6;
     public static final double driveSimD = 0.0;
-    public static final double driveSimKs = 0.0;
-    public static final double driveSimKv = 0.12;
-    public static final double driveSimKt = 0.0;
-    public static final double driveSimKa = 0.0;
+    public static final double driveSimKs = 0.0311; // "Magic" number from SysID
+    public static final double driveSimKv = 0.1344; // "Magic" number from SysID
+    public static final double driveSimKt = driveMotorReduction / driveSimMotor.KtNMPerAmp;
+    public static final double driveSimKa = 0.0225; // Estimate... we should measure this with a full SysID run
 
     // Turn motor configuration
     public static final boolean turnInverted = false;
@@ -132,7 +133,8 @@ public class DriveConstants {
 
     public static final DriveTrainSimulationConfig mapleSimConfig = DriveTrainSimulationConfig.Default()
         .withCustomModuleTranslations(moduleTranslations).withRobotMass(Kilogram.of(robotMassKg))
-        .withGyro(COTS.ofPigeon2()).withSwerveModule(
+        .withBumperSize(Meters.of(bumperSizeMeters), Meters.of(bumperSizeMeters)).withGyro(COTS.ofPigeon2())
+        .withSwerveModule(
             new SwerveModuleSimulationConfig(driveSimMotor, turnSimMotor, driveMotorReduction, turnMotorReduction,
                 Volts.of(0.1), Volts.of(0.1), Meters.of(wheelRadiusMeters), KilogramSquareMeters.of(0.02), wheelCOF));
 

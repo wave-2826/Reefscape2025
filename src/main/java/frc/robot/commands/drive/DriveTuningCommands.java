@@ -2,6 +2,8 @@ package frc.robot.commands.drive;
 
 import static edu.wpi.first.units.Units.Volts;
 
+import java.io.FileReader;
+import java.io.IOException;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.List;
@@ -11,10 +13,15 @@ import java.util.LinkedList;
 import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonIOException;
+import com.google.gson.JsonSyntaxException;
+
 import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.wpilibj.Filesystem;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
@@ -24,6 +31,10 @@ import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.drive.DriveConstants;
 import frc.robot.util.Container;
 
+/**
+ * A collection of commands for tuning the drive subsystem. All drive tuning commands print their results and save them
+ * to a JSON file on the robot.
+ */
 public class DriveTuningCommands {
     private static final double FF_START_DELAY = 2.0; // Secs
     private static final double FF_RAMP_RATE = 0.1; // Volts/Sec
@@ -35,6 +46,57 @@ public class DriveTuningCommands {
 
     private static final double WHEEL_RADIUS_MAX_VELOCITY = 0.25; // Rad/Sec
     private static final double WHEEL_RADIUS_RAMP_RATE = 0.05; // Rad/Sec^2
+
+    /** The path to the JSON file where we save our tuning results. */
+    public static final String TUNING_RESULTS_FILE = Constants.currentMode == Constants.Mode.REAL
+        ? "/U/tuning_results.json" // On a real robot, this is a USB stick
+        : "./logs/tuning_results.json"; // In simulation, this is a local file
+
+    /** A set of tuning results that we can load from and save to a JSON file. */
+    @SuppressWarnings("unused") // This is used for serialization and deserialization
+    private static class TuningResults {
+        public double wheelRadiusMeters = 0.0; // Meters
+        public double kS = 0.0; // Volts
+        public double kV = 0.0; // Volts/(m/s)
+        public double slipCurrentAmps = 0.0; // Amps
+        public double slipVoltageVolts = 0.0; // Volts
+        public double wheelCOF = 0.0; // Coefficient of friction
+        public double[] moduleSlipCurrentsAmps = new double[4]; // Amps
+        public double[] moduleSlipVoltagesVolts = new double[4]; // Volts
+
+        public static TuningResults load() {
+            var file = Filesystem.getOperatingDirectory().toPath().resolve(TUNING_RESULTS_FILE).toFile();
+            // Make sure the parent directory exists
+            file.getParentFile().mkdirs();
+
+            if(!file.exists()) return new TuningResults(); // If the file doesn't exist, return an empty result
+
+            var builder = new GsonBuilder();
+            builder.setPrettyPrinting();
+            var gson = builder.create();
+            try(var fileReader = new FileReader(file)) {
+                return gson.fromJson(fileReader, TuningResults.class);
+            } catch(JsonSyntaxException | JsonIOException | IOException e) {
+                e.printStackTrace();
+                return new TuningResults(); // If we can't read the file, return an empty result
+            }
+        }
+
+        public void save() {
+            var builder = new GsonBuilder();
+            builder.setPrettyPrinting();
+            var gson = builder.create();
+            try(var fileWriter = new java.io.FileWriter(TUNING_RESULTS_FILE)) {
+                gson.toJson(this, fileWriter);
+                System.out.println("Saved tuning results to " + TUNING_RESULTS_FILE);
+            } catch(IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    /** The tuning results that we can load from and save to a JSON file. */
+    private static TuningResults tuningResults = TuningResults.load();
 
     private static SysIdRoutine sysIdRoutine = null;
 
@@ -113,6 +175,10 @@ public class DriveTuningCommands {
                 System.out.println("********** Drive FF Characterization Results **********");
                 System.out.println("\tkS: " + formatter.format(kS));
                 System.out.println("\tkV: " + formatter.format(kV));
+
+                tuningResults.kS = kS;
+                tuningResults.kV = kV;
+                tuningResults.save();
             }));
     }
 
@@ -173,6 +239,9 @@ public class DriveTuningCommands {
                         System.out.println("\tGyro Delta: " + formatter.format(state.gyroDelta) + " radians");
                         System.out.println("\tWheel Radius: " + formatter.format(wheelRadius) + " meters, "
                             + formatter.format(Units.metersToInches(wheelRadius)) + " inches");
+
+                        tuningResults.wheelRadiusMeters = wheelRadius;
+                        tuningResults.save();
                     })));
     }
 
@@ -189,7 +258,7 @@ public class DriveTuningCommands {
     public static Command slipCurrentMeasurement(Drive drive) {
         SlipCurrentModuleResult[] moduleResults = new SlipCurrentModuleResult[4];
 
-        int currentLimitForSlipMeasurement = 80; // Amps
+        int currentLimitForSlipMeasurement = 100; // Amps
 
         Command command = Commands.sequence( //
             Commands.runOnce(() -> {
@@ -224,13 +293,15 @@ public class DriveTuningCommands {
                     averageSlipVoltage += moduleResults[i].slipVoltage / 4.;
                 }
 
+                NumberFormat formatter = new DecimalFormat("#0.000");
+
                 System.out.println("********** Drive Slip Current Measurement Results **********");
-                System.out.println("\tAverage slip Current: " + (int) Math.floor(averageSlipCurrent) + " amps");
-                System.out.println("\tAverage slip \"Voltage\": " + averageSlipVoltage + " volts");
+                System.out.println("\tAverage slip Current: " + formatter.format(averageSlipCurrent) + " amps");
+                System.out.println("\tAverage slip \"Voltage\": " + formatter.format(averageSlipVoltage) + " volts");
                 String[] moduleNames = new String[] {
                     "Front left", "Front right", "Back left", "Back right"
                 };
-                NumberFormat formatter = new DecimalFormat("#0.000");
+
                 System.out.println("\tIndividual module slip currents:");
                 for(int i = 0; i < 4; i++) {
                     System.out.println(
@@ -244,6 +315,16 @@ public class DriveTuningCommands {
                 double wheelCOF = totalTorqueNm / (robotMassN * DriveConstants.wheelRadiusMeters);
                 NumberFormat cofFormatter = new DecimalFormat("#0.0000");
                 System.out.println("\tEstimated wheel COF: " + cofFormatter.format(wheelCOF));
+
+                // Save results
+                tuningResults.slipCurrentAmps = averageSlipCurrent;
+                tuningResults.slipVoltageVolts = averageSlipVoltage;
+                tuningResults.wheelCOF = wheelCOF;
+                for(int i = 0; i < 4; i++) {
+                    tuningResults.moduleSlipCurrentsAmps[i] = moduleResults[i].slipCurrent;
+                    tuningResults.moduleSlipVoltagesVolts[i] = moduleResults[i].slipVoltage;
+                }
+                tuningResults.save();
             }) //
         );
         command.addRequirements(drive);
@@ -263,11 +344,16 @@ public class DriveTuningCommands {
 
             // Accelerate and gather data
             Commands.run(() -> {
-                double voltage = timer.get() * SLIP_RAMP_RATE + SLIP_START_VOLTAGE;
+                double voltage = Math.min(12., timer.get() * SLIP_RAMP_RATE + SLIP_START_VOLTAGE);
                 drive.runCharacterization(module, voltage);
 
                 currentSamples.add(drive.getSlipMeasurementCurrent(module));
             }).until(() -> {
+                if(timer.get() * SLIP_RAMP_RATE + SLIP_START_VOLTAGE > 12.) {
+                    System.out.println("Slip current measurement capped at 12 volts. This probably isn't correct.");
+                    return true; // Stop if we hit the voltage limit
+                }
+
                 double distanceTraveled = Math.abs(drive.getSlipMeasurementPosition(module) - startPosition.value);
                 return distanceTraveled > SLIP_TRAVEL_AMOUNT;
             }),
@@ -278,6 +364,8 @@ public class DriveTuningCommands {
 
                 moduleResult.slipCurrent = currentSamples.get(currentSamples.size() - 4);
                 moduleResult.slipVoltage = timer.get() * SLIP_RAMP_RATE + SLIP_START_VOLTAGE;
+
+                System.out.println("Module " + module + " slip current measured.");
             }));
     }
 

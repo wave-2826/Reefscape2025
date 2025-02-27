@@ -121,4 +121,9 @@ public class ModuleIOSim implements ModuleIO {
         turnController.setPID(kP, kI, kD);
         // D filter means nothing for the software PID
     }
+
+    @Override
+    public void setDriveCurrentLimit(int limitAmps) {
+        driveMotor.withCurrentLimit(Amps.of(limitAmps));
+    }
 }
