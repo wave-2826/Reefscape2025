@@ -5,6 +5,7 @@ import static edu.wpi.first.units.Units.Volts;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.List;
+import java.util.Set;
 import java.util.LinkedList;
 
 import org.littletonrobotics.junction.Logger;
@@ -21,6 +22,7 @@ import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.Constants;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.drive.DriveConstants;
+import frc.robot.util.Container;
 
 public class DriveTuningCommands {
     private static final double FF_START_DELAY = 2.0; // Secs
@@ -174,8 +176,9 @@ public class DriveTuningCommands {
                     })));
     }
 
-    private static class SlipCurrentState {
-        double startPosition = 0.0;
+    private static class SlipCurrentModuleResult {
+        public double slipCurrent;
+        public double slipVoltage;
     }
 
     /**
@@ -184,61 +187,54 @@ public class DriveTuningCommands {
      * wall for this to work.
      */
     public static Command slipCurrentMeasurement(Drive drive) {
-        List<double[]> currentSamples = new LinkedList<>();
-        Timer timer = new Timer();
+        SlipCurrentModuleResult[] moduleResults = new SlipCurrentModuleResult[4];
 
-        SlipCurrentState state = new SlipCurrentState();
+        int currentLimitForSlipMeasurement = 80; // Amps
 
-        // TODO: Increase drive current limit for slip measurement
-
-        return Commands.sequence(
-            // Reset data
+        Command command = Commands.sequence( //
             Commands.runOnce(() -> {
-                currentSamples.clear();
+                // Temporarily increase the drive current limit
+                drive.setSlipMeasurementCurrentLimit(currentLimitForSlipMeasurement);
+                for(int i = 0; i < 4; i++) {
+                    moduleResults[i] = new SlipCurrentModuleResult();
+                }
             }),
 
             // Allow modules to orient
             Commands.run(() -> {
                 drive.runCharacterization(0.0);
-            }, drive).withTimeout(SLIP_START_DELAY),
+            }).withTimeout(SLIP_START_DELAY),
 
-            // Reset the start position
-            Commands.runOnce(() -> state.startPosition = drive.getSlipMeasurementPosition()),
+            Commands.defer(() -> {
+                Command[] commands = new Command[4];
+                for(int i = 0; i < 4; i++) {
+                    commands[i] = slipCurrentWheel(drive, i, moduleResults[i]);
+                }
+                return Commands.parallel(commands);
+            }, Set.of()),
 
-            // Start timer
-            Commands.runOnce(timer::restart),
-
-            // Accelerate and gather data
-            Commands.run(() -> {
-                double voltage = timer.get() * SLIP_RAMP_RATE + SLIP_START_VOLTAGE;
-                drive.runCharacterization(voltage);
-
-                currentSamples.add(drive.getSlipMeasurementCurrents());
-            }, drive).until(() -> {
-                double distanceTraveled = Math.abs(drive.getSlipMeasurementPosition() - state.startPosition);
-                return distanceTraveled > SLIP_TRAVEL_AMOUNT;
-            }),
-
-            // Take a few samples behind when we stopped and print the result
+            // Restore the current limit and print results
             Commands.runOnce(() -> {
-                drive.runCharacterization(0.0);
+                drive.setSlipMeasurementCurrentLimit(DriveConstants.driveMotorCurrentLimit);
 
-                double[] slipCurrents = currentSamples.get(currentSamples.size() - 4);
                 double averageSlipCurrent = 0.0;
-                for(int i = 0; i < 4; i++) averageSlipCurrent += slipCurrents[i] / 4.0;
-
-                double slipVoltage = timer.get() * SLIP_RAMP_RATE + SLIP_START_VOLTAGE;
+                double averageSlipVoltage = 0.0;
+                for(int i = 0; i < 4; i++) {
+                    averageSlipCurrent += moduleResults[i].slipCurrent / 4.;
+                    averageSlipVoltage += moduleResults[i].slipVoltage / 4.;
+                }
 
                 System.out.println("********** Drive Slip Current Measurement Results **********");
                 System.out.println("\tAverage slip Current: " + (int) Math.floor(averageSlipCurrent) + " amps");
-                System.out.println("\tSlip \"Voltage\": " + slipVoltage + " volts");
+                System.out.println("\tAverage slip \"Voltage\": " + averageSlipVoltage + " volts");
                 String[] moduleNames = new String[] {
                     "Front left", "Front right", "Back left", "Back right"
                 };
                 NumberFormat formatter = new DecimalFormat("#0.000");
                 System.out.println("\tIndividual module slip currents:");
                 for(int i = 0; i < 4; i++) {
-                    System.out.println("\t \t" + moduleNames[i] + ": " + formatter.format(slipCurrents[i]));
+                    System.out.println(
+                        "\t \t" + moduleNames[i] + ": " + formatter.format(moduleResults[i].slipCurrent) + " amps");
                 }
 
                 // Estimate the wheel's coefficient of friction
@@ -247,7 +243,41 @@ public class DriveTuningCommands {
                 double robotMassN = DriveConstants.robotMassKg * 9.81;
                 double wheelCOF = totalTorqueNm / (robotMassN * DriveConstants.wheelRadiusMeters);
                 NumberFormat cofFormatter = new DecimalFormat("#0.0000");
-                System.out.println("\tWheel COF: " + cofFormatter.format(wheelCOF));
+                System.out.println("\tEstimated wheel COF: " + cofFormatter.format(wheelCOF));
+            }) //
+        );
+        command.addRequirements(drive);
+        return command;
+    }
+
+    private static Command slipCurrentWheel(Drive drive, int module, SlipCurrentModuleResult moduleResult) {
+        List<Double> currentSamples = new LinkedList<>();
+        Timer timer = new Timer();
+        Container<Double> startPosition = new Container<Double>(0.);
+
+        return Commands.sequence(Commands.runOnce(() -> {
+            currentSamples.clear();
+            startPosition.value = drive.getSlipMeasurementPosition(module);
+            timer.restart();
+        }),
+
+            // Accelerate and gather data
+            Commands.run(() -> {
+                double voltage = timer.get() * SLIP_RAMP_RATE + SLIP_START_VOLTAGE;
+                drive.runCharacterization(module, voltage);
+
+                currentSamples.add(drive.getSlipMeasurementCurrent(module));
+            }).until(() -> {
+                double distanceTraveled = Math.abs(drive.getSlipMeasurementPosition(module) - startPosition.value);
+                return distanceTraveled > SLIP_TRAVEL_AMOUNT;
+            }),
+
+            // Take a few samples behind when we stopped and print the result
+            Commands.runOnce(() -> {
+                drive.runCharacterization(module, 0.0);
+
+                moduleResult.slipCurrent = currentSamples.get(currentSamples.size() - 4);
+                moduleResult.slipVoltage = timer.get() * SLIP_RAMP_RATE + SLIP_START_VOLTAGE;
             }));
     }
 

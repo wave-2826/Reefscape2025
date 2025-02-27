@@ -216,4 +216,9 @@ public class Module {
     public double getSlipMeasurementCurrent() {
         return inputs.driveCurrentAmps;
     }
+
+    /** Temporarily changes the drive motor current limit for slip current measurement. */
+    public void setSlipMeasurementCurrentLimit(int amps) {
+        io.setDriveCurrentLimit(amps);
+    }
 }

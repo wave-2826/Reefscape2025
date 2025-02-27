@@ -68,4 +68,8 @@ public interface ModuleIO {
      */
     public default void setTurnPID(double kP, double kI, double kD, double derivativeFilter) {
     }
+
+    /** Temporarily change the drive motor current limit. */
+    public default void setDriveCurrentLimit(int limitAmps) {
+    }
 }

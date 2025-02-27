@@ -223,4 +223,12 @@ public class ModuleIOSpark implements ModuleIO {
         tryUntilOk(turnSpark, 5,
             () -> turnSpark.configure(newConfig, ResetMode.kNoResetSafeParameters, PersistMode.kNoPersistParameters));
     }
+
+    @Override
+    public void setDriveCurrentLimit(int limitAmps) {
+        SparkFlexConfig newConfig = new SparkFlexConfig();
+        newConfig.smartCurrentLimit(limitAmps);
+        tryUntilOk(driveSpark, 5,
+            () -> driveSpark.configure(newConfig, ResetMode.kNoResetSafeParameters, PersistMode.kNoPersistParameters));
+    }
 }

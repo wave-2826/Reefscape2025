@@ -264,6 +264,11 @@ public class Drive extends SubsystemBase {
         for(int i = 0; i < 4; i++) modules[i].runCharacterization(output);
     }
 
+    /** Runs a particular module in a straight line with the specified drive output. */
+    public void runCharacterization(int module, double output) {
+        modules[module].runCharacterization(output);
+    }
+
     /** Stops the drive. */
     public void stop() {
         runVelocity(new ChassisSpeeds());
@@ -327,18 +332,19 @@ public class Drive extends SubsystemBase {
         return output;
     }
 
-    /** Returns the average drive motor current draw in amps. */
-    public double[] getSlipMeasurementCurrents() {
-        double[] values = new double[4];
-        for(int i = 0; i < 4; i++) values[i] = modules[i].getSlipMeasurementCurrent();
-        return values;
+    /** Returns the drive motor current draw of a particular module in amps. */
+    public double getSlipMeasurementCurrent(int module) {
+        return modules[module].getSlipMeasurementCurrent();
     }
 
-    /** Returns the average drive motor position in radians. */
-    public double getSlipMeasurementPosition() {
-        double output = 0.0;
-        for(int i = 0; i < 4; i++) output += modules[i].getWheelRadiusCharacterizationPosition() / 4.0;
-        return output;
+    /** Returns the drive motor position of a particular module in radians. */
+    public double getSlipMeasurementPosition(int module) {
+        return modules[module].getWheelRadiusCharacterizationPosition();
+    }
+
+    /** Temporarily changes the drive motor current limit for slip current measurement. */
+    public void setSlipMeasurementCurrentLimit(int amps) {
+        for(int i = 0; i < 4; i++) modules[i].setSlipMeasurementCurrentLimit(amps);
     }
 
     /** Returns the current odometry pose. */
