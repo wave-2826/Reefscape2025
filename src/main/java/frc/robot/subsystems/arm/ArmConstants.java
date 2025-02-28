@@ -10,6 +10,7 @@ import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.units.measure.Distance;
 import frc.robot.util.LoggedTunableSparkPID;
+import frc.robot.util.GearRatios.UltraPlanetaryRatio;
 
 /**
  * Constants related to the arm subsystem.
@@ -123,7 +124,8 @@ public class ArmConstants {
             .addRealRobotGains(2.0, 0.0, 1 / 917, armWristVelocitySlot)
             .addSimGains(2.0, 0.0, 0.0, 1 / 917, armWristVelocitySlot); // 917 is the Neo 550 Kf value
 
-        public static final double armWristReduction = 15.;
+        public static final double armWristReduction = UltraPlanetaryRatio.FIVE_TO_ONE.ratio
+            * UltraPlanetaryRatio.FIVE_TO_ONE.ratio;
         /** The conversion factor from wrist motor rotations to radians. */
         public static final double wristPositionConversionFactor = 2 * Math.PI / armWristReduction;
         /** The conversion factor from wrist motor RPM to radians per second. */
