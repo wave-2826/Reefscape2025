@@ -1,0 +1,115 @@
+{
+    "name": "2025 WAVE Robot",
+    "sourceUrl": "",
+    "disableSimplification": false,
+    "rotations": [
+        {
+            "axis": "x",
+            "degrees": 90
+        },
+        {
+            "axis": "z",
+            "degrees": 270
+        }
+    ],
+    "position": [
+        0,
+        0,
+        0
+    ],
+    "cameras": [
+        {
+            "name": "Elevator-climber (front left)",
+            "rotations": [
+                {
+                    "axis": "y",
+                    "degrees": 0
+                },
+                {
+                    "axis": "z",
+                    "degrees": 0
+                }
+            ],
+            "position": [
+                0,
+                0,
+                0
+            ],
+            "resolution": [
+                1280,
+                800
+            ],
+            "fov": 70
+        },
+        {
+            "name": "Elevator-rio (front right)",
+            "rotations": [
+                {
+                    "axis": "y",
+                    "degrees": 0
+                },
+                {
+                    "axis": "z",
+                    "degrees": 0
+                }
+            ],
+            "position": [
+                0,
+                0,
+                0
+            ],
+            "resolution": [
+                1280,
+                800
+            ],
+            "fov": 70
+        },
+        {
+            "name": "Intake-climber (back left)",
+            "rotations": [
+                {
+                    "axis": "y",
+                    "degrees": 0
+                },
+                {
+                    "axis": "z",
+                    "degrees": 0
+                }
+            ],
+            "position": [
+                0,
+                0,
+                0
+            ],
+            "resolution": [
+                1280,
+                800
+            ],
+            "fov": 70
+        },
+        {
+            "name": "Intake-rio (back right)",
+            "rotations": [
+                {
+                    "axis": "y",
+                    "degrees": 0
+                },
+                {
+                    "axis": "z",
+                    "degrees": 0
+                }
+            ],
+            "position": [
+                0,
+                0,
+                0
+            ],
+            "resolution": [
+                1280,
+                800
+            ],
+            "fov": 70
+        }
+    ],
+    "components": []
+}
