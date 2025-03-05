@@ -29,7 +29,7 @@ public class ClimberConstants {
     public static final double climberAbsoluteVelocityFactor = climberAbsolutePositionFactor / 60.0;
 
     /** The climber reduction. */
-    public static final double climberReduction = 125. * 2.;
+    public static final double climberReduction = 75. * 2.;
     /** The position on the climber arm that the strap is at, in meters. */
     public static final double climberArmStrapPosition = Units.inchesToMeters(5.5);
     /** The radius of the climber pulley, in meters. */

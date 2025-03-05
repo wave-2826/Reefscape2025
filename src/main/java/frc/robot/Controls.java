@@ -93,7 +93,7 @@ public class Controls {
                 : new EndEffectorState(EndEffectorState.Mode.VelocityControl, eeSpeed);
             double speed = 1.5;
             height.value -= controllingHeight ? (MathUtil.applyDeadband(operator.getLeftY(), 0.15) * speed * 0.02) : 0.;
-            pitch.value += MathUtil.applyDeadband(operator.getRightY(), 0.15) * 0.02 * 150.;
+            pitch.value -= MathUtil.applyDeadband(operator.getRightY(), 0.15) * 0.02 * 200.;
             return new ArmState(Rotation2d.fromDegrees(pitch.value), Meters.of(height.value),
                 horizontal.value ? WristRotation.Horizontal : WristRotation.Vertical, endEffectorState);
         }));

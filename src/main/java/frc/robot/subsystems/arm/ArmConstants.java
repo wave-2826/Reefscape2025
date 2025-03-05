@@ -26,7 +26,7 @@ public class ArmConstants {
 
         // Feedforward constants for the elevator
         /** The gravity gain in volts. */
-        public static final double elevatorKg = 0.5;
+        public static final double elevatorKg = 0.0;
 
         public static final int elevatorMotorCurrentLimit = 45;
         public static final boolean elevatorMotorInverted = true;
@@ -86,7 +86,7 @@ public class ArmConstants {
         /** The wrist absolute encoder zero offset, in radians. */
         public static final double wristZeroOffset = 0.8604457;
         /** The pitch absolute encoder zero offset, in radians. */
-        public static final double pitchZeroOffset = 0.7356733;
+        public static final double pitchZeroOffset = 0.1725792;
 
         /** The highest soft stop for the elevator. */
         public static final Rotation2d maximumPitch = Rotation2d.fromDegrees(30.);
@@ -112,7 +112,7 @@ public class ArmConstants {
 
         public static final int pitchMotorCurrentLimit = 50;
         public static final boolean pitchMotorInverted = false;
-        public static final boolean pitchEncoderInverted = true;
+        public static final boolean pitchEncoderInverted = false;
 
         public static final ClosedLoopSlot armWristPositionSlot = ClosedLoopSlot.kSlot0;
         public static final ClosedLoopSlot armWristVelocitySlot = ClosedLoopSlot.kSlot1;
@@ -123,7 +123,7 @@ public class ArmConstants {
             .addRealRobotGains(2.0, 0.0, 1 / 917, armWristVelocitySlot)
             .addSimGains(2.0, 0.0, 0.0, 1 / 917, armWristVelocitySlot); // 917 is the Neo 550 Kf value
 
-        public static final double armWristReduction = 15.;
+        public static final double armWristReduction = 25.;
         /** The conversion factor from wrist motor rotations to radians. */
         public static final double wristPositionConversionFactor = 2 * Math.PI / armWristReduction;
         /** The conversion factor from wrist motor RPM to radians per second. */

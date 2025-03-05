@@ -9,7 +9,6 @@ import org.littletonrobotics.junction.Logger;
 import com.revrobotics.AbsoluteEncoder;
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.spark.SparkClosedLoopController;
-import com.revrobotics.spark.SparkFlex;
 import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.ClosedLoopSlot;
 import com.revrobotics.spark.SparkBase;
@@ -40,7 +39,7 @@ public class ArmIOReal implements ArmIO {
     protected SparkMax elevatorHeightMotorFollower;
     protected SparkMax armPitchMotor;
     protected SparkMax armWristMotor;
-    protected SparkFlex endEffectorMotor;
+    protected SparkMax endEffectorMotor;
 
     private SparkClosedLoopController elevatorHeightController;
     private SparkClosedLoopController armPitchController;
@@ -86,7 +85,7 @@ public class ArmIOReal implements ArmIO {
         armPitchMotor = new SparkMax(ArmConstants.ShoulderConstants.armPitchMotorId, MotorType.kBrushless);
         armWristMotor = new SparkMax(ArmConstants.ShoulderConstants.armWristMotorId, MotorType.kBrushless);
 
-        endEffectorMotor = new SparkFlex(ArmConstants.EndEffectorConstants.endEffectorMotorId, MotorType.kBrushless);
+        endEffectorMotor = new SparkMax(ArmConstants.EndEffectorConstants.endEffectorMotorId, MotorType.kBrushless);
 
         // Configure motor controllers
         SparkFlexConfig elevatorMotorLeaderConfig = new SparkFlexConfig();
@@ -198,6 +197,9 @@ public class ArmIOReal implements ArmIO {
 
         elevatorHeightEncoder1 = elevatorHeightMotorLeader.getEncoder();
         elevatorHeightEncoder2 = elevatorHeightMotorFollower.getEncoder();
+
+        tryUntilOk(elevatorHeightMotorLeader, 5, () -> elevatorHeightEncoder1.setPosition(0));
+        tryUntilOk(elevatorHeightMotorFollower, 5, () -> elevatorHeightEncoder2.setPosition(0));
 
         armPitchEncoder = armPitchMotor.getAbsoluteEncoder();
         armWristEncoder = armWristMotor.getAbsoluteEncoder();

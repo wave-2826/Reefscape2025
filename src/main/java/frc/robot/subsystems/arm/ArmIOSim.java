@@ -3,7 +3,6 @@ package frc.robot.subsystems.arm;
 import static edu.wpi.first.units.Units.Meters;
 
 import com.revrobotics.sim.SparkAbsoluteEncoderSim;
-import com.revrobotics.sim.SparkFlexSim;
 import com.revrobotics.sim.SparkLimitSwitchSim;
 import com.revrobotics.sim.SparkMaxSim;
 
@@ -33,7 +32,7 @@ public class ArmIOSim extends ArmIOReal {
     private SparkMaxSim elevatorMotorSim;
     private SparkMaxSim armPitchMotorSim;
     private SparkMaxSim armWristMotorSim;
-    private SparkFlexSim endEffectorMotorSim;
+    private SparkMaxSim endEffectorMotorSim;
 
     private SparkAbsoluteEncoderSim armPitchEncoderSim;
     private SparkAbsoluteEncoderSim armWristEncoderSim;
@@ -68,7 +67,7 @@ public class ArmIOSim extends ArmIOReal {
         elevatorMotorSim = new SparkMaxSim(elevatorHeightMotorLeader, elevatorMotors);
         armPitchMotorSim = new SparkMaxSim(armPitchMotor, armMotors);
         armWristMotorSim = new SparkMaxSim(armWristMotor, armWristMotors);
-        endEffectorMotorSim = new SparkFlexSim(endEffectorMotor, endEffectorMotors);
+        endEffectorMotorSim = new SparkMaxSim(endEffectorMotor, endEffectorMotors);
 
         armPitchEncoderSim = armPitchMotorSim.getAbsoluteEncoderSim();
         armWristEncoderSim = armWristMotorSim.getAbsoluteEncoderSim();
