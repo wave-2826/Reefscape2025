@@ -23,17 +23,17 @@ public class ArmConstants {
 
         // PID constants for the elevator position PID
         public static final LoggedTunableSparkPID elevatorPID = new LoggedTunableSparkPID("Arm/Elevator")
-            .addRealRobotGains(2.0, 0.0, 10.0).addSimGains(10.0, 0.0, 8.0);
+            .addRealRobotGains(7.0, 0.0, 7.0).addSimGains(10.0, 0.0, 8.0);
 
         // Feedforward constants for the elevator
         /** The gravity gain in volts. */
-        public static final double elevatorKg = 0.0;
+        public static final double elevatorKg = 0.3;
 
         public static final int elevatorMotorCurrentLimit = 45;
         public static final boolean elevatorMotorInverted = true;
 
         public static final double elevatorReduction = 5.;
-        public static final double elevatorDrumRadiusMeters = Units.inchesToMeters(2);
+        public static final double elevatorDrumRadiusMeters = Units.inchesToMeters(1.88 / 2.);
         /** The conversion factor from elevator motor rotations to height in meters. */
         public static final double elevatorPositionConversionFactor = 2 * Math.PI * elevatorDrumRadiusMeters
             / elevatorReduction;
@@ -53,6 +53,11 @@ public class ArmConstants {
          * The maximum elevator height.
          */
         public static final Distance maxElevatorHeight = outerStageMaximumHeight.plus(carriageMaxHeight);
+
+        /**
+         * The margin on the elevator soft stops.
+         */
+        public static final Distance softStopMargin = Inches.of(10.);
 
         /**
          * The translation from the center of the robot at the floor to the center of the elevator support structure on
@@ -173,7 +178,6 @@ public class ArmConstants {
         // For every 1 rotation of the wrist, the end effector wheel rotates endEffectorCouplingFactor times.
         public static final double endEffectorCouplingFactor = (1 / endEffectorReduction) / 2.; // TODO: Find the proper value for this. Maybe from empirical testing?
 
-        // TODO: Find the proper value for this. Is it multiplied by the setpoint or motor speed? The REV docs are unclear.
         public static final LoggedTunableSparkPID endEffectorPID = new LoggedTunableSparkPID("Arm/EndEffector")
             .addRealRobotGains(0.001, 0.0, 0.5, 1. / 565, endEffectorVelocitySlot)
             .addSimGains(0.001, 0.0, 0.5, 1. / 565, endEffectorVelocitySlot)

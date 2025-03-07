@@ -27,7 +27,7 @@ public class Arm extends SubsystemBase {
 
     private final ArmVisualizer visualizer = new ArmVisualizer("arm");
 
-    private ArmState targetState = new ArmState(Rotation2d.fromDegrees(0.0), Meters.of(0.0), WristRotation.Vertical,
+    private ArmState targetState = new ArmState(Rotation2d.fromDegrees(0.0), Meters.of(0.75), WristRotation.Vertical,
         new EndEffectorState(EndEffectorState.Mode.Hold));
 
     private final Alert elevatorMotorDisconnectedAlert = new Alert("Elevator motor disconnected!", AlertType.kError);
@@ -38,9 +38,11 @@ public class Arm extends SubsystemBase {
     private final Alert endEffectorMotorDisconnectedAlert = new Alert("End effector motor disconnected!",
         AlertType.kError);
 
+    private static final LoggedTunableNumber elevatorKg = new LoggedTunableNumber("Arm/elevatorKg");
     private static final LoggedTunableNumber armPitchKg = new LoggedTunableNumber("Arm/pitchKg");
 
     static {
+        elevatorKg.initDefault(ArmConstants.ElevatorConstants.elevatorKg);
         armPitchKg.initDefault(ArmConstants.ShoulderConstants.armPitchKg);
     }
 
@@ -77,12 +79,16 @@ public class Arm extends SubsystemBase {
                 - targetState.wristRotation().rotation.getDegrees()) < TARGET_WRIST_TOLERANCE_DEGREES;
     }
 
+    public void resetToAbsolute() {
+        io.resetHeight(inputs.absoluteHeightMeters);
+    }
+
     @Override
     public void periodic() {
         io.updateInputs(inputs);
         Logger.processInputs("Arm", inputs);
 
-        io.setElevatorHeight(targetState.height().in(Meters));
+        io.setElevatorHeight(targetState.height().in(Meters), elevatorKg.get());
         io.setArmPitchPosition(targetState.pitch(),
             Math.abs(Math.cos(inputs.armPitchPosition.getRadians())) * armPitchKg.get());
         io.setWristRotation(targetState.wristRotation());
@@ -93,6 +99,17 @@ public class Arm extends SubsystemBase {
         Logger.recordOutput("Arm/TargetWrist", targetState.wristRotation().rotation.getDegrees());
         Logger.recordOutput("Arm/TargetEndEffector", targetState.endEffectorState().getVelocityControl().orElse(0.0));
         Logger.recordOutput("Arm/AtTarget", isAtTarget());
+
+        // TODO: Only reset when scoring
+        // If the elevator is moving slowly, we can reset the encoder position to the elevator height
+        // from our sensor.
+        if(inputs.elevatorVelocityMetersPerSecond < 0.03 && inputs.elevatorMotorsConnected
+            && inputs.validAbsoluteMeasurement) {
+            // io.resetHeight(inputs.absoluteHeightMeters);
+            Logger.recordOutput("Arm/ElevatorResetting", true);
+        } else {
+            Logger.recordOutput("Arm/ElevatorResetting", false);
+        }
 
         visualizer.update(inputs.elevatorHeightMeters, inputs.armPitchPosition, inputs.armWristPosition,
             inputs.gamePiecePresent);

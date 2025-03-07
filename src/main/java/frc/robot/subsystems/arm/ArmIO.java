@@ -28,6 +28,11 @@ public interface ArmIO {
         /** The elevator velocity in meters per second. */
         public double elevatorVelocityMetersPerSecond = 0.;
 
+        /** The last measured height from the absolute height sensor. */
+        public double absoluteHeightMeters = 0.;
+        /** If our last absolute height sensor measurement was valid. */
+        public boolean validAbsoluteMeasurement = false;
+
         public boolean elevatorMotorsConnected = false;
         public boolean elevatorHeightSensorConnected = false;
         public boolean armPitchMotorConnected = false;
@@ -35,7 +40,13 @@ public interface ArmIO {
         public boolean endEffectorMotorConnected = false;
     }
 
-    public default void setElevatorHeight(double heightMeters) {
+    /**
+     * Resets the elevator height to the given value in meters. Used for resetting to the absolute sensor value.
+     */
+    public default void resetHeight(double heightMeters) {
+    }
+
+    public default void setElevatorHeight(double heightMeters, double feedforwardVolts) {
     }
 
     public default void setArmPitchPosition(Rotation2d position, double feedforward) {

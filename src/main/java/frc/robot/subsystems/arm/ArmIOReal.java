@@ -1,5 +1,6 @@
 package frc.robot.subsystems.arm;
 
+import static edu.wpi.first.units.Units.Meters;
 import static frc.robot.util.SparkUtil.*;
 
 import java.util.function.DoubleSupplier;
@@ -25,6 +26,8 @@ import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.wpilibj.Alert;
+import edu.wpi.first.wpilibj.Alert.AlertType;
 import frc.robot.Constants;
 import frc.robot.subsystems.arm.ArmState.WristRotation;
 import frc.robot.util.SparkUtil;
@@ -58,6 +61,11 @@ public class ArmIOReal implements ArmIO {
     private Debouncer armPitchConnectedDebouncer = new Debouncer(0.25);
     private Debouncer armWristConnectedDebouncer = new Debouncer(0.25);
     private Debouncer endEffectorConnectedDebouncer = new Debouncer(0.25);
+
+    private Alert laserCANNoiseIssue = new Alert("Elevator Laser CAN noise error", AlertType.kWarning);
+    private Alert laserCANWeakSignal = new Alert("Elevator Laser CAN weak signal", AlertType.kWarning);
+    private Alert laserCANOutOfBounds = new Alert("Elevator Laser CAN out of bounds", AlertType.kWarning);
+    private Alert laserCANWraparound = new Alert("Elevator Laser CAN wraparound", AlertType.kWarning);
 
     // This holding logic is in the IO implementation because we don't recreate it in
     // simulation.
@@ -100,6 +108,10 @@ public class ArmIOReal implements ArmIO {
             .inverted(ArmConstants.ElevatorConstants.elevatorMotorInverted);
         elevatorMotorLeaderConfig.signals.apply(SparkUtil.defaultSignals).primaryEncoderPositionAlwaysOn(true)
             .primaryEncoderVelocityAlwaysOn(true).primaryEncoderPositionPeriodMs(20).primaryEncoderVelocityPeriodMs(20);
+        double softStopMarginMeters = ArmConstants.ElevatorConstants.softStopMargin.in(Meters);
+        elevatorMotorLeaderConfig.softLimit.forwardSoftLimitEnabled(true).reverseSoftLimitEnabled(true)
+            .forwardSoftLimit(ArmConstants.ElevatorConstants.maxElevatorHeight.in(Meters) - softStopMarginMeters)
+            .reverseSoftLimit(softStopMarginMeters);
 
         SparkFlexConfig elevatorMotorFollowerConfig = new SparkFlexConfig();
         elevatorMotorFollowerConfig.encoder
@@ -222,6 +234,12 @@ public class ArmIOReal implements ArmIO {
     }
 
     @Override
+    public void resetHeight(double height) {
+        elevatorHeightEncoder1.setPosition(height);
+        elevatorHeightEncoder2.setPosition(height);
+    }
+
+    @Override
     public void updateInputs(ArmIOInputs inputs) {
         // Update elevator height motor inputs
         sparkStickyFault = false;
@@ -239,21 +257,18 @@ public class ArmIOReal implements ArmIO {
         }, (v) -> inputs.elevatorVelocityMetersPerSecond = (v[0] + v[1]) / 2.);
         inputs.elevatorMotorsConnected = elevatorConnectedDebouncer.calculate(!sparkStickyFault);
 
-        // If the elevator is moving slowly, we can reset the encoder position to the elevator height
-        // from our sensor.
         Measurement measurement = elevatorHeightSensor.getMeasurement();
         inputs.elevatorHeightSensorConnected = elevatorHeightSensorConnectedDebouncer.calculate(measurement != null);
-        if(inputs.elevatorVelocityMetersPerSecond < 0.03 && inputs.elevatorMotorsConnected && measurement != null
-            && measurement.status == LaserCan.LASERCAN_STATUS_VALID_MEASUREMENT) {
-            double position = (double) (measurement.distance_mm) / 1000.;
-            // elevatorHeightEncoder1.setPosition(position);
-            // elevatorHeightEncoder2.setPosition(position);
-            // This is hacky
-            // TODO: Wtf
-            Logger.recordOutput("Arm/ElevatorResetting", true);
-        } else {
-            Logger.recordOutput("Arm/ElevatorResetting", false);
-        }
+        inputs.absoluteHeightMeters = (float) measurement.distance_mm / 1000.;
+        inputs.validAbsoluteMeasurement = measurement.status == LaserCan.LASERCAN_STATUS_VALID_MEASUREMENT;
+
+        // measurement.status;
+        laserCANNoiseIssue.set(measurement.status == LaserCan.LASERCAN_STATUS_NOISE_ISSUE);
+        laserCANWeakSignal.set(measurement.status == LaserCan.LASERCAN_STATUS_WEAK_SIGNAL);
+        laserCANOutOfBounds.set(measurement.status == LaserCan.LASERCAN_STATUS_OUT_OF_BOUNDS);
+        laserCANWraparound.set(measurement.status == LaserCan.LASERCAN_STATUS_WRAPAROUND);
+
+        Logger.recordOutput("Elevator/AmbientLight", measurement.ambient);
 
         // Update arm pitch motor inputs
         sparkStickyFault = false;
@@ -277,9 +292,9 @@ public class ArmIOReal implements ArmIO {
     }
 
     @Override
-    public void setElevatorHeight(double heightMeters) {
+    public void setElevatorHeight(double heightMeters, double feedforwardVolts) {
         elevatorHeightController.setReference(heightMeters, ControlType.kPosition, ClosedLoopSlot.kSlot0,
-            ArmConstants.ElevatorConstants.elevatorKg, ArbFFUnits.kVoltage);
+            feedforwardVolts, ArbFFUnits.kVoltage);
     }
 
     @Override

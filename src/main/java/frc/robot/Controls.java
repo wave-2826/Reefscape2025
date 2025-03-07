@@ -1,6 +1,7 @@
 package frc.robot;
 
 import static edu.wpi.first.units.Units.Degrees;
+import static edu.wpi.first.units.Units.Inches;
 import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.MetersPerSecond;
 
@@ -32,6 +33,7 @@ import frc.robot.subsystems.arm.ArmState.WristRotation;
 import frc.robot.subsystems.climber.Climber;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.util.Container;
+import frc.robot.util.DriverStationInterface;
 
 public class Controls {
     private final Alert driverDisconnectedAlert = new Alert("Driver controller disconnected (port 0)",
@@ -82,7 +84,7 @@ public class Controls {
         RobotModeTriggers.teleop().onTrue(ClimbCommands.resetClimbPosition());
         operator.start().whileTrue(ClimbCommands.climbCommand(climber, operator::getRightY));
 
-        Container<Double> height = new Container<Double>(0.0);
+        Container<Double> height = new Container<Double>(0.75);
         Container<Double> pitch = new Container<Double>(0.0);
         Container<Boolean> horizontal = new Container<Boolean>(false);
         operator.povLeft().onTrue(Commands.runOnce(() -> horizontal.value = !horizontal.value));
@@ -91,12 +93,21 @@ public class Controls {
             double eeSpeed = MathUtil.applyDeadband(controllingHeight ? 0. : operator.getLeftY(), 0.15) * 200.; // Rad/sec
             EndEffectorState endEffectorState = eeSpeed == 0.0 ? new EndEffectorState(EndEffectorState.Mode.Hold)
                 : new EndEffectorState(EndEffectorState.Mode.VelocityControl, eeSpeed);
-            double speed = 1.5;
+            double speed = 4.0;
             height.value -= controllingHeight ? (MathUtil.applyDeadband(operator.getLeftY(), 0.15) * speed * 0.02) : 0.;
             pitch.value -= MathUtil.applyDeadband(operator.getRightY(), 0.15) * 0.02 * 200.;
             return new ArmState(Rotation2d.fromDegrees(pitch.value), Meters.of(height.value),
                 horizontal.value ? WristRotation.Horizontal : WristRotation.Vertical, endEffectorState);
         }));
+
+        operator.b().onTrue(arm.setTargetStateCommand(() -> new ArmState(Rotation2d.fromDegrees(-80), Inches.of(20),
+            WristRotation.Horizontal, new EndEffectorState(EndEffectorState.Mode.Hold))));
+        operator.y().toggleOnTrue(arm.setTargetStateCommand(() -> {
+            return DriverStationInterface.getInstance().getReefTarget().getArmState();
+        }));
+
+        // operator.back().or(DriverStation::isTest).whileTrue(overrideControlsCommand(arm));
+        operator.back().onTrue(Commands.runOnce(arm::resetToAbsolute));
 
         // Example Coral Placement Code
         // TODO: Implement this for our actual robot logic
@@ -128,6 +139,12 @@ public class Controls {
         endgameAlert1Trigger.onTrue(controllerRumbleWhileRunning(true, false, RumbleType.kLeftRumble).withTimeout(0.5));
         endgameAlert2Trigger.onTrue(controllerRumbleWhileRunning(true, false, RumbleType.kLeftRumble).withTimeout(0.2)
             .andThen(Commands.waitSeconds(0.1)).repeatedly().withTimeout(0.9)); // Rumble three times
+    }
+
+    private Command overrideControlsCommand(Arm arm) {
+        return Commands.run(() -> {
+            // TODO
+        }, arm);
     }
 
     private double operatorOverrideRumbleLeft = 0.0;
