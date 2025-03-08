@@ -27,6 +27,7 @@ import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.Alert;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Alert.AlertType;
 import frc.robot.Constants;
 import frc.robot.subsystems.arm.ArmState.WristRotation;
@@ -78,6 +79,12 @@ public class ArmIOReal implements ArmIO {
 
     /** The elevator height sensor. Uses an interface to allow for simulation. */
     protected LaserCanInterface elevatorHeightSensor;
+
+    /**
+     * If we have reset to absolute. If we can't immediately reset to an absolute position because we have invalid data,
+     * we attempt to repeatedly until it works.
+     */
+    private boolean needsToReset = true;
 
     public ArmIOReal() {
         this(null);
@@ -143,7 +150,7 @@ public class ArmIOReal implements ArmIO {
         armPitchConfig.idleMode(IdleMode.kBrake)
             .smartCurrentLimit(ArmConstants.ShoulderConstants.pitchMotorCurrentLimit)
             .voltageCompensation(Constants.voltageCompensation)
-            .inverted(ArmConstants.ShoulderConstants.pitchMotorInverted).closedLoopRampRate(0.5);
+            .inverted(ArmConstants.ShoulderConstants.pitchMotorInverted).closedLoopRampRate(0.05);
         armPitchConfig.signals.apply(SparkUtil.defaultSignals) //
             .absoluteEncoderPositionAlwaysOn(true).absoluteEncoderVelocityAlwaysOn(true)
             .absoluteEncoderPositionPeriodMs(20).absoluteEncoderVelocityPeriodMs(20);
@@ -164,7 +171,7 @@ public class ArmIOReal implements ArmIO {
         armWristConfig.idleMode(IdleMode.kBrake)
             .smartCurrentLimit(ArmConstants.ShoulderConstants.wristMotorCurrentLimit)
             .voltageCompensation(Constants.voltageCompensation)
-            .inverted(ArmConstants.ShoulderConstants.wristMotorInverted).closedLoopRampRate(0.5);
+            .inverted(ArmConstants.ShoulderConstants.wristMotorInverted).closedLoopRampRate(0.05);
         // We use the forward and backward limit switch for the vertical and horizontal game piece
         // detectors respectvely. We don't want them to act as actual limit switches.
         armWristConfig.limitSwitch.forwardLimitSwitchEnabled(false).reverseLimitSwitchEnabled(false);
@@ -184,7 +191,7 @@ public class ArmIOReal implements ArmIO {
         endEffectorConfig.idleMode(IdleMode.kBrake)
             .smartCurrentLimit(ArmConstants.EndEffectorConstants.endEffectorMotorCurrentLimit)
             .voltageCompensation(Constants.voltageCompensation)
-            .inverted(ArmConstants.EndEffectorConstants.endEffectorMotorInverted).closedLoopRampRate(0.5);
+            .inverted(ArmConstants.EndEffectorConstants.endEffectorMotorInverted).closedLoopRampRate(0.05);
         endEffectorConfig.signals.apply(SparkUtil.defaultSignals) //
             .primaryEncoderPositionAlwaysOn(true).primaryEncoderPositionPeriodMs(20)
             .primaryEncoderVelocityAlwaysOn(true).primaryEncoderVelocityPeriodMs(20);
@@ -210,9 +217,6 @@ public class ArmIOReal implements ArmIO {
         elevatorHeightEncoder1 = elevatorHeightMotorLeader.getEncoder();
         elevatorHeightEncoder2 = elevatorHeightMotorFollower.getEncoder();
 
-        tryUntilOk(elevatorHeightMotorLeader, 5, () -> elevatorHeightEncoder1.setPosition(0));
-        tryUntilOk(elevatorHeightMotorFollower, 5, () -> elevatorHeightEncoder2.setPosition(0));
-
         armPitchEncoder = armPitchMotor.getAbsoluteEncoder();
         armWristEncoder = armWristMotor.getAbsoluteEncoder();
         armWristRelativeEncoder = armWristMotor.getEncoder();
@@ -233,10 +237,10 @@ public class ArmIOReal implements ArmIO {
         }
     }
 
+    /** To minimize latency, this should be called before updateInputs. */
     @Override
-    public void resetHeight(double height) {
-        elevatorHeightEncoder1.setPosition(height);
-        elevatorHeightEncoder2.setPosition(height);
+    public void resetToAbsolute() {
+        needsToReset = true;
     }
 
     @Override
@@ -261,6 +265,15 @@ public class ArmIOReal implements ArmIO {
         inputs.elevatorHeightSensorConnected = elevatorHeightSensorConnectedDebouncer.calculate(measurement != null);
         inputs.absoluteHeightMeters = (float) measurement.distance_mm / 1000.;
         inputs.validAbsoluteMeasurement = measurement.status == LaserCan.LASERCAN_STATUS_VALID_MEASUREMENT;
+
+        if(needsToReset && inputs.validAbsoluteMeasurement) {
+            // TODO: Use ifOk and only adjust once this works?
+            tryUntilOk(elevatorHeightMotorLeader, 2,
+                () -> elevatorHeightEncoder1.setPosition(inputs.absoluteHeightMeters));
+            tryUntilOk(elevatorHeightMotorFollower, 2,
+                () -> elevatorHeightEncoder2.setPosition(inputs.absoluteHeightMeters));
+            needsToReset = false;
+        }
 
         // measurement.status;
         laserCANNoiseIssue.set(measurement.status == LaserCan.LASERCAN_STATUS_NOISE_ISSUE);
@@ -299,7 +312,7 @@ public class ArmIOReal implements ArmIO {
 
     @Override
     public void setArmPitchPosition(Rotation2d position, double feedforward) {
-        armPitchController.setReference(-MathUtil.angleModulus(position.getRadians()), ControlType.kPosition,
+        armPitchController.setReference(MathUtil.angleModulus(position.getRadians()), ControlType.kPosition,
             ClosedLoopSlot.kSlot0, feedforward, ArbFFUnits.kVoltage);
     }
 

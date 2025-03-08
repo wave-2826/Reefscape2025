@@ -80,7 +80,7 @@ public class Arm extends SubsystemBase {
     }
 
     public void resetToAbsolute() {
-        io.resetHeight(inputs.absoluteHeightMeters);
+        io.resetToAbsolute();
     }
 
     @Override
@@ -95,8 +95,8 @@ public class Arm extends SubsystemBase {
         io.setEndEffectorState(targetState.endEffectorState());
 
         Logger.recordOutput("Arm/TargetHeight", targetState.height().in(Meters));
-        Logger.recordOutput("Arm/TargetPitch", targetState.pitch().getDegrees());
-        Logger.recordOutput("Arm/TargetWrist", targetState.wristRotation().rotation.getDegrees());
+        Logger.recordOutput("Arm/TargetPitch", targetState.pitch().getRadians());
+        Logger.recordOutput("Arm/TargetWrist", targetState.wristRotation().rotation.getRadians());
         Logger.recordOutput("Arm/TargetEndEffector", targetState.endEffectorState().getVelocityControl().orElse(0.0));
         Logger.recordOutput("Arm/AtTarget", isAtTarget());
 

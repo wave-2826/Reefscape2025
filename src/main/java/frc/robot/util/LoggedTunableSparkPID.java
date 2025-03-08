@@ -3,6 +3,7 @@ package frc.robot.util;
 import static frc.robot.util.SparkUtil.tryUntilOk;
 
 import java.util.ArrayList;
+import java.util.Optional;
 
 import com.revrobotics.spark.ClosedLoopSlot;
 import com.revrobotics.spark.SparkBase;
@@ -22,30 +23,38 @@ import frc.robot.Constants;
  * constnats for the real and simulated robot.
  */
 public class LoggedTunableSparkPID {
-    /** A set of PID constants with tunable numbers for each. */
-    private class PIDConstants {
-        public LoggedTunableNumber p;
-        public LoggedTunableNumber i;
-        public LoggedTunableNumber d;
-        public LoggedTunableNumber f;
+    /** A set of PID constants with tunable numbers for each for logged tunable PIDs. */
+    public class InternalPIDConstants {
+        public LoggedTunableNumber p = null;
+        public LoggedTunableNumber i = null;
+        public LoggedTunableNumber iZone = null;
+        public LoggedTunableNumber d = null;
+        public LoggedTunableNumber f = null;
         public ClosedLoopSlot slot;
 
-        public PIDConstants(double p, double i, double d, double f, ClosedLoopSlot slot) {
-            this.p = new LoggedTunableNumber(tunablePath + slot.toString() + "P", p);
-            this.i = new LoggedTunableNumber(tunablePath + slot.toString() + "I", i);
-            this.d = new LoggedTunableNumber(tunablePath + slot.toString() + "D", d);
-            this.f = new LoggedTunableNumber(tunablePath + slot.toString() + "F", f);
+        public InternalPIDConstants(Optional<Double> p, Optional<Double> i, Optional<Double> iZone, Optional<Double> d,
+            Optional<Double> f, ClosedLoopSlot slot) {
+            if(p.isPresent()) this.p = new LoggedTunableNumber(tunablePath + slot.toString() + "P", p.get());
+            if(i.isPresent()) this.i = new LoggedTunableNumber(tunablePath + slot.toString() + "I", i.get());
+            if(i.isPresent()) this.i = new LoggedTunableNumber(tunablePath + slot.toString() + "IZone", i.get());
+            if(iZone
+                .isPresent()) this.iZone = new LoggedTunableNumber(tunablePath + slot.toString() + "IZone", i.get());
+            if(d.isPresent()) this.d = new LoggedTunableNumber(tunablePath + slot.toString() + "D", d.get());
+            if(f.isPresent()) this.f = new LoggedTunableNumber(tunablePath + slot.toString() + "F", f.get());
             this.slot = slot;
         }
 
         public boolean hasChanged() {
-            return p.hasChanged(hashCode()) || i.hasChanged(hashCode()) || d.hasChanged(hashCode())
-                || f.hasChanged(hashCode());
+            return (p != null && p.hasChanged(hashCode())) || //
+                (i != null && i.hasChanged(hashCode())) || //
+                (d != null && d.hasChanged(hashCode())) || //
+                (f != null && f.hasChanged(hashCode())) || //
+                (iZone != null && iZone.hasChanged(hashCode()));
         }
     }
 
     /** The set of PID slots to be used when on a simulated robot. */
-    private ArrayList<PIDConstants> pidSlots;
+    private ArrayList<InternalPIDConstants> pidSlots;
     /** The path to the tunable constants. */
     private String tunablePath;
     /** The list of sparks to be configured. */
@@ -89,8 +98,12 @@ public class LoggedTunableSparkPID {
      */
     public ClosedLoopConfig getConfig() {
         ClosedLoopConfig config = new ClosedLoopConfig();
-        for(PIDConstants c : pidSlots) {
-            config.pidf(c.p.get(), c.i.get(), c.d.get(), c.f.get(), c.slot);
+        for(InternalPIDConstants c : pidSlots) {
+            config.p(c.p == null ? 0. : c.p.get(), c.slot);
+            config.i(c.i == null ? 0. : c.i.get(), c.slot);
+            config.d(c.d == null ? 0. : c.d.get(), c.slot);
+            config.velocityFF(c.f == null ? 0. : c.f.get(), c.slot);
+            config.iZone(c.iZone == null ? 10000. : c.iZone.get(), c.slot);
         }
         return config;
     }
@@ -110,7 +123,7 @@ public class LoggedTunableSparkPID {
      * registered. This is called every loop iteration when in tuning mode.
      */
     private void checkChange() {
-        for(PIDConstants c : pidSlots) {
+        for(InternalPIDConstants c : pidSlots) {
             if(c.hasChanged()) {
                 for(SparkBase spark : sparks) {
                     boolean isFlex = spark instanceof SparkFlex;
@@ -135,8 +148,8 @@ public class LoggedTunableSparkPID {
      * @param f
      * @param slot
      */
-    public LoggedTunableSparkPID addRealRobotGains(double p, double i, double d, double f, ClosedLoopSlot slot) {
-        if(Constants.currentMode == Constants.Mode.REAL) pidSlots.add(new PIDConstants(p, i, d, f, slot));
+    public LoggedTunableSparkPID addRealRobotGains(PIDConstants constants) {
+        if(Constants.currentMode == Constants.Mode.REAL) pidSlots.add(constants.toInternal(this));
         return this;
     }
 
@@ -148,68 +161,8 @@ public class LoggedTunableSparkPID {
      * @param f
      * @param slot
      */
-    public LoggedTunableSparkPID addSimGains(double p, double i, double d, double f, ClosedLoopSlot slot) {
-        if(Constants.currentMode != Constants.Mode.REAL) pidSlots.add(new PIDConstants(p, i, d, f, slot));
+    public LoggedTunableSparkPID addSimGains(PIDConstants constants) {
+        if(Constants.currentMode != Constants.Mode.REAL) pidSlots.add(constants.toInternal(this));
         return this;
-    }
-
-    /**
-     * Adds a new set of PID constants to the list of constants for the real robot. This defaults to slot 0.
-     * @param p
-     * @param i
-     * @param d
-     */
-    public LoggedTunableSparkPID addRealRobotGains(double p, double i, double d, double f) {
-        return addRealRobotGains(p, i, d, f, ClosedLoopSlot.kSlot0);
-    }
-
-    /**
-     * Adds a new set of PID constants to the list of constants for the simulated robot. This defaults to slot 0.
-     * @param p
-     * @param i
-     * @param d
-     */
-    public LoggedTunableSparkPID addSimGains(double p, double i, double d, double f) {
-        return addSimGains(p, i, d, f, ClosedLoopSlot.kSlot0);
-    }
-
-    /**
-     * Adds a new set of PID constants to the list of constants for the real robot.
-     * @param p
-     * @param i
-     * @param d
-     */
-    public LoggedTunableSparkPID addRealRobotGains(double p, double i, double d, ClosedLoopSlot slot) {
-        return addRealRobotGains(p, i, d, 0, slot);
-    }
-
-    /**
-     * Adds a new set of PID constants to the list of constants for the simulated robot.
-     * @param p
-     * @param i
-     * @param d
-     */
-    public LoggedTunableSparkPID addSimGains(double p, double i, double d, ClosedLoopSlot slot) {
-        return addSimGains(p, i, d, 0, slot);
-    }
-
-    /**
-     * Adds a new set of PID constants to the list of constants for the real robot. This defaults to slot 0.
-     * @param p
-     * @param i
-     * @param d
-     */
-    public LoggedTunableSparkPID addRealRobotGains(double p, double i, double d) {
-        return addRealRobotGains(p, i, d, 0, ClosedLoopSlot.kSlot0);
-    }
-
-    /**
-     * Adds a new set of PID constants to the list of constants for the simulated robot. This defaults to slot 0.
-     * @param p
-     * @param i
-     * @param d
-     */
-    public LoggedTunableSparkPID addSimGains(double p, double i, double d) {
-        return addSimGains(p, i, d, 0, ClosedLoopSlot.kSlot0);
     }
 }

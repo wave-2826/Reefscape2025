@@ -10,6 +10,7 @@ import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.units.measure.Distance;
 import frc.robot.util.LoggedTunableSparkPID;
+import frc.robot.util.PIDConstants;
 import frc.robot.util.GearRatios.UltraPlanetaryRatio;
 
 /**
@@ -23,7 +24,7 @@ public class ArmConstants {
 
         // PID constants for the elevator position PID
         public static final LoggedTunableSparkPID elevatorPID = new LoggedTunableSparkPID("Arm/Elevator")
-            .addRealRobotGains(7.0, 0.0, 7.0).addSimGains(10.0, 0.0, 8.0);
+            .addRealRobotGains(new PIDConstants(7.0, 0.0, 7.0)).addSimGains(new PIDConstants(10.0, 0.0, 8.0));
 
         // Feedforward constants for the elevator
         /** The gravity gain in volts. */
@@ -90,9 +91,9 @@ public class ArmConstants {
         public static final int armWristMotorId = /* TODO */ 53;
 
         /** The wrist absolute encoder zero offset, in radians. */
-        public static final double wristZeroOffset = 0.8604457;
+        public static final double wristZeroOffset = 0.1814255;
         /** The pitch absolute encoder zero offset, in radians. */
-        public static final double pitchZeroOffset = 0.1725792;
+        public static final double pitchZeroOffset = 0.3618647;
 
         /** The highest soft stop for the elevator. */
         public static final Rotation2d maximumPitch = Rotation2d.fromDegrees(30.);
@@ -100,10 +101,11 @@ public class ArmConstants {
         public static final Rotation2d minimumPitch = Rotation2d.fromDegrees(-35.);
 
         /** The feedforward gravity constant for the arm in volts. */
-        public static final double armPitchKg = 0.0;
+        public static final double armPitchKg = 0.5;
 
         public static final LoggedTunableSparkPID armPitchPID = new LoggedTunableSparkPID("Arm/Pitch")
-            .addRealRobotGains(0.3, 0.0, 5.0).addSimGains(0.5, 0.0, 0.0);
+            .addRealRobotGains(new PIDConstants(0.8, 0.001, 0.9).iZone(Units.degreesToRadians(5)))
+            .addSimGains(new PIDConstants(0.5, 0.0, 0.0));
 
         public static final double elevatorPitchReduction = 5 * (84 / 48);
         /** The conversion factor from pitch motor rotations to radians. */
@@ -116,18 +118,18 @@ public class ArmConstants {
         /** The conversion factor from pitch absolute encoder RPM to radians per second. */
         public static final double pitchAbsoluteVelocityFactor = pitchPositionConversionFactor / 60.;
 
-        public static final int pitchMotorCurrentLimit = 50;
-        public static final boolean pitchMotorInverted = false;
-        public static final boolean pitchEncoderInverted = false;
+        public static final int pitchMotorCurrentLimit = 70;
+        public static final boolean pitchMotorInverted = true;
+        public static final boolean pitchEncoderInverted = true;
 
         public static final ClosedLoopSlot armWristPositionSlot = ClosedLoopSlot.kSlot0;
         public static final ClosedLoopSlot armWristVelocitySlot = ClosedLoopSlot.kSlot1;
 
         public static final LoggedTunableSparkPID armWristPID = new LoggedTunableSparkPID("Arm/Wrist")
-            .addRealRobotGains(0.3, 0.0, 3.0, armWristPositionSlot) //
-            .addSimGains(1.0, 0.0, 0.0, armWristPositionSlot) //
-            .addRealRobotGains(2.0, 0.0, 1 / 917, armWristVelocitySlot)
-            .addSimGains(2.0, 0.0, 0.0, 1 / 917, armWristVelocitySlot); // 917 is the Neo 550 Kf value
+            .addRealRobotGains(new PIDConstants(0.85, 0.0, 14.0, armWristPositionSlot)) //
+            .addSimGains(new PIDConstants(1.0, 0.0, 0.0, armWristPositionSlot)) //
+            .addRealRobotGains(new PIDConstants(2.0, 0.0, 1 / 917, armWristVelocitySlot))
+            .addSimGains(new PIDConstants(2.0, 0.0, 0.0, 1 / 917, armWristVelocitySlot)); // 917 is the Neo 550 Kf value
 
         public static final double armWristReduction = UltraPlanetaryRatio.FIVE_TO_ONE.ratio
             * UltraPlanetaryRatio.FIVE_TO_ONE.ratio;
@@ -179,10 +181,10 @@ public class ArmConstants {
         public static final double endEffectorCouplingFactor = (1 / endEffectorReduction) / 2.; // TODO: Find the proper value for this. Maybe from empirical testing?
 
         public static final LoggedTunableSparkPID endEffectorPID = new LoggedTunableSparkPID("Arm/EndEffector")
-            .addRealRobotGains(0.001, 0.0, 0.5, 1. / 565, endEffectorVelocitySlot)
-            .addSimGains(0.001, 0.0, 0.5, 1. / 565, endEffectorVelocitySlot)
-            .addRealRobotGains(0.003, 0.0, 0.0, endEffectorPositionSlot)
-            .addSimGains(0.003, 0.0, 0.0, endEffectorPositionSlot);
+            .addRealRobotGains(new PIDConstants(0.001, 0.0, 0.5, 1. / 565, endEffectorVelocitySlot))
+            .addSimGains(new PIDConstants(0.001, 0.0, 0.5, 1. / 565, endEffectorVelocitySlot))
+            .addRealRobotGains(new PIDConstants(0.003, 0.0, 0.0, endEffectorPositionSlot))
+            .addSimGains(new PIDConstants(0.003, 0.0, 0.0, endEffectorPositionSlot));
 
         /** The conversion factor from end effector motor rotations to radians. */
         public static final double endEffectorPositionConversionFactor = 2 * Math.PI / endEffectorReduction;

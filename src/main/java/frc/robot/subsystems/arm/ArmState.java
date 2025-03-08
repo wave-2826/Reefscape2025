@@ -6,7 +6,7 @@ import edu.wpi.first.units.measure.Distance;
 public record ArmState(Rotation2d pitch, Distance height, WristRotation wristRotation,
     EndEffectorState endEffectorState) {
     public enum WristRotation {
-        Vertical(Rotation2d.fromDegrees(0)), Horizontal(Rotation2d.fromDegrees(90));
+        Vertical(Rotation2d.fromDegrees(90)), Horizontal(Rotation2d.fromDegrees(0));
         // TODO: Showing off mode, as per B-G's recommendation
 
         Rotation2d rotation;

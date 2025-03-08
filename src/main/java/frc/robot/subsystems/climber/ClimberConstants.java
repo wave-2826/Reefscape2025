@@ -6,6 +6,7 @@ import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.units.measure.Distance;
 import frc.robot.util.LoggedTunableSparkPID;
+import frc.robot.util.PIDConstants;
 
 /**
  * Constants related to the climber subsystem.
@@ -16,7 +17,7 @@ public class ClimberConstants {
     public static final double climberZeroAngle = 0.3248305;
     public static final boolean invertClimber = false;
     public static final LoggedTunableSparkPID climberPID = new LoggedTunableSparkPID("Climber")
-        .addRealRobotGains(6.0, 0.0, 2.0).addSimGains(0.5, 0.0, 0.0);
+        .addRealRobotGains(new PIDConstants(6.0, 0.0, 2.0)).addSimGains(new PIDConstants(0.5, 0.0, 0.0));
 
     /** The climber motor current limit in amps. */
     public static final int climberMotorCurrentLimit = 40;

@@ -1,6 +1,6 @@
 {
   "version": 1.0,
-  "grid_size": 120,
+  "grid_size": 115,
   "tabs": [
     {
       "name": "Teleoperated",
@@ -9,10 +9,10 @@
         "containers": [
           {
             "title": "FMSInfo",
-            "x": 1080.0,
+            "x": 0.0,
             "y": 0.0,
-            "width": 384.0,
-            "height": 128.0,
+            "width": 460.0,
+            "height": 230.0,
             "type": "FMSInfo",
             "properties": {
               "topic": "/FMSInfo",
@@ -21,10 +21,10 @@
           },
           {
             "title": "Alerts",
-            "x": 1080.0,
-            "y": 120.0,
-            "width": 360.0,
-            "height": 480.0,
+            "x": 1150.0,
+            "y": 115.0,
+            "width": 345.0,
+            "height": 460.0,
             "type": "Alerts",
             "properties": {
               "topic": "/SmartDashboard/Alerts",
@@ -33,10 +33,10 @@
           },
           {
             "title": "ReefBranch",
-            "x": 600.0,
-            "y": 120.0,
-            "width": 360.0,
-            "height": 125.0,
+            "x": 575.0,
+            "y": 115.0,
+            "width": 345.0,
+            "height": 115.0,
             "type": "Text Display",
             "properties": {
               "topic": "/DriverStationInterface/ReefBranch",
@@ -47,15 +47,57 @@
           },
           {
             "title": "ReefLevel",
-            "x": 600.0,
-            "y": 240.0,
-            "width": 360.0,
-            "height": 125.0,
+            "x": 575.0,
+            "y": 230.0,
+            "width": 345.0,
+            "height": 115.0,
             "type": "Text Display",
             "properties": {
               "topic": "/DriverStationInterface/ReefLevel",
               "period": 0.06,
               "data_type": "string",
+              "show_submit_button": false
+            }
+          },
+          {
+            "title": "pitchKg",
+            "x": 460.0,
+            "y": 345.0,
+            "width": 230.0,
+            "height": 230.0,
+            "type": "Text Display",
+            "properties": {
+              "topic": "/Tuning/Arm/pitchKg",
+              "period": 0.06,
+              "data_type": "double",
+              "show_submit_button": true
+            }
+          },
+          {
+            "title": "PitchkSlot0P",
+            "x": 0.0,
+            "y": 345.0,
+            "width": 230.0,
+            "height": 230.0,
+            "type": "Text Display",
+            "properties": {
+              "topic": "/Tuning/Arm/PitchkSlot0P",
+              "period": 0.06,
+              "data_type": "double",
+              "show_submit_button": false
+            }
+          },
+          {
+            "title": "PitchkSlot0D",
+            "x": 230.0,
+            "y": 345.0,
+            "width": 230.0,
+            "height": 230.0,
+            "type": "Text Display",
+            "properties": {
+              "topic": "/Tuning/Arm/PitchkSlot0D",
+              "period": 0.06,
+              "data_type": "double",
               "show_submit_button": false
             }
           }
@@ -69,10 +111,10 @@
         "containers": [
           {
             "title": "Alerts",
-            "x": 1080.0,
-            "y": 120.0,
-            "width": 360.0,
-            "height": 480.0,
+            "x": 920.0,
+            "y": 115.0,
+            "width": 345.0,
+            "height": 460.0,
             "type": "Alerts",
             "properties": {
               "topic": "/SmartDashboard/Alerts",
@@ -81,15 +123,191 @@
           },
           {
             "title": "Auto Choices",
-            "x": 1080.0,
+            "x": 920.0,
             "y": 0.0,
-            "width": 360.0,
-            "height": 120.0,
+            "width": 345.0,
+            "height": 115.0,
             "type": "ComboBox Chooser",
             "properties": {
               "topic": "/SmartDashboard/Auto Choices",
               "period": 0.06,
               "sort_options": false
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "Tuning",
+      "grid_layout": {
+        "layouts": [],
+        "containers": [
+          {
+            "title": "DriveP",
+            "x": 0.0,
+            "y": 0.0,
+            "width": 230.0,
+            "height": 115.0,
+            "type": "Text Display",
+            "properties": {
+              "topic": "/Tuning/Drive/DriveP",
+              "period": 0.06,
+              "data_type": "double",
+              "show_submit_button": true
+            }
+          },
+          {
+            "title": "DriveD",
+            "x": 0.0,
+            "y": 115.0,
+            "width": 230.0,
+            "height": 115.0,
+            "type": "Text Display",
+            "properties": {
+              "topic": "/Tuning/Drive/DriveD",
+              "period": 0.06,
+              "data_type": "double",
+              "show_submit_button": true
+            }
+          },
+          {
+            "title": "DriveV",
+            "x": 230.0,
+            "y": 0.0,
+            "width": 230.0,
+            "height": 115.0,
+            "type": "Text Display",
+            "properties": {
+              "topic": "/Tuning/Drive/DriveV",
+              "period": 0.06,
+              "data_type": "double",
+              "show_submit_button": true
+            }
+          },
+          {
+            "title": "DriveS",
+            "x": 230.0,
+            "y": 115.0,
+            "width": 230.0,
+            "height": 115.0,
+            "type": "Text Display",
+            "properties": {
+              "topic": "/Tuning/Drive/DriveS",
+              "period": 0.06,
+              "data_type": "double",
+              "show_submit_button": true
+            }
+          },
+          {
+            "title": "elevatorKg",
+            "x": 1265.0,
+            "y": 0.0,
+            "width": 230.0,
+            "height": 115.0,
+            "type": "Text Display",
+            "properties": {
+              "topic": "/Tuning/Arm/elevatorKg",
+              "period": 0.06,
+              "data_type": "double",
+              "show_submit_button": true
+            }
+          },
+          {
+            "title": "ElevatorkSlot0D",
+            "x": 805.0,
+            "y": 0.0,
+            "width": 230.0,
+            "height": 115.0,
+            "type": "Text Display",
+            "properties": {
+              "topic": "/Tuning/Arm/ElevatorkSlot0D",
+              "period": 0.06,
+              "data_type": "double",
+              "show_submit_button": true
+            }
+          },
+          {
+            "title": "ElevatorkSlot0P",
+            "x": 575.0,
+            "y": 0.0,
+            "width": 230.0,
+            "height": 115.0,
+            "type": "Text Display",
+            "properties": {
+              "topic": "/Tuning/Arm/ElevatorkSlot0P",
+              "period": 0.06,
+              "data_type": "double",
+              "show_submit_button": true
+            }
+          },
+          {
+            "title": "ElevatorkSlot0I",
+            "x": 1035.0,
+            "y": 0.0,
+            "width": 230.0,
+            "height": 115.0,
+            "type": "Text Display",
+            "properties": {
+              "topic": "/Tuning/Arm/ElevatorkSlot0I",
+              "period": 0.06,
+              "data_type": "double",
+              "show_submit_button": true
+            }
+          },
+          {
+            "title": "PitchkSlot0P",
+            "x": 575.0,
+            "y": 115.0,
+            "width": 230.0,
+            "height": 115.0,
+            "type": "Text Display",
+            "properties": {
+              "topic": "/Tuning/Arm/PitchkSlot0P",
+              "period": 0.06,
+              "data_type": "double",
+              "show_submit_button": true
+            }
+          },
+          {
+            "title": "PitchkSlot0I",
+            "x": 805.0,
+            "y": 115.0,
+            "width": 230.0,
+            "height": 115.0,
+            "type": "Text Display",
+            "properties": {
+              "topic": "/Tuning/Arm/PitchkSlot0I",
+              "period": 0.06,
+              "data_type": "double",
+              "show_submit_button": true
+            }
+          },
+          {
+            "title": "PitchkSlot0D",
+            "x": 1035.0,
+            "y": 115.0,
+            "width": 230.0,
+            "height": 115.0,
+            "type": "Text Display",
+            "properties": {
+              "topic": "/Tuning/Arm/PitchkSlot0D",
+              "period": 0.06,
+              "data_type": "double",
+              "show_submit_button": true
+            }
+          },
+          {
+            "title": "pitchKg",
+            "x": 1265.0,
+            "y": 115.0,
+            "width": 230.0,
+            "height": 115.0,
+            "type": "Text Display",
+            "properties": {
+              "topic": "/Tuning/Arm/pitchKg",
+              "period": 0.06,
+              "data_type": "double",
+              "show_submit_button": true
             }
           }
         ]
@@ -104,56 +322,60 @@
             "title": "frontLeftCamera-raw",
             "x": 0.0,
             "y": 0.0,
-            "width": 480.0,
-            "height": 360.0,
+            "width": 460.0,
+            "height": 345.0,
             "type": "Camera Stream",
             "properties": {
               "topic": "/CameraPublisher/frontLeftCamera-raw",
-              "period": 0.06
+              "period": 0.06,
+              "rotation_turns": 0
             }
           },
           {
             "title": "frontRightCamera-raw",
-            "x": 480.0,
+            "x": 460.0,
             "y": 0.0,
-            "width": 480.0,
-            "height": 360.0,
+            "width": 460.0,
+            "height": 345.0,
             "type": "Camera Stream",
             "properties": {
               "topic": "/CameraPublisher/frontRightCamera-raw",
-              "period": 0.06
+              "period": 0.06,
+              "rotation_turns": 0
             }
           },
           {
             "title": "backLeftCamera-raw",
             "x": 0.0,
-            "y": 360.0,
-            "width": 480.0,
-            "height": 360.0,
+            "y": 345.0,
+            "width": 460.0,
+            "height": 345.0,
             "type": "Camera Stream",
             "properties": {
               "topic": "/CameraPublisher/backLeftCamera-raw",
-              "period": 0.06
+              "period": 0.06,
+              "rotation_turns": 0
             }
           },
           {
             "title": "backRightCamera-raw",
-            "x": 480.0,
-            "y": 360.0,
-            "width": 480.0,
-            "height": 360.0,
+            "x": 460.0,
+            "y": 345.0,
+            "width": 460.0,
+            "height": 345.0,
             "type": "Camera Stream",
             "properties": {
               "topic": "/CameraPublisher/backRightCamera-raw",
-              "period": 0.06
+              "period": 0.06,
+              "rotation_turns": 0
             }
           },
           {
             "title": "Sim Field",
-            "x": 960.0,
+            "x": 920.0,
             "y": 0.0,
-            "width": 360.0,
-            "height": 720.0,
+            "width": 345.0,
+            "height": 690.0,
             "type": "Field",
             "properties": {
               "topic": "/SmartDashboard/VisionSystemSim-main/Sim Field",
@@ -178,10 +400,10 @@
         "containers": [
           {
             "title": "RobotRotation",
-            "x": 720.0,
+            "x": 690.0,
             "y": 0.0,
-            "width": 360.0,
-            "height": 120.0,
+            "width": 345.0,
+            "height": 115.0,
             "type": "Text Display",
             "properties": {
               "topic": "/DriverStationInterface/RobotRotation",
@@ -192,10 +414,10 @@
           },
           {
             "title": "RobotX",
-            "x": 720.0,
-            "y": 120.0,
-            "width": 360.0,
-            "height": 120.0,
+            "x": 690.0,
+            "y": 115.0,
+            "width": 345.0,
+            "height": 115.0,
             "type": "Text Display",
             "properties": {
               "topic": "/DriverStationInterface/RobotX",
@@ -206,10 +428,10 @@
           },
           {
             "title": "RobotY",
-            "x": 720.0,
-            "y": 240.0,
-            "width": 360.0,
-            "height": 120.0,
+            "x": 690.0,
+            "y": 230.0,
+            "width": 345.0,
+            "height": 115.0,
             "type": "Text Display",
             "properties": {
               "topic": "/DriverStationInterface/RobotY",
@@ -221,14 +443,42 @@
           {
             "title": "SimLEDs",
             "x": 0.0,
-            "y": 600.0,
-            "width": 1560.0,
-            "height": 120.0,
+            "y": 575.0,
+            "width": 1495.0,
+            "height": 115.0,
             "type": "Multi Color View",
             "properties": {
               "topic": "/AdvantageKit/RealOutputs/LEDs/SimLEDs",
               "period": 0.06,
               "data_type": "string[]"
+            }
+          },
+          {
+            "title": "SimLEDs",
+            "x": 115.0,
+            "y": 230.0,
+            "width": 230.0,
+            "height": 230.0,
+            "type": "Text Display",
+            "properties": {
+              "topic": "/AdvantageKit/RealOutputs/LEDs/SimLEDs",
+              "period": 0.06,
+              "data_type": "string[]",
+              "show_submit_button": false
+            }
+          },
+          {
+            "title": "ActiveStates",
+            "x": 460.0,
+            "y": 460.0,
+            "width": 345.0,
+            "height": 115.0,
+            "type": "Text Display",
+            "properties": {
+              "topic": "/AdvantageKit/RealOutputs/LEDs/ActiveStates",
+              "period": 0.06,
+              "data_type": "string",
+              "show_submit_button": false
             }
           }
         ]

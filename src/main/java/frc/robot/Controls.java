@@ -84,7 +84,7 @@ public class Controls {
         RobotModeTriggers.teleop().onTrue(ClimbCommands.resetClimbPosition());
         operator.start().whileTrue(ClimbCommands.climbCommand(climber, operator::getRightY));
 
-        Container<Double> height = new Container<Double>(0.75);
+        Container<Double> height = new Container<Double>(0.525);
         Container<Double> pitch = new Container<Double>(0.0);
         Container<Boolean> horizontal = new Container<Boolean>(false);
         operator.povLeft().onTrue(Commands.runOnce(() -> horizontal.value = !horizontal.value));
@@ -94,8 +94,9 @@ public class Controls {
             EndEffectorState endEffectorState = eeSpeed == 0.0 ? new EndEffectorState(EndEffectorState.Mode.Hold)
                 : new EndEffectorState(EndEffectorState.Mode.VelocityControl, eeSpeed);
             double speed = 4.0;
+
             height.value -= controllingHeight ? (MathUtil.applyDeadband(operator.getLeftY(), 0.15) * speed * 0.02) : 0.;
-            pitch.value -= MathUtil.applyDeadband(operator.getRightY(), 0.15) * 0.02 * 200.;
+            pitch.value -= MathUtil.applyDeadband(operator.getRightY(), 0.15) * 0.02 * 400.;
             return new ArmState(Rotation2d.fromDegrees(pitch.value), Meters.of(height.value),
                 horizontal.value ? WristRotation.Horizontal : WristRotation.Vertical, endEffectorState);
         }));

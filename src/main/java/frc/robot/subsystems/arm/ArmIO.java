@@ -41,9 +41,9 @@ public interface ArmIO {
     }
 
     /**
-     * Resets the elevator height to the given value in meters. Used for resetting to the absolute sensor value.
+     * Resets the elevator height to the absolutely measured value.
      */
-    public default void resetHeight(double heightMeters) {
+    public default void resetToAbsolute() {
     }
 
     public default void setElevatorHeight(double heightMeters, double feedforwardVolts) {
