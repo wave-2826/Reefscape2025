@@ -29,8 +29,8 @@ public class Arm extends SubsystemBase {
 
     private final ArmVisualizer visualizer = new ArmVisualizer("arm");
 
-    private ArmState targetState = ArmConstants.restingState;
-    private ArmState adjustedTarget = ArmConstants.restingState;
+    private ArmState targetState = null;
+    private ArmState adjustedTarget = null;
 
     private final Alert elevatorMotorDisconnectedAlert = new Alert("Elevator motor disconnected!", AlertType.kError);
     private final Alert elevatorHeightSensorDisconnectedAlert = new Alert("Elevator height sensor disconnected!",
@@ -78,18 +78,22 @@ public class Arm extends SubsystemBase {
     private static final double TARGET_WRIST_TOLERANCE_DEGREES = 2.0;
 
     private boolean atTargetPitch() {
-        return Math
-            .abs(MathUtil.angleModulus(inputs.armPitchPosition.getRadians() - targetState.pitch().getRadians())) < Units
+        if(adjustedTarget == null) return false;
+        return Math.abs(
+            MathUtil.angleModulus(inputs.armPitchPosition.getRadians() - adjustedTarget.pitch().getRadians())) < Units
                 .degreesToRadians(TARGET_PITCH_TOLERANCE_DEGREES);
     }
 
     private boolean atTargetHeight() {
-        return Math.abs(inputs.elevatorHeightMeters - targetState.height().in(Meters)) < TARGET_HEIGHT_TOLERANCE_METERS;
+        if(adjustedTarget == null) return false;
+        return Math
+            .abs(inputs.elevatorHeightMeters - adjustedTarget.height().in(Meters)) < TARGET_HEIGHT_TOLERANCE_METERS;
     }
 
     private boolean atTargetWrist() {
+        if(adjustedTarget == null) return false;
         return Math.abs(MathUtil.angleModulus(
-            inputs.armWristPosition.getRadians() - targetState.wristRotation().rotation.getRadians())) < Units
+            inputs.armWristPosition.getRadians() - adjustedTarget.wristRotation().rotation.getRadians())) < Units
                 .degreesToRadians(TARGET_WRIST_TOLERANCE_DEGREES);
     }
 
@@ -102,6 +106,8 @@ public class Arm extends SubsystemBase {
     }
 
     private ArmState getAdjustedTarget() {
+        if(targetState == null) return null;
+
         WristRotation targetWrist = targetState.wristRotation();
         if(inputs.armPitchPosition.getDegrees() < -90. + 30.) {
             targetWrist = WristRotation.Horizontal;
@@ -121,23 +127,25 @@ public class Arm extends SubsystemBase {
         io.updateInputs(inputs);
         Logger.processInputs("Arm", inputs);
 
-        adjustedTarget = getAdjustedTarget();
+        if(targetState != null) {
+            adjustedTarget = getAdjustedTarget();
 
-        io.setElevatorHeight(adjustedTarget.height().in(Meters), elevatorKg.get());
-        io.setArmPitchPosition(adjustedTarget.pitch(),
-            Math.abs(Math.cos(inputs.armPitchPosition.getRadians())) * armPitchKg.get());
-        io.setWristRotation(adjustedTarget.wristRotation());
-        io.setEndEffectorState(adjustedTarget.endEffectorState());
+            io.setElevatorHeight(adjustedTarget.height().in(Meters), elevatorKg.get());
+            io.setArmPitchPosition(adjustedTarget.pitch(),
+                Math.abs(Math.cos(inputs.armPitchPosition.getRadians())) * armPitchKg.get());
+            io.setWristRotation(adjustedTarget.wristRotation());
+            io.setEndEffectorState(adjustedTarget.endEffectorState());
 
-        Logger.recordOutput("Arm/TargetHeight", adjustedTarget.height().in(Meters));
-        Logger.recordOutput("Arm/TargetPitch", adjustedTarget.pitch().getRadians());
-        Logger.recordOutput("Arm/TargetWrist", adjustedTarget.wristRotation().rotation.getRadians());
-        Logger.recordOutput("Arm/TargetEndEffector",
-            adjustedTarget.endEffectorState().getVelocityControl().orElse(0.0));
-        Logger.recordOutput("Arm/AtTargetPitch", atTargetPitch());
-        Logger.recordOutput("Arm/AtTargetWrist", atTargetWrist());
-        Logger.recordOutput("Arm/AtTargetHeight", atTargetHeight());
-        Logger.recordOutput("Arm/AtTarget", isAtTarget());
+            Logger.recordOutput("Arm/TargetHeight", adjustedTarget.height().in(Meters));
+            Logger.recordOutput("Arm/TargetPitch", adjustedTarget.pitch().getRadians());
+            Logger.recordOutput("Arm/TargetWrist", adjustedTarget.wristRotation().rotation.getRadians());
+            Logger.recordOutput("Arm/TargetEndEffector",
+                adjustedTarget.endEffectorState().getVelocityControl().orElse(0.0));
+            Logger.recordOutput("Arm/AtTargetPitch", atTargetPitch());
+            Logger.recordOutput("Arm/AtTargetWrist", atTargetWrist());
+            Logger.recordOutput("Arm/AtTargetHeight", atTargetHeight());
+            Logger.recordOutput("Arm/AtTarget", isAtTarget());
+        }
 
         // TODO: Only reset when scoring
         // If the elevator is moving slowly, we can reset the encoder position to the elevator height

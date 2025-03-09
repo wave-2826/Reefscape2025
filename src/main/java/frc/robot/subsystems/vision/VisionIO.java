@@ -2,12 +2,15 @@ package frc.robot.subsystems.vision;
 
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Transform3d;
+
 import org.littletonrobotics.junction.AutoLog;
 
 public interface VisionIO {
     @AutoLog
     public static class VisionIOInputs {
         public boolean connected = false;
+        public Transform3d bestTagTransform = new Transform3d();
         public TargetObservation latestTargetObservation = new TargetObservation(new Rotation2d(), new Rotation2d());
         public PoseObservation[] poseObservations = new PoseObservation[0];
         public int[] tagIds = new int[0];
@@ -27,5 +30,9 @@ public interface VisionIO {
     }
 
     public default void updateInputs(VisionIOInputs inputs) {
+    }
+
+    public default String getName() {
+        return "";
     }
 }

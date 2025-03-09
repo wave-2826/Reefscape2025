@@ -106,7 +106,7 @@ public class ArmConstants {
         public static final Rotation2d minimumPitch = Rotation2d.fromDegrees(-35.);
 
         /** The feedforward gravity constant for the arm in volts. */
-        public static final double armPitchKg = 0.5;
+        public static final double armPitchKg = 0.50;
 
         public static final LoggedTunableSparkPID armPitchPID = new LoggedTunableSparkPID("Arm/Pitch")
             .addRealRobotGains(new PIDConstants(0.8, 0.001, 0.9).iZone(Units.degreesToRadians(5)))

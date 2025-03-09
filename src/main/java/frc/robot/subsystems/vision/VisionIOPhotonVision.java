@@ -15,6 +15,7 @@ import org.photonvision.PhotonCamera;
 public class VisionIOPhotonVision implements VisionIO {
     protected final PhotonCamera camera;
     protected final Transform3d robotToCamera;
+    public final String name;
 
     /**
      * Creates a new VisionIOPhotonVision.
@@ -25,6 +26,7 @@ public class VisionIOPhotonVision implements VisionIO {
     public VisionIOPhotonVision(String name, Transform3d robotToCamera) {
         camera = new PhotonCamera(name);
         this.robotToCamera = robotToCamera;
+        this.name = name;
     }
 
     @Override
@@ -40,8 +42,10 @@ public class VisionIOPhotonVision implements VisionIO {
                 inputs.latestTargetObservation = new TargetObservation(
                     Rotation2d.fromDegrees(result.getBestTarget().getYaw()),
                     Rotation2d.fromDegrees(result.getBestTarget().getPitch()));
+                inputs.bestTagTransform = result.getBestTarget().getBestCameraToTarget();
             } else {
                 inputs.latestTargetObservation = new TargetObservation(new Rotation2d(), new Rotation2d());
+                inputs.bestTagTransform = new Transform3d();
             }
 
             // Add pose observation
@@ -103,5 +107,10 @@ public class VisionIOPhotonVision implements VisionIO {
         inputs.tagIds = new int[tagIds.size()];
         int i = 0;
         for(int id : tagIds) inputs.tagIds[i++] = id;
+    }
+
+    @Override
+    public String getName() {
+        return name;
     }
 }

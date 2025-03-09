@@ -7,11 +7,13 @@ import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+
 import java.util.LinkedList;
 import java.util.List;
 import org.littletonrobotics.junction.Logger;
@@ -38,6 +40,10 @@ public class Vision extends SubsystemBase {
             disconnectedAlerts[i] = new Alert("Vision camera " + Integer.toString(i) + " is disconnected.",
                 AlertType.kWarning);
         }
+    }
+
+    public int getCameraCount() {
+        return io.length;
     }
 
     /**
@@ -136,6 +142,22 @@ public class Vision extends SubsystemBase {
             allRobotPosesAccepted.toArray(new Pose3d[allRobotPosesAccepted.size()]));
         Logger.recordOutput("Vision/Summary/RobotPosesRejected",
             allRobotPosesRejected.toArray(new Pose3d[allRobotPosesRejected.size()]));
+    }
+
+    public Transform3d[] getBestTagTransforms() {
+        Transform3d[] results = new Transform3d[io.length];
+        for(int cameraIndex = 0; cameraIndex < io.length; cameraIndex++) {
+            results[cameraIndex] = inputs[cameraIndex].bestTagTransform;
+        }
+        return results;
+    }
+
+    public String[] getCameraNames() {
+        String[] names = new String[io.length];
+        for(int cameraIndex = 0; cameraIndex < io.length; cameraIndex++) {
+            names[cameraIndex] = io[cameraIndex].getName();
+        }
+        return names;
     }
 
     @FunctionalInterface

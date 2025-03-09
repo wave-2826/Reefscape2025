@@ -8,6 +8,7 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import frc.robot.commands.drive.DriveTuningCommands;
+import frc.robot.commands.vision.VisionTuningCommands;
 import frc.robot.subsystems.arm.Arm;
 import frc.robot.subsystems.arm.ArmIO;
 import frc.robot.subsystems.arm.ArmIOReal;
@@ -164,6 +165,7 @@ public class RobotContainer {
         // Set up auto routines
         autoChooser = new LoggedDashboardChooser<>("Auto Choices", AutoBuilder.buildAutoChooser());
         DriveTuningCommands.addTuningCommandsToAutoChooser(drive, autoChooser);
+        VisionTuningCommands.addTuningCommandsToAutoChooser(vision, autoChooser);
 
         // Configure the button bindings
         Controls.getInstance().configureControls(drive, driveSimulation, arm, climber);

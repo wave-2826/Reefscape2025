@@ -28,8 +28,8 @@ public class VisionConstants {
         .loadField(AprilTagFields.k2025ReefscapeWelded);
 
     // Camera names; must match names configured in PhotonVision
-    public static String camera0Name = "2826_OV9281_Ben"; // Front left
-    public static String camera1Name = "2826_OV9281_Abe"; // Front right
+    public static String camera0Name = "2826_OV9281_Abe"; // Front left
+    public static String camera1Name = "2826_OV9281_Ben"; // Front right
     public static String camera2Name = "2826_OV9281_Cal"; // Back left
     public static String camera3Name = "2826_OV9281_Dan"; // Back right
 
@@ -44,10 +44,12 @@ public class VisionConstants {
     // Robot to camera transforms
     // Front left camera
     public static Transform3d robotToCamera0 = new Transform3d(
-        new Translation3d(Units.inchesToMeters(8.75), Units.inchesToMeters(10.), Units.inchesToMeters(15.962 + 1.75)),
-        new Rotation3d(0.0, 0.418977, -0.484902));
+        new Translation3d(0.27411734834696505, 0.2519450092311559, 0.37164545076967626),
+        new Rotation3d(0.003627879341338477, 0.48105665399639214, -0.5622702127309405));
     // Front right camera
-    public static Transform3d robotToCamera1 = reflectCameraPosition(robotToCamera0);
+    public static Transform3d robotToCamera1 = new Transform3d(
+        new Translation3d(0.26895335537009596, -0.2128584446109858, 0.3670752799208795),
+        new Rotation3d(0.01621000946342666, 0.47716456943182917, 0.5355458463649192));
     // Back left camera
     public static Transform3d robotToCamera2 = new Transform3d(new Translation3d(Units.inchesToMeters(4.006715),
         Units.inchesToMeters(7.487012), Units.inchesToMeters(25.736304)),
