@@ -1,5 +1,7 @@
 package frc.robot.commands.drive;
 
+import org.littletonrobotics.junction.Logger;
+
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.util.FlippingUtil;
 
@@ -84,6 +86,10 @@ public class CloseLineupCommand extends Command {
         xController.setSetpoint(targetPose.getX());
         yController.setSetpoint(targetPose.getY());
         thetaController.setSetpoint(targetPose.getRotation().getRadians());
+
+        Logger.recordOutput("CloseLineup/TargetX", targetPose.getX());
+        Logger.recordOutput("CloseLineup/TargetY", targetPose.getY());
+        Logger.recordOutput("CloseLineup/TargetRotation", targetPose.getRotation());
     }
 
     @Override

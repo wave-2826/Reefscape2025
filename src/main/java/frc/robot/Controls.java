@@ -1,9 +1,10 @@
 package frc.robot;
 
 import static edu.wpi.first.units.Units.Degrees;
-import static edu.wpi.first.units.Units.Inches;
 import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.MetersPerSecond;
+
+import java.util.Set;
 
 import org.ironmaple.simulation.SimulatedArena;
 import org.ironmaple.simulation.drivesims.SwerveDriveSimulation;
@@ -24,9 +25,11 @@ import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.commands.AutoScoreCommands;
+import frc.robot.commands.arm.ScoringSequenceCommands;
 import frc.robot.commands.climber.ClimbCommands;
 import frc.robot.commands.drive.DriveCommands;
 import frc.robot.subsystems.arm.Arm;
+import frc.robot.subsystems.arm.ArmConstants;
 import frc.robot.subsystems.arm.ArmState;
 import frc.robot.subsystems.arm.EndEffectorState;
 import frc.robot.subsystems.arm.ArmState.WristRotation;
@@ -90,9 +93,9 @@ public class Controls {
         operator.povLeft().onTrue(Commands.runOnce(() -> horizontal.value = !horizontal.value));
         operator.a().toggleOnTrue(arm.setTargetStateCommand(() -> {
             boolean controllingHeight = operator.leftBumper().getAsBoolean();
-            double eeSpeed = MathUtil.applyDeadband(controllingHeight ? 0. : operator.getLeftY(), 0.15) * 200.; // Rad/sec
-            EndEffectorState endEffectorState = eeSpeed == 0.0 ? new EndEffectorState(EndEffectorState.Mode.Hold)
-                : new EndEffectorState(EndEffectorState.Mode.VelocityControl, eeSpeed);
+            double eeSpeed = MathUtil.applyDeadband(controllingHeight ? 0. : operator.getLeftY(), 0.15) * -200.; // Rad/sec
+            EndEffectorState endEffectorState = eeSpeed == 0.0 ? EndEffectorState.hold()
+                : EndEffectorState.velocity(eeSpeed);
             double speed = 4.0;
 
             height.value -= controllingHeight ? (MathUtil.applyDeadband(operator.getLeftY(), 0.15) * speed * 0.02) : 0.;
@@ -101,11 +104,13 @@ public class Controls {
                 horizontal.value ? WristRotation.Horizontal : WristRotation.Vertical, endEffectorState);
         }));
 
-        operator.b().onTrue(arm.setTargetStateCommand(() -> new ArmState(Rotation2d.fromDegrees(-80), Inches.of(20),
-            WristRotation.Horizontal, new EndEffectorState(EndEffectorState.Mode.Hold))));
-        operator.y().toggleOnTrue(arm.setTargetStateCommand(() -> {
-            return DriverStationInterface.getInstance().getReefTarget().getArmState();
-        }));
+        operator.b().onTrue(arm.goToStateCommand(ArmConstants.restingState));
+        operator.y()
+            .whileTrue(
+                Commands.defer(
+                    () -> ScoringSequenceCommands
+                        .scoreAtLevel(DriverStationInterface.getInstance().getReefTarget().level(), arm, drive),
+                    Set.of(arm, drive)));
 
         // operator.back().or(DriverStation::isTest).whileTrue(overrideControlsCommand(arm));
         operator.back().onTrue(Commands.runOnce(arm::resetToAbsolute));

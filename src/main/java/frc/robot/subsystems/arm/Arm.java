@@ -2,11 +2,13 @@ package frc.robot.subsystems.arm;
 
 import static edu.wpi.first.units.Units.Meters;
 
+import java.util.Set;
 import java.util.function.Supplier;
 
 import org.littletonrobotics.junction.Logger;
 
-import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -27,8 +29,8 @@ public class Arm extends SubsystemBase {
 
     private final ArmVisualizer visualizer = new ArmVisualizer("arm");
 
-    private ArmState targetState = new ArmState(Rotation2d.fromDegrees(0.0), Meters.of(0.75), WristRotation.Vertical,
-        new EndEffectorState(EndEffectorState.Mode.Hold));
+    private ArmState targetState = ArmConstants.restingState;
+    private ArmState adjustedTarget = ArmConstants.restingState;
 
     private final Alert elevatorMotorDisconnectedAlert = new Alert("Elevator motor disconnected!", AlertType.kError);
     private final Alert elevatorHeightSensorDisconnectedAlert = new Alert("Elevator height sensor disconnected!",
@@ -52,13 +54,17 @@ public class Arm extends SubsystemBase {
     }
 
     public Command goToStateCommand(ArmState state) {
-        return Commands.runOnce(() -> {
+        return Commands.run(() -> {
             targetState = state;
         }, this).until(this::isAtTarget).handleInterrupt(() -> {
             // If we are interrupted, set the target state to the current state
             targetState = new ArmState(inputs.armPitchPosition, Meters.of(inputs.elevatorHeightMeters),
-                WristRotation.Vertical, new EndEffectorState(EndEffectorState.Mode.Hold));
+                WristRotation.Vertical, EndEffectorState.hold());
         });
+    }
+
+    public Command goToStateCommand(Supplier<ArmState> state) {
+        return Commands.defer(() -> goToStateCommand(state.get()), Set.of(this));
     }
 
     public Command setTargetStateCommand(Supplier<ArmState> state) {
@@ -67,20 +73,47 @@ public class Arm extends SubsystemBase {
         });
     }
 
-    private static final double TARGET_HEIGHT_TOLERANCE_METERS = 0.05;
+    private static final double TARGET_HEIGHT_TOLERANCE_METERS = Units.inchesToMeters(0.25);
     private static final double TARGET_PITCH_TOLERANCE_DEGREES = 2.0;
     private static final double TARGET_WRIST_TOLERANCE_DEGREES = 2.0;
 
+    private boolean atTargetPitch() {
+        return Math
+            .abs(MathUtil.angleModulus(inputs.armPitchPosition.getRadians() - targetState.pitch().getRadians())) < Units
+                .degreesToRadians(TARGET_PITCH_TOLERANCE_DEGREES);
+    }
+
+    private boolean atTargetHeight() {
+        return Math.abs(inputs.elevatorHeightMeters - targetState.height().in(Meters)) < TARGET_HEIGHT_TOLERANCE_METERS;
+    }
+
+    private boolean atTargetWrist() {
+        return Math.abs(MathUtil.angleModulus(
+            inputs.armWristPosition.getRadians() - targetState.wristRotation().rotation.getRadians())) < Units
+                .degreesToRadians(TARGET_WRIST_TOLERANCE_DEGREES);
+    }
+
     private boolean isAtTarget() {
-        return Math.abs(inputs.elevatorHeightMeters - targetState.height().in(Meters)) < TARGET_HEIGHT_TOLERANCE_METERS
-            && Math.abs(inputs.armPitchPosition.getDegrees()
-                - targetState.pitch().getDegrees()) < TARGET_PITCH_TOLERANCE_DEGREES
-            && Math.abs(inputs.armWristPosition.getDegrees()
-                - targetState.wristRotation().rotation.getDegrees()) < TARGET_WRIST_TOLERANCE_DEGREES;
+        return atTargetHeight() && atTargetPitch() && atTargetWrist();
     }
 
     public void resetToAbsolute() {
         io.resetToAbsolute();
+    }
+
+    private ArmState getAdjustedTarget() {
+        WristRotation targetWrist = targetState.wristRotation();
+        if(inputs.armPitchPosition.getDegrees() < -90. + 30.) {
+            targetWrist = WristRotation.Horizontal;
+        }
+
+        EndEffectorState targetEndEffector = targetState.endEffectorState();
+        double degreesOff = Math.abs(inputs.armPitchPosition.getDegrees() - targetState.pitch().getDegrees());
+        if(targetEndEffector.isHold() && degreesOff > TARGET_PITCH_TOLERANCE_DEGREES * 2) {
+            targetEndEffector = EndEffectorState.velocity(-6 * degreesOff / 90.);
+        }
+
+        return new ArmState(targetState.pitch(), targetState.height(), targetWrist, targetEndEffector);
     }
 
     @Override
@@ -88,16 +121,22 @@ public class Arm extends SubsystemBase {
         io.updateInputs(inputs);
         Logger.processInputs("Arm", inputs);
 
-        io.setElevatorHeight(targetState.height().in(Meters), elevatorKg.get());
-        io.setArmPitchPosition(targetState.pitch(),
-            Math.abs(Math.cos(inputs.armPitchPosition.getRadians())) * armPitchKg.get());
-        io.setWristRotation(targetState.wristRotation());
-        io.setEndEffectorState(targetState.endEffectorState());
+        adjustedTarget = getAdjustedTarget();
 
-        Logger.recordOutput("Arm/TargetHeight", targetState.height().in(Meters));
-        Logger.recordOutput("Arm/TargetPitch", targetState.pitch().getRadians());
-        Logger.recordOutput("Arm/TargetWrist", targetState.wristRotation().rotation.getRadians());
-        Logger.recordOutput("Arm/TargetEndEffector", targetState.endEffectorState().getVelocityControl().orElse(0.0));
+        io.setElevatorHeight(adjustedTarget.height().in(Meters), elevatorKg.get());
+        io.setArmPitchPosition(adjustedTarget.pitch(),
+            Math.abs(Math.cos(inputs.armPitchPosition.getRadians())) * armPitchKg.get());
+        io.setWristRotation(adjustedTarget.wristRotation());
+        io.setEndEffectorState(adjustedTarget.endEffectorState());
+
+        Logger.recordOutput("Arm/TargetHeight", adjustedTarget.height().in(Meters));
+        Logger.recordOutput("Arm/TargetPitch", adjustedTarget.pitch().getRadians());
+        Logger.recordOutput("Arm/TargetWrist", adjustedTarget.wristRotation().rotation.getRadians());
+        Logger.recordOutput("Arm/TargetEndEffector",
+            adjustedTarget.endEffectorState().getVelocityControl().orElse(0.0));
+        Logger.recordOutput("Arm/AtTargetPitch", atTargetPitch());
+        Logger.recordOutput("Arm/AtTargetWrist", atTargetWrist());
+        Logger.recordOutput("Arm/AtTargetHeight", atTargetHeight());
         Logger.recordOutput("Arm/AtTarget", isAtTarget());
 
         // TODO: Only reset when scoring

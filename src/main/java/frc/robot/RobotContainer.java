@@ -176,10 +176,10 @@ public class RobotContainer {
             // new CloseLineupCommand(drive, null)
             arm.goToStateCommand(
                 new ArmState(Rotation2d.fromDegrees(60), FieldConstants.ReefLevel.L4.height.minus(Meters.of(0.2)),
-                    WristRotation.Vertical, new EndEffectorState(EndEffectorState.Mode.Hold))), // Line up
+                    WristRotation.Vertical, EndEffectorState.hold())), // Line up
             arm.goToStateCommand(
                 new ArmState(Rotation2d.fromDegrees(60), FieldConstants.ReefLevel.L4.height.minus(Meters.of(0.5)),
-                    WristRotation.Vertical, new EndEffectorState(EndEffectorState.Mode.VelocityControl, 2.0))) // Score
+                    WristRotation.Vertical, EndEffectorState.velocity(2.0))) // Score
         ));
     }
 

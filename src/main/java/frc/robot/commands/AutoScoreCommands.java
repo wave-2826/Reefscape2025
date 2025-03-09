@@ -17,6 +17,8 @@ import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.FieldConstants;
+import frc.robot.FieldConstants.ReefLevel;
+import frc.robot.commands.arm.ScoringSequenceCommands;
 import frc.robot.commands.drive.CloseLineupCommand;
 import frc.robot.commands.util.RestartWhenCommand;
 import frc.robot.subsystems.arm.Arm;
@@ -28,10 +30,16 @@ import frc.robot.util.ReefTarget;
 
 public class AutoScoreCommands {
     /**
-     * The distance from the reef branch to the center of the robot when lining up to score, in meters.
+     * The distance from the reef branch to the center of the robot when lining up to score L1 in meters.
      */
-    private static final LoggedTunableNumber robotReefLineupDistance = new LoggedTunableNumber(
-        "AutoScore/ReefLineupDistance", 0.5);
+    private static final LoggedTunableNumber robotReefLineupL1Distance = new LoggedTunableNumber(
+        "AutoScore/L1ReefLineupDistance", 0.75);
+
+    /**
+     * The distance from the reef branch to the center of the robot when lining up to score L2-L4 in meters.
+     */
+    private static final LoggedTunableNumber robotReefLineupBranchDistance = new LoggedTunableNumber(
+        "AutoScore/BranchReefLineupDistance", 0.5);
 
     /**
      * Gets a command that pathfinds to the target pose and precisely aligns to it. Because PathPlanner's default
@@ -74,33 +82,46 @@ public class AutoScoreCommands {
             this.target = target;
         }
 
-        public Pose2d getLineupPose() {
-            return target.branch().pose
-                .transformBy(new Transform2d(robotReefLineupDistance.get(), 0.0, Rotation2d.fromDegrees(180)));
+        public Pose2d getLineupPose(boolean isL1) {
+            return target.branch().pose.transformBy(
+                new Transform2d(isL1 ? robotReefLineupL1Distance.get() : robotReefLineupBranchDistance.get(), 0.0,
+                    Rotation2d.fromDegrees(180)));
         }
     }
 
     public static Command autoScoreCommand(Drive drive, Arm arm) {
-        return Commands.defer(() -> {
-            AutoScoreState state = new AutoScoreState(DriverStationInterface.getInstance().getReefTarget());
-            int id = state.target.hashCode();
+        AutoScoreState state = new AutoScoreState(DriverStationInterface.getInstance().getReefTarget());
+        int id = state.hashCode();
 
-            return new RestartWhenCommand(Commands.parallel(Commands.runOnce(() -> {
-                Logger.recordOutput("AutoScore/TargetPose", state.getLineupPose());
-            }), Commands.defer(() -> autoAlignCommand(drive, state.getLineupPose()), Set.of(drive)), // Auto-align to the target
-                Commands.defer(() -> arm.goToStateCommand(state.target.getArmState()), Set.of(arm)) // Move the arm to the target position
-            ), () -> {
+        return new RestartWhenCommand( // @formatter:off Our formatter makes this far less readable
+            () -> {
+                Pose2d lineupPose = state.getLineupPose(state.target.level() == ReefLevel.L1);
+                return Commands.sequence(
+                    // Align and prepare to score
+                    Commands.parallel(
+                        Commands.runOnce(() -> {
+                            Logger.recordOutput("AutoScore/TargetPose", lineupPose);
+                        }),
+                        autoAlignCommand(drive, lineupPose), // Auto-align to the target
+                        ScoringSequenceCommands.prepForScoring(state.target.level(), arm) // Prepare for scoring
+                    ),
+                    // Score
+                    ScoringSequenceCommands.scoreAtLevel(state.target.level(), arm, drive)
+                );
+            }, // @formatter:on
+
+            // Restart when our target changes
+            () -> {
                 var newTarget = DriverStationInterface.getInstance().getReefTarget();
-                if(!newTarget.equals(state.target) || robotReefLineupDistance.hasChanged(id)) {
-                    // If the target has changed, restart the command
+                if(!newTarget.equals(state.target) || robotReefLineupL1Distance.hasChanged(id)
+                    || robotReefLineupBranchDistance.hasChanged(id)) {
                     state.target = newTarget;
                     System.out.println("Target changed to " + newTarget);
                     return true;
                 }
                 return false;
+            }, Set.of(drive, arm)).finallyDo(() -> {
+                Logger.recordOutput("AutoScore/TargetPose", new Pose2d());
             });
-        }, Set.of(drive, arm)).finallyDo(() -> {
-            Logger.recordOutput("AutoScore/TargetPose", new Pose2d());
-        });
     }
 }

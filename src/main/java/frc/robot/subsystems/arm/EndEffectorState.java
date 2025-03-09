@@ -18,12 +18,24 @@ public class EndEffectorState {
         return Optional.empty();
     }
 
-    public EndEffectorState(Mode mode, double velocityRadPerSecond) {
+    public boolean isHold() {
+        return mode == Mode.Hold;
+    }
+
+    private EndEffectorState(Mode mode, double velocityRadPerSecond) {
         this.mode = mode;
         this.velocityRadPerSecond = velocityRadPerSecond;
     }
 
-    public EndEffectorState(Mode mode) {
-        this(mode, 0.0);
+    public static EndEffectorState hold() {
+        return new EndEffectorState(Mode.Hold, 0);
+    }
+
+    /**
+     * @param velocityRadPerSecond The end effector velocity. Positive velocity is outward.
+     * @return
+     */
+    public static EndEffectorState velocity(double velocityRadPerSecond) {
+        return new EndEffectorState(Mode.VelocityControl, velocityRadPerSecond);
     }
 }

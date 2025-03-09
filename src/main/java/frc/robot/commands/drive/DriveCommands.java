@@ -66,6 +66,21 @@ public class DriveCommands {
         }, drive);
     }
 
+    /** Returns a command that drives straight at the specified speed. Positive numbers are forward. */
+    public static Command driveStraightCommand(Drive drive, double speedMetersPerSecond) {
+        return Commands.run(() -> {
+            drive.runVelocity(ChassisSpeeds.fromRobotRelativeSpeeds(speedMetersPerSecond, 0., 0., drive.getRotation()));
+        }, drive);
+    }
+
+    /**
+     * Returns a command that drives straight at the specified speed for the specified duration. Positive numbers are
+     * forward.
+     */
+    public static Command driveStraightCommand(Drive drive, double speedMetersPerSecond, double timeSeconds) {
+        return driveStraightCommand(drive, speedMetersPerSecond).raceWith(Commands.waitSeconds(timeSeconds));
+    }
+
     /**
      * Field relative drive command using joystick for linear control and PID for angular control. Possible use cases
      * include snapping to an angle, aiming at a vision target, or controlling absolute rotation with a joystick.

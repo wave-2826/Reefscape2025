@@ -9,6 +9,7 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.units.measure.Distance;
+import frc.robot.subsystems.arm.ArmState.WristRotation;
 import frc.robot.util.LoggedTunableSparkPID;
 import frc.robot.util.PIDConstants;
 import frc.robot.util.GearRatios.UltraPlanetaryRatio;
@@ -17,6 +18,10 @@ import frc.robot.util.GearRatios.UltraPlanetaryRatio;
  * Constants related to the arm subsystem.
  */
 public class ArmConstants {
+    /** The state that the arm rests in while waiting for a game piece. */
+    public static final ArmState restingState = new ArmState(Rotation2d.fromDegrees(-90), Inches.of(19),
+        WristRotation.Horizontal, EndEffectorState.hold());
+
     public class ElevatorConstants {
         public static final int elevatorHeightMotor1Id = /* TODO */ 50;
         public static final int elevatorHeightMotor2Id = /* TODO */ 51;
@@ -58,7 +63,7 @@ public class ArmConstants {
         /**
          * The margin on the elevator soft stops.
          */
-        public static final Distance softStopMargin = Inches.of(10.);
+        public static final Distance softStopMargin = Inches.of(0.5);
 
         /**
          * The translation from the center of the robot at the floor to the center of the elevator support structure on
@@ -91,7 +96,7 @@ public class ArmConstants {
         public static final int armWristMotorId = /* TODO */ 53;
 
         /** The wrist absolute encoder zero offset, in radians. */
-        public static final double wristZeroOffset = 0.1814255;
+        public static final double wristZeroOffset = 0.6760458;
         /** The pitch absolute encoder zero offset, in radians. */
         public static final double pitchZeroOffset = 0.3618647;
 
@@ -116,7 +121,7 @@ public class ArmConstants {
         /** The conversion factor from pitch absolute encoder to radians. */
         public static final double pitchAbsolutePositionFactor = 2 * Math.PI;
         /** The conversion factor from pitch absolute encoder RPM to radians per second. */
-        public static final double pitchAbsoluteVelocityFactor = pitchPositionConversionFactor / 60.;
+        public static final double pitchAbsoluteVelocityFactor = pitchAbsolutePositionFactor / 60.;
 
         public static final int pitchMotorCurrentLimit = 70;
         public static final boolean pitchMotorInverted = true;
@@ -165,7 +170,7 @@ public class ArmConstants {
     public class EndEffectorConstants {
         public static final int endEffectorMotorId = /* TODO */ 54;
 
-        public static final double endEffectorReduction = 32. / 11.;
+        public static final double endEffectorReduction = 32. / 11. * 9.;
 
         // The PID slot used for end effector position control. We need to use position control because
         // the coaxial drive system has a coupling factor that could cause the piece to be spit out if
@@ -181,8 +186,8 @@ public class ArmConstants {
         public static final double endEffectorCouplingFactor = (1 / endEffectorReduction) / 2.; // TODO: Find the proper value for this. Maybe from empirical testing?
 
         public static final LoggedTunableSparkPID endEffectorPID = new LoggedTunableSparkPID("Arm/EndEffector")
-            .addRealRobotGains(new PIDConstants(0.001, 0.0, 0.5, 1. / 565, endEffectorVelocitySlot))
-            .addSimGains(new PIDConstants(0.001, 0.0, 0.5, 1. / 565, endEffectorVelocitySlot))
+            .addRealRobotGains(new PIDConstants(0.001, 0.0, 0.5, endEffectorReduction / 565, endEffectorVelocitySlot))
+            .addSimGains(new PIDConstants(0.001, 0.0, 0.5, endEffectorReduction / 565, endEffectorVelocitySlot))
             .addRealRobotGains(new PIDConstants(0.003, 0.0, 0.0, endEffectorPositionSlot))
             .addSimGains(new PIDConstants(0.003, 0.0, 0.0, endEffectorPositionSlot));
 
@@ -191,6 +196,6 @@ public class ArmConstants {
         /** The conversion factor from wrist motor RPM to radians per second. */
         public static final double endEffectorVelocityConversionFactor = endEffectorPositionConversionFactor / 60.;
         public static final int endEffectorMotorCurrentLimit = 50;
-        public static final boolean endEffectorMotorInverted = false;
+        public static final boolean endEffectorMotorInverted = true;
     }
 }

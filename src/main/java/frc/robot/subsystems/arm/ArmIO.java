@@ -23,7 +23,7 @@ public interface ArmIO {
         /** The end effector velocity in radians per second. */
         public double endEffectorVelocity = 0.0;
 
-        /** The height of the elevator in meters. */
+        /** The relative height of the elevator in meters. */
         public double elevatorHeightMeters = 0.;
         /** The elevator velocity in meters per second. */
         public double elevatorVelocityMetersPerSecond = 0.;

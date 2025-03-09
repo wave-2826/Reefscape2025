@@ -309,6 +309,132 @@
               "data_type": "double",
               "show_submit_button": true
             }
+          },
+          {
+            "title": "EndEffectorkSlot1D",
+            "x": 1035.0,
+            "y": 230.0,
+            "width": 230.0,
+            "height": 115.0,
+            "type": "Text Display",
+            "properties": {
+              "topic": "/Tuning/Arm/EndEffectorkSlot1D",
+              "period": 0.06,
+              "data_type": "double",
+              "show_submit_button": false
+            }
+          },
+          {
+            "title": "EndEffectorkSlot0P",
+            "x": 575.0,
+            "y": 230.0,
+            "width": 230.0,
+            "height": 115.0,
+            "type": "Text Display",
+            "properties": {
+              "topic": "/Tuning/Arm/EndEffectorkSlot0P",
+              "period": 0.06,
+              "data_type": "double",
+              "show_submit_button": false
+            }
+          },
+          {
+            "title": "EndEffectorkSlot0I",
+            "x": 805.0,
+            "y": 230.0,
+            "width": 230.0,
+            "height": 115.0,
+            "type": "Text Display",
+            "properties": {
+              "topic": "/Tuning/Arm/EndEffectorkSlot0I",
+              "period": 0.06,
+              "data_type": "double",
+              "show_submit_button": false
+            }
+          },
+          {
+            "title": "EndEffectorkSlot1P",
+            "x": 575.0,
+            "y": 345.0,
+            "width": 230.0,
+            "height": 230.0,
+            "type": "Text Display",
+            "properties": {
+              "topic": "/Tuning/Arm/EndEffectorkSlot1P",
+              "period": 0.06,
+              "data_type": "double",
+              "show_submit_button": false
+            }
+          },
+          {
+            "title": "EndEffectorkSlot1I",
+            "x": 805.0,
+            "y": 345.0,
+            "width": 230.0,
+            "height": 230.0,
+            "type": "Text Display",
+            "properties": {
+              "topic": "/Tuning/Arm/EndEffectorkSlot1I",
+              "period": 0.06,
+              "data_type": "double",
+              "show_submit_button": false
+            }
+          },
+          {
+            "title": "EndEffectorkSlot1D",
+            "x": 1035.0,
+            "y": 345.0,
+            "width": 230.0,
+            "height": 230.0,
+            "type": "Text Display",
+            "properties": {
+              "topic": "/Tuning/Arm/EndEffectorkSlot1D",
+              "period": 0.06,
+              "data_type": "double",
+              "show_submit_button": false
+            }
+          },
+          {
+            "title": "EndEffectorkSlot1F",
+            "x": 1265.0,
+            "y": 345.0,
+            "width": 230.0,
+            "height": 230.0,
+            "type": "Text Display",
+            "properties": {
+              "topic": "/Tuning/Arm/EndEffectorkSlot1F",
+              "period": 0.06,
+              "data_type": "double",
+              "show_submit_button": false
+            }
+          },
+          {
+            "title": "BranchReefLineupDistance",
+            "x": 230.0,
+            "y": 575.0,
+            "width": 230.0,
+            "height": 115.0,
+            "type": "Text Display",
+            "properties": {
+              "topic": "/Tuning/AutoScore/BranchReefLineupDistance",
+              "period": 0.06,
+              "data_type": "double",
+              "show_submit_button": false
+            }
+          },
+          {
+            "title": "L1ReefLineupDistance",
+            "x": 0.0,
+            "y": 575.0,
+            "width": 230.0,
+            "height": 115.0,
+            "type": "Text Display",
+            "properties": {
+              "topic": "/Tuning/AutoScore/L1ReefLineupDistance",
+              "period": 0.06,
+              "data_type": "double",
+              "show_submit_button": false
+            }
           }
         ]
       }

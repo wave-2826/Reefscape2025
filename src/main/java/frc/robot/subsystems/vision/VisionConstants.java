@@ -8,21 +8,28 @@ import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.util.Units;
 
 public class VisionConstants {
-    // Enable drawing a wireframe visualization of the field to the camera streams in simulation mode.
-    // This is extremely resource-intensive!
+    /**
+     * Enable drawing a wireframe visualization of the field to the camera streams in simulation mode. This is extremely
+     * resource-intensive!
+     */
     public static boolean enableWireframeDrawing = false;
 
-    // If we should enable vision simulation.
-    // Turning off vision sim can dramatically improve loop times, but it's obviously less
-    // representative of real robot odometry.
+    /**
+     * If we should enable vision simulation. Turning off vision sim can dramatically improve loop times, but it's
+     * obviously less representative of real robot odometry.
+     */
     public static boolean enableVisionSimulation = true;
 
-    // AprilTag layout
-    public static AprilTagFieldLayout aprilTagLayout = AprilTagFieldLayout.loadField(AprilTagFields.kDefaultField);
+    /**
+     * The set of AprilTags used. This needs to be configurable because there are two different sets of AprilTags in
+     * 2025... See team update 12: https://firstfrc.blob.core.windows.net/frc2025/Manual/TeamUpdates/TeamUpdate12.pdf
+     */
+    public static AprilTagFieldLayout aprilTagLayout = AprilTagFieldLayout
+        .loadField(AprilTagFields.k2025ReefscapeWelded);
 
     // Camera names; must match names configured in PhotonVision
-    public static String camera0Name = "2826_OV9281_Abe"; // Front left
-    public static String camera1Name = "2826_OV9281_Ben"; // Front right
+    public static String camera0Name = "2826_OV9281_Ben"; // Front left
+    public static String camera1Name = "2826_OV9281_Abe"; // Front right
     public static String camera2Name = "2826_OV9281_Cal"; // Back left
     public static String camera3Name = "2826_OV9281_Dan"; // Back right
 
@@ -36,8 +43,9 @@ public class VisionConstants {
 
     // Robot to camera transforms
     // Front left camera
-    public static Transform3d robotToCamera0 = new Transform3d(new Translation3d(Units.inchesToMeters(11.55791101),
-        Units.inchesToMeters(12.07248480), Units.inchesToMeters(13.302)), new Rotation3d(0.0, 0.319624, -0.680146));
+    public static Transform3d robotToCamera0 = new Transform3d(
+        new Translation3d(Units.inchesToMeters(8.75), Units.inchesToMeters(10.), Units.inchesToMeters(15.962 + 1.75)),
+        new Rotation3d(0.0, 0.418977, -0.484902));
     // Front right camera
     public static Transform3d robotToCamera1 = reflectCameraPosition(robotToCamera0);
     // Back left camera
