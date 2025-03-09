@@ -47,6 +47,8 @@ public class Robot extends LoggedRobot {
                 break;
         }
 
+        Logger.recordMetadata("BatteryID", getBatteryID());
+
         // Set up data receivers & replay source
         switch(Constants.currentMode) {
             case REAL:
@@ -93,6 +95,10 @@ public class Robot extends LoggedRobot {
         }
 
         robotContainer.resetSimulatedRobot();
+    }
+
+    private int getBatteryID() {
+        
     }
 
     /** This function is called periodically during all modes. */
