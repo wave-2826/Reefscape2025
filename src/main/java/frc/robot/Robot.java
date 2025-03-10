@@ -8,6 +8,7 @@ import edu.wpi.first.wpilibj.simulation.DriverStationSim;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import frc.robot.util.LoggedTunableSparkPID;
+import frc.robot.util.Pn532;
 
 import org.littletonrobotics.junction.LogFileUtil;
 import org.littletonrobotics.junction.LoggedRobot;
@@ -47,7 +48,7 @@ public class Robot extends LoggedRobot {
                 break;
         }
 
-        Logger.recordMetadata("BatteryID", getBatteryID());
+        Logger.recordMetadata("BatteryID", String.valueOf(getBatteryID()));
 
         // Set up data receivers & replay source
         switch(Constants.currentMode) {
@@ -98,7 +99,11 @@ public class Robot extends LoggedRobot {
     }
 
     private int getBatteryID() {
-        
+        Pn532 reader = new Pn532();
+        reader.read4Bytes();
+        reader.close();
+
+        return 0; // TODO
     }
 
     /** This function is called periodically during all modes. */
