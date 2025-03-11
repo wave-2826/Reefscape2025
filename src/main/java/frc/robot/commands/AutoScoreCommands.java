@@ -54,7 +54,7 @@ public class AutoScoreCommands {
         Pose2d currentPose = drive.getPose();
 
         // The pose to pathfind to is slightly further outward than the target pose to ensure we don't get stuck
-        Pose2d pathfindPose = targetPose.transformBy(new Transform2d(Units.inchesToMeters(5), 0.0, new Rotation2d()));
+        Pose2d pathfindPose = targetPose.transformBy(new Transform2d(Units.inchesToMeters(-5), 0.0, new Rotation2d()));
         // A pose to initially pathfind to if we're near the reef
         Pose2d safeReefPose = new Pose2d(
             currentPose.getTranslation()

@@ -69,7 +69,7 @@ public class DriveCommands {
     /** Returns a command that drives straight at the specified speed. Positive numbers are forward. */
     public static Command driveStraightCommand(Drive drive, double speedMetersPerSecond) {
         return Commands.run(() -> {
-            drive.runVelocity(ChassisSpeeds.fromRobotRelativeSpeeds(speedMetersPerSecond, 0., 0., drive.getRotation()));
+            drive.runVelocity(new ChassisSpeeds(speedMetersPerSecond, 0., 0.));
         }, drive);
     }
 

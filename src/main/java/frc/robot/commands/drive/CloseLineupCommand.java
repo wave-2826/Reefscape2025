@@ -36,17 +36,17 @@ public class CloseLineupCommand extends Command {
         "CloseLineup/thetaRotationTolerance");
 
     static {
-        translationKp.initDefault(3.0);
+        translationKp.initDefault(5.0);
         translationKi.initDefault(0.0);
-        translationKd.initDefault(0.0);
+        translationKd.initDefault(3.0);
 
         thetaRotationKp.initDefault(2.0);
         thetaRotationKi.initDefault(0.0);
-        thetaRotationKd.initDefault(0.0);
+        thetaRotationKd.initDefault(0.5);
 
-        xTranslationTolerance.initDefault(Units.inchesToMeters(0.2));
-        yTranslationTolerance.initDefault(Units.inchesToMeters(0.2));
-        thetaRotationTolerance.initDefault(Units.degreesToRadians(2));
+        xTranslationTolerance.initDefault(Units.inchesToMeters(1.0));
+        yTranslationTolerance.initDefault(Units.inchesToMeters(1.0));
+        thetaRotationTolerance.initDefault(Units.degreesToRadians(5));
     }
 
     /**

@@ -36,7 +36,7 @@ public class FieldConstants {
         }
     }
 
-    public static final Distance reefBranchSeparation = Inches.of(12.938);
+    public static final Distance reefBranchSeparation = Inches.of(13.25);
     public static final Translation2d reefCenter = new Translation2d(Units.inchesToMeters(176.746),
         Units.inchesToMeters(158.501));
 

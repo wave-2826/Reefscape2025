@@ -30,6 +30,8 @@ public class ScoringSequenceCommands {
     private static LoggedTunableNumber L3ScoreHeight = new LoggedTunableNumber("AutoScore/L3ScoreHeight");
     private static LoggedTunableNumber L2ScoreHeight = new LoggedTunableNumber("AutoScore/L2ScoreHeight");
     private static LoggedTunableNumber L1ScoreHeight = new LoggedTunableNumber("AutoScore/L1ScoreHeight");
+    private static LoggedTunableNumber preScoreElevatorHeight = new LoggedTunableNumber(
+        "AutoScore/PreScoreElevatorHeight");
 
     static {
         elevatorPitchDownHeightReduction.initDefault(5);
@@ -37,10 +39,11 @@ public class ScoringSequenceCommands {
         gamePieceEjectVelocity.initDefault(10);
         driveForwardTime.initDefault(0.5);
         branchScorePitch.initDefault(55.);
-        L4ScoreHeightFromTop.initDefault(3);
+        L4ScoreHeightFromTop.initDefault(6);
         L3ScoreHeight.initDefault(26.5);
         L2ScoreHeight.initDefault(10.);
         L1ScoreHeight.initDefault(15.);
+        preScoreElevatorHeight.initDefault(12.5);
     }
 
     public static ArmState getStartingState(ReefLevel level) {
@@ -65,7 +68,15 @@ public class ScoringSequenceCommands {
     }
 
     public static Command prepForScoring(ReefLevel level, Arm arm) {
-        return arm.goToStateCommand(getStartingState(level));
+        ArmState startingState = getStartingState(level);
+        Distance height = startingState.height();
+        Rotation2d pitch = startingState.pitch();
+        if(height.in(Inches) > preScoreElevatorHeight.get()) {
+            height = Inches.of(preScoreElevatorHeight.get());
+            pitch = Rotation2d.fromDegrees(80);
+        }
+        startingState = new ArmState(pitch, height, startingState.wristRotation(), startingState.endEffectorState());
+        return arm.goToStateCommand(startingState);
     }
 
     public static Command scoreAtLevel(ReefLevel level, Arm arm, Drive drive) {
@@ -76,7 +87,7 @@ public class ScoringSequenceCommands {
             startState.pitch().minus(Rotation2d.fromDegrees(pitchDownPitchReduction.get())),
             startState.height().minus(Inches.of(elevatorPitchDownHeightReduction.get())),
             WristRotation.HorizontalFlipped, EndEffectorState.velocity(gamePieceEjectVelocity.get()));
-        return Commands.sequence(
+        return Commands.sequence(arm.goToStateCommand(startState),
             Commands.parallel(arm.goToStateCommand(pitchDownState),
                 DriveCommands.driveStraightCommand(drive, Units.feetToMeters(-2.0), 0.75)),
             arm.goToStateCommand(ArmConstants.restingState));

@@ -48,8 +48,8 @@ public class VisionTuningCommands {
 
     /** The transform of the calibration tag, relative to the robot base. */
     public static Transform3d heldTagTransform = new Transform3d(new Translation3d( //
-        Units.inchesToMeters(15. + 6.5), // Distance forward
-        Units.inchesToMeters((2.379 - 3.004) / 2), // Distance left
+        Units.inchesToMeters(15. + 4.0), // Distance forward
+        Units.inchesToMeters(0.0 / 2), // Distance left
         Units.inchesToMeters(8.45) // Distance up
     ), new Rotation3d(0., 0., Units.degreesToRadians(180)));
 
@@ -68,16 +68,38 @@ public class VisionTuningCommands {
             }
         }, vision).finallyDo(() -> {
             System.out.println("********** Vision camera position measurement results **********");
+            Transform3d[] adjustedTransforms = new Transform3d[4];
             for(int cameraIndex = 0; cameraIndex < vision.getCameraCount(); cameraIndex++) {
                 Transform3d averageTransform = averages[cameraIndex].getAverage();
                 Transform3d transform = heldTagTransform.plus(averageTransform.inverse());
-                Rotation3d rotation = transform.getRotation();
+                adjustedTransforms[cameraIndex] = transform;
 
-                // new Transform3d(new Translation3d(x, y, z), new Rotation3d(roll, pitch, yaw))
-                System.out.println("Robot to camera " + cameraIndex + ": `new Transform3d(new Translation3d("
-                    + transform.getX() + ", " + transform.getY() + ", " + transform.getZ() + "), new Rotation3d("
-                    + rotation.getX() + ", " + rotation.getY() + ", " + rotation.getZ() + "))`");
+                System.out.print("Robot to camera " + cameraIndex + ": ");
+                printTransform(transform);
             }
+
+            Transform3d frontLeftTransform = adjustedTransforms[0];
+            Transform3d frontRightTransform = adjustedTransforms[1];
+            double frontWidth = frontLeftTransform.getY() - frontRightTransform.getY();
+            frontLeftTransform = new Transform3d(
+                new Translation3d(frontLeftTransform.getX(), frontWidth / 2, frontLeftTransform.getZ()),
+                frontLeftTransform.getRotation());
+            frontRightTransform = new Transform3d(
+                new Translation3d(frontRightTransform.getX(), -frontWidth / 2, frontRightTransform.getZ()),
+                frontRightTransform.getRotation());
+
+            System.out.print("Robot to front left camera (centered Y compensated): ");
+            printTransform(frontLeftTransform);
+            System.out.print("Robot to front right camera (centered Y compensated): ");
+            printTransform(frontRightTransform);
         });
+    }
+
+    private static void printTransform(Transform3d transform) {
+        // new Transform3d(new Translation3d(x, y, z), new Rotation3d(roll, pitch, yaw))
+        Rotation3d rotation = transform.getRotation();
+        System.out.println(
+            "`new Transform3d(new Translation3d(" + transform.getX() + ", " + transform.getY() + ", " + transform.getZ()
+                + "), new Rotation3d(" + rotation.getX() + ", " + rotation.getY() + ", " + rotation.getZ() + "))`");
     }
 }
