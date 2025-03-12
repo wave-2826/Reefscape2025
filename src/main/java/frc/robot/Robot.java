@@ -48,7 +48,7 @@ public class Robot extends LoggedRobot {
                 break;
         }
 
-        Logger.recordMetadata("BatteryID", String.valueOf(getBatteryID()));
+        Logger.recordMetadata("BatteryID", getBatteryID());
 
         // Set up data receivers & replay source
         switch(Constants.currentMode) {
@@ -98,12 +98,12 @@ public class Robot extends LoggedRobot {
         robotContainer.resetSimulatedRobot();
     }
 
-    private int getBatteryID() {
+    private String getBatteryID() {
         Pn532 reader = new Pn532();
-        reader.read4Bytes();
+        String result = reader.readAsciiBytes();
         reader.close();
 
-        return 0; // TODO
+        return result;
     }
 
     /** This function is called periodically during all modes. */
