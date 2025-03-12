@@ -114,10 +114,11 @@ public class ArmIOReal implements ArmIO {
             .inverted(ArmConstants.ElevatorConstants.elevatorMotorInverted);
         elevatorMotorLeaderConfig.signals.apply(SparkUtil.defaultSignals).primaryEncoderPositionAlwaysOn(true)
             .primaryEncoderVelocityAlwaysOn(true).primaryEncoderPositionPeriodMs(20).primaryEncoderVelocityPeriodMs(20);
-        double softStopMarginMeters = ArmConstants.ElevatorConstants.softStopMargin.in(Meters);
+        double bottomSoftStopMarginMeters = ArmConstants.ElevatorConstants.softStopMarginBottom.in(Meters);
+        double topSoftStopMarginMeters = ArmConstants.ElevatorConstants.softStopMarginBottom.in(Meters);
         elevatorMotorLeaderConfig.softLimit.forwardSoftLimitEnabled(true).reverseSoftLimitEnabled(true)
-            .forwardSoftLimit(ArmConstants.ElevatorConstants.maxElevatorHeight.in(Meters) - softStopMarginMeters)
-            .reverseSoftLimit(softStopMarginMeters);
+            .forwardSoftLimit(ArmConstants.ElevatorConstants.maxElevatorHeight.in(Meters) - topSoftStopMarginMeters)
+            .reverseSoftLimit(bottomSoftStopMarginMeters);
 
         SparkFlexConfig elevatorMotorFollowerConfig = new SparkFlexConfig();
         elevatorMotorFollowerConfig.encoder

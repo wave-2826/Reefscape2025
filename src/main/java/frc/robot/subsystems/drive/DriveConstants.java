@@ -131,7 +131,7 @@ public class DriveConstants {
     public static final PPHolonomicDriveController simHolonomicDriveController = new PPHolonomicDriveController(
         new PIDConstants(13.0, 0.0, 0.0), new PIDConstants(5.0, 0.0, 0.0));
     public static final PPHolonomicDriveController realHolonomicDriveController = new PPHolonomicDriveController(
-        new PIDConstants(5.0, 0.0, 0.0), new PIDConstants(3.0, 0.0, 0.0));
+        new PIDConstants(3.0, 0.0, 0.5), new PIDConstants(2.0, 0.0, 0.0));
 
     public static final DriveTrainSimulationConfig mapleSimConfig = DriveTrainSimulationConfig.Default()
         .withCustomModuleTranslations(moduleTranslations).withRobotMass(Kilogram.of(robotMassKg))

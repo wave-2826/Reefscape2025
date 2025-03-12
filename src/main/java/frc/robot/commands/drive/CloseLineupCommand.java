@@ -1,5 +1,7 @@
 package frc.robot.commands.drive;
 
+import java.util.function.Supplier;
+
 import org.littletonrobotics.junction.Logger;
 
 import com.pathplanner.lib.auto.AutoBuilder;
@@ -15,7 +17,8 @@ import frc.robot.util.LoggedTunableNumber;
 
 public class CloseLineupCommand extends Command {
     private final Drive drive;
-    private Pose2d targetPose, currentPose;
+    private Supplier<Pose2d> targetPose;
+    private Pose2d currentPose;
 
     private final PIDController xController, yController;
     private final PIDController thetaController;
@@ -36,17 +39,17 @@ public class CloseLineupCommand extends Command {
         "CloseLineup/thetaRotationTolerance");
 
     static {
-        translationKp.initDefault(5.0);
+        translationKp.initDefault(1.75);
         translationKi.initDefault(0.0);
-        translationKd.initDefault(3.0);
+        translationKd.initDefault(0.0);
 
-        thetaRotationKp.initDefault(2.0);
+        thetaRotationKp.initDefault(1.5);
         thetaRotationKi.initDefault(0.0);
-        thetaRotationKd.initDefault(0.5);
+        thetaRotationKd.initDefault(0.0);
 
-        xTranslationTolerance.initDefault(Units.inchesToMeters(1.0));
-        yTranslationTolerance.initDefault(Units.inchesToMeters(1.0));
-        thetaRotationTolerance.initDefault(Units.degreesToRadians(5));
+        xTranslationTolerance.initDefault(Units.inchesToMeters(0.75));
+        yTranslationTolerance.initDefault(Units.inchesToMeters(0.75));
+        thetaRotationTolerance.initDefault(Units.degreesToRadians(3));
     }
 
     /**
@@ -55,11 +58,7 @@ public class CloseLineupCommand extends Command {
      * @param drive
      * @param targetPose
      */
-    public CloseLineupCommand(Drive drive, Pose2d targetPose) {
-        if(AutoBuilder.shouldFlip()) {
-            targetPose = FlippingUtil.flipFieldPose(targetPose);
-        }
-
+    public CloseLineupCommand(Drive drive, Supplier<Pose2d> targetPose) {
         this.drive = drive;
         this.targetPose = targetPose;
 
@@ -82,14 +81,6 @@ public class CloseLineupCommand extends Command {
         xController.reset();
         yController.reset();
         thetaController.reset();
-
-        xController.setSetpoint(targetPose.getX());
-        yController.setSetpoint(targetPose.getY());
-        thetaController.setSetpoint(targetPose.getRotation().getRadians());
-
-        Logger.recordOutput("CloseLineup/TargetX", targetPose.getX());
-        Logger.recordOutput("CloseLineup/TargetY", targetPose.getY());
-        Logger.recordOutput("CloseLineup/TargetRotation", targetPose.getRotation());
     }
 
     @Override
@@ -107,20 +98,37 @@ public class CloseLineupCommand extends Command {
             thetaController.setTolerance(values[2]);
         }, xTranslationTolerance, yTranslationTolerance, thetaRotationTolerance);
 
-        currentPose = drive.getPose();
+        Pose2d currentTargetPose = targetPose.get();
+        if(AutoBuilder.shouldFlip()) {
+            currentTargetPose = FlippingUtil.flipFieldPose(currentTargetPose);
+        }
 
+        xController.setSetpoint(currentTargetPose.getX());
+        yController.setSetpoint(currentTargetPose.getY());
+        thetaController.setSetpoint(currentTargetPose.getRotation().getRadians());
+
+        Logger.recordOutput("CloseLineup/TargetX", currentTargetPose.getX());
+        Logger.recordOutput("CloseLineup/TargetY", currentTargetPose.getY());
+        Logger.recordOutput("CloseLineup/TargetRotation", currentTargetPose.getRotation());
+
+        currentPose = drive.getPose();
         double xSpeed = xController.calculate(currentPose.getX());
         double ySpeed = yController.calculate(currentPose.getY());
         double thetaSpeed = thetaController.calculate(currentPose.getRotation().getRadians());
 
+        // Terrible solution. Do not copy.
+        if(xController.atSetpoint()) xSpeed = 0.;
+        if(yController.atSetpoint()) ySpeed = 0.;
+
         ChassisSpeeds wheelSpeeds = ChassisSpeeds.fromFieldRelativeSpeeds(xSpeed, ySpeed, thetaSpeed,
             currentPose.getRotation());
+
         drive.runVelocity(wheelSpeeds);
     }
 
     @Override
     public boolean isFinished() {
-        return xController.atSetpoint() && yController.atSetpoint() && thetaController.atSetpoint();
+        return false;
     }
 
     @Override

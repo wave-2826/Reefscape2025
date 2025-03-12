@@ -1,6 +1,7 @@
 package frc.robot;
 
 import static edu.wpi.first.units.Units.Degrees;
+import static edu.wpi.first.units.Units.Inches;
 import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.MetersPerSecond;
 
@@ -75,7 +76,8 @@ public class Controls {
         // Switch to X pattern when X button is pressed
         driver.x().onTrue(Commands.runOnce(drive::stopWithX, drive));
 
-        driver.b().whileTrue(AutoScoreCommands.autoScoreCommand(drive, arm));
+        driver.b().whileTrue(AutoScoreCommands.autoScoreStartCommand(drive, arm, driver.rightBumper(), driver::getLeftX,
+            driver::getLeftY));
 
         // Reset gyro or odometry if in simulation
         final Runnable resetGyro = Constants.currentMode == Constants.Mode.SIM
@@ -111,6 +113,11 @@ public class Controls {
                     () -> ScoringSequenceCommands
                         .scoreAtLevel(DriverStationInterface.getInstance().getReefTarget().level(), arm, drive),
                     Set.of(arm, drive)));
+
+        operator.rightBumper()
+            .onTrue(arm.goToStateCommand(new ArmState(Rotation2d.fromDegrees(30), Inches.of(20),
+                WristRotation.Horizontal, EndEffectorState.velocity(-6))))
+            .onFalse(arm.goToStateCommand(ArmConstants.restingState));
 
         // operator.back().or(DriverStation::isTest).whileTrue(overrideControlsCommand(arm));
         operator.back().onTrue(Commands.runOnce(arm::resetToAbsolute));

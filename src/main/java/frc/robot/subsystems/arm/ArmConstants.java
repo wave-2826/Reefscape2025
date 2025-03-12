@@ -61,9 +61,13 @@ public class ArmConstants {
         public static final Distance maxElevatorHeight = outerStageMaximumHeight.plus(carriageMaxHeight);
 
         /**
-         * The margin on the elevator soft stops.
+         * The margin on the elevator bottom soft stop.
          */
-        public static final Distance softStopMargin = Inches.of(0.5);
+        public static final Distance softStopMarginBottom = Inches.of(2.0);
+        /**
+         * The margin on the elevator top soft stop.
+         */
+        public static final Distance softStopMarginTop = Inches.of(2.5);
 
         /**
          * The translation from the center of the robot at the floor to the center of the elevator support structure on

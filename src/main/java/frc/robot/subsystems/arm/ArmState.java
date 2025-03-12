@@ -24,4 +24,8 @@ public record ArmState(Rotation2d pitch, Distance height, WristRotation wristRot
             this.rotation = rotation;
         }
     }
+
+    public ArmState withPitch(Rotation2d newPitch) {
+        return new ArmState(newPitch, height, wristRotation, endEffectorState);
+    }
 }

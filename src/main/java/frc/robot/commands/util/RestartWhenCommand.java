@@ -34,10 +34,13 @@ public class RestartWhenCommand extends Command {
     @Override
     public void execute() {
         currentCommand.execute();
+        firstCycle = false;
         if(condition.getAsBoolean() && !firstCycle) {
-            firstCycle = false;
             currentCommand.end(true);
+
+            currentCommand = command.get();
             currentCommand.initialize();
+            CommandScheduler.getInstance().registerComposedCommands(currentCommand);
         }
     }
 

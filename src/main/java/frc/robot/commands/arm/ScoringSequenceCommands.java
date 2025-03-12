@@ -32,11 +32,12 @@ public class ScoringSequenceCommands {
     private static LoggedTunableNumber L1ScoreHeight = new LoggedTunableNumber("AutoScore/L1ScoreHeight");
     private static LoggedTunableNumber preScoreElevatorHeight = new LoggedTunableNumber(
         "AutoScore/PreScoreElevatorHeight");
+    private static LoggedTunableNumber prepPitch = new LoggedTunableNumber("AutoScore/PrepPitch");
 
     static {
         elevatorPitchDownHeightReduction.initDefault(5);
         pitchDownPitchReduction.initDefault(10);
-        gamePieceEjectVelocity.initDefault(10);
+        gamePieceEjectVelocity.initDefault(2);
         driveForwardTime.initDefault(0.5);
         branchScorePitch.initDefault(55.);
         L4ScoreHeightFromTop.initDefault(6);
@@ -44,6 +45,12 @@ public class ScoringSequenceCommands {
         L2ScoreHeight.initDefault(10.);
         L1ScoreHeight.initDefault(15.);
         preScoreElevatorHeight.initDefault(12.5);
+        prepPitch.initDefault(80);
+    }
+
+    private static ArmState getL1StartingState() {
+        return new ArmState(Rotation2d.fromDegrees(0), Inches.of(L1ScoreHeight.get()), WristRotation.Vertical,
+            EndEffectorState.hold());
     }
 
     public static ArmState getStartingState(ReefLevel level) {
@@ -60,23 +67,23 @@ public class ScoringSequenceCommands {
                 height = Inches.of(L2ScoreHeight.get());
                 break;
             default:
-                return new ArmState(Rotation2d.fromDegrees(0), Inches.of(L1ScoreHeight.get()), WristRotation.Vertical,
-                    EndEffectorState.hold());
+                return getL1StartingState();
         }
 
         return new ArmState(pitch, height, WristRotation.HorizontalFlipped, EndEffectorState.hold());
     }
 
-    public static Command prepForScoring(ReefLevel level, Arm arm) {
+    public static Command middleArmMovement(ReefLevel level, Arm arm) {
         ArmState startingState = getStartingState(level);
-        Distance height = startingState.height();
-        Rotation2d pitch = startingState.pitch();
-        if(height.in(Inches) > preScoreElevatorHeight.get()) {
-            height = Inches.of(preScoreElevatorHeight.get());
-            pitch = Rotation2d.fromDegrees(80);
-        }
-        startingState = new ArmState(pitch, height, startingState.wristRotation(), startingState.endEffectorState());
-        return arm.goToStateCommand(startingState);
+        return Commands.sequence( //
+            arm.goToStateCommand(startingState.withPitch(Rotation2d.fromDegrees(prepPitch.get()))),
+            arm.goToStateCommand(startingState));
+    }
+
+    public static Command prepForScoring(ReefLevel level, Arm arm) {
+        if(level == ReefLevel.L1) { return arm.goToStateCommand(getL1StartingState()); }
+        return arm.goToStateCommand(new ArmState(Rotation2d.fromDegrees(prepPitch.get()),
+            Inches.of(preScoreElevatorHeight.get()), WristRotation.Horizontal, EndEffectorState.hold()));
     }
 
     public static Command scoreAtLevel(ReefLevel level, Arm arm, Drive drive) {
