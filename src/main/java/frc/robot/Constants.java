@@ -1,6 +1,5 @@
 package frc.robot;
 
-import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.wpilibj.RobotBase;
 
 public final class Constants {
@@ -13,6 +12,18 @@ public final class Constants {
      * If the robot should log data in simulation.
      */
     public static final boolean logInSimulation = false;
+
+    /**
+     * Maintains a real-time thread priority for the main robot thread throughout the entire program execution. This is
+     * INCREDIBLY dangerous! Do NOT use this without understanding the consequences and EXTENSIVELY testing code with it
+     * enabled. If loop times are longer than 20ms, this WILL cause all other threads (including important vendor ones,
+     * AdvantageKit ones, and more) to be starved and not execute. This can cause issues with odometry, instability with
+     * sending commands, and other issues. However, this has quite visible advantages with reducing loop time
+     * inconsistency. Again, if you want to use this functionality, test with it on and understand its consequences! If
+     * there are spooky issues going on with the robot, disabling this (if enabled) is a good first step. Only use this
+     * as a last resort. Here be dragons.
+     */
+    public static boolean useSuperDangerousRTThreadPriority = false;
 
     /**
      * If the robot is in "tuning mode". When in tuning mode, tunable constants are added to NetworkTables.

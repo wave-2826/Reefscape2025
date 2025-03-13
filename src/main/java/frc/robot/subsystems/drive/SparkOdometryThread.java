@@ -4,6 +4,9 @@ import com.revrobotics.REVLibError;
 import com.revrobotics.spark.SparkBase;
 import edu.wpi.first.wpilibj.Notifier;
 import edu.wpi.first.wpilibj.RobotController;
+import edu.wpi.first.wpilibj.Threads;
+import frc.robot.Constants;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Queue;
@@ -83,6 +86,9 @@ public class SparkOdometryThread {
     }
 
     private void run() {
+        // Dangerous! Read the comment on `useSuperDangerousRTThreadPriority` before using this.
+        if(Constants.useSuperDangerousRTThreadPriority) Threads.setCurrentThreadPriority(true, 99);
+
         // Save new data to queues
         Drive.odometryLock.lock();
         try {

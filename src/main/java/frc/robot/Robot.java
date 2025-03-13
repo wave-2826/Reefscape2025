@@ -1,5 +1,7 @@
 package frc.robot;
 
+import edu.wpi.first.apriltag.AprilTagFieldLayout;
+import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.hal.AllianceStationID;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.RobotController;
@@ -7,6 +9,7 @@ import edu.wpi.first.wpilibj.Threads;
 import edu.wpi.first.wpilibj.simulation.DriverStationSim;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import frc.robot.subsystems.vision.VisionConstants;
 import frc.robot.util.LoggedTunableSparkPID;
 import frc.robot.util.Pn532;
 
@@ -96,6 +99,12 @@ public class Robot extends LoggedRobot {
         }
 
         robotContainer.resetSimulatedRobot();
+
+        if(Constants.currentMode == Constants.Mode.REAL && Constants.useSuperDangerousRTThreadPriority) {
+            // Switch the thread to high priority to improve loop timing.
+            // This is a dangerous operation! Read the comment on useSuperDangerousRTThreadPriority and understand what this does before using it anywhere.
+            Threads.setCurrentThreadPriority(true, 10);
+        }
     }
 
     private String getBatteryID() {
@@ -111,7 +120,7 @@ public class Robot extends LoggedRobot {
     @Override
     public void robotPeriodic() {
         // Switch thread to high priority to improve loop timing
-        Threads.setCurrentThreadPriority(true, 99);
+        if(!Constants.useSuperDangerousRTThreadPriority) Threads.setCurrentThreadPriority(true, 99);
 
         // Runs the Scheduler. This is responsible for polling buttons, adding
         // newly-scheduled commands, running already-scheduled commands, removing
@@ -121,7 +130,7 @@ public class Robot extends LoggedRobot {
         CommandScheduler.getInstance().run();
 
         // Return to normal thread priority
-        Threads.setCurrentThreadPriority(false, 10);
+        if(!Constants.useSuperDangerousRTThreadPriority) Threads.setCurrentThreadPriority(false, 10);
 
         // Tunable spark PIDs
         LoggedTunableSparkPID.periodic();
