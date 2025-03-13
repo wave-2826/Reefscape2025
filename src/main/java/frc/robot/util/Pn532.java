@@ -41,13 +41,12 @@ public class Pn532 implements AutoCloseable {
         (byte) 0x00, // Postamble
     };
 
-    private static final int PN532_I2C_ADDRESS = 0x24; // 7-bit address shifted left by 1
+    private static final int PN532_I2C_ADDRESS = 0x48; // 7-bit address
     private static final byte PN532_READY = 0x01;
 
     public Pn532() {
         // Note: do not use the onboard port on the roboRIO! It can cause system lockups.
         connection = new I2C(I2C.Port.kMXP, PN532_I2C_ADDRESS);
-        connection.addressOnly();
     }
 
     /**
@@ -81,6 +80,18 @@ public class Pn532 implements AutoCloseable {
         byte[] status = new byte[1];
         for(int i = 0; i < 20; i++) { // Try for 200ms
             if(!connection.readOnly(status, 1) && status[0] == PN532_READY) { return true; }
+            Thread.sleep(10); // Wait 10ms before retrying
+        }
+        return false;
+    }
+
+    /**
+     * Waits up to 200ms for an I2C connection.
+     * @return True if the device is connected.
+     */
+    private boolean waitForConnection() throws InterruptedException {
+        for(int i = 0; i < 20; i++) { // Try for 200ms
+            if(!connection.addressOnly()) { return true; }
             Thread.sleep(10); // Wait 10ms before retrying
         }
         return false;
@@ -150,6 +161,11 @@ public class Pn532 implements AutoCloseable {
 
     public String readAsciiBytes() {
         try {
+            if(!waitForConnection()) {
+                DriverStation.reportError("Error reading NFC: Device not on the I2C bus.", false);
+                return null;
+            }
+
             if(!sendWakeup()) {
                 DriverStation.reportError("Error reading NFC: Failed to send wakeup command.", false);
                 return null;

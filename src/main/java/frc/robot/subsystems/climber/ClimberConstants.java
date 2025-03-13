@@ -36,11 +36,11 @@ public class ClimberConstants {
     /** The radius of the climber pulley, in meters. */
     public static final double climberPulleyRadius = Units.inchesToMeters(1.2 / 2.);
     /** The length of the triangle leg from the climber pulley center to the climber pivot center, in meters. */
-    public static final double climberPulleyToPivotDistance = Units.inchesToMeters(8.);
+    public static final double climberPulleyToPivotDistance = Units.inchesToMeters(6.5);
     /** The inclanation of the triangle leg from the... whatever you get it, in radians */
-    public static final double climberLegAngle = Units.degreesToRadians(45.);
+    public static final double climberLegAngle = Units.degreesToRadians(30.);
     /** The length of the climber strap in the resting position, in meters. */
-    public static final double climberRestingLength = Units.inchesToMeters(12.5);
+    public static final double climberRestingLength = Units.inchesToMeters(10.5);
 
     /** The position conversion factor from motor encoder rotations to climber radians. */
     public static final double climberPositionConversionFactor = 2 * Math.PI / climberReduction;
