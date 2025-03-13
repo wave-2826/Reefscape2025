@@ -1,7 +1,5 @@
 package frc.robot;
 
-import edu.wpi.first.apriltag.AprilTagFieldLayout;
-import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.hal.AllianceStationID;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.IterativeRobotBase;
@@ -12,6 +10,7 @@ import edu.wpi.first.wpilibj.simulation.DriverStationSim;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import frc.robot.util.LoggedTunableSparkPID;
+import frc.robot.util.NTClientLogger;
 import frc.robot.util.Pn532;
 
 import java.lang.reflect.Field;
@@ -191,6 +190,9 @@ public class Robot extends LoggedRobot {
         // Alert-related updates
         RioAlerts.getInstance().update();
         Controls.getInstance().update();
+
+        // Miscellaneous logging
+        NTClientLogger.log();
     }
 
     /** This function is called once when the robot is disabled. */
