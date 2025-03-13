@@ -103,6 +103,7 @@ public class Robot extends LoggedRobot {
         String result = reader.readAsciiBytes();
         reader.close();
 
+        if(result == null) { return "Unknown"; }
         return result;
     }
 

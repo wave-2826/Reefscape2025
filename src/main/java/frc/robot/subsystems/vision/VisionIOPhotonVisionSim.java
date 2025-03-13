@@ -42,7 +42,7 @@ public class VisionIOPhotonVisionSim extends VisionIOPhotonVision {
         cameraProperties.setAvgLatencyMs(50);
         cameraProperties.setLatencyStdDevMs(15);
 
-        cameraSim = new PhotonCameraSim(camera, cameraProperties);
+        cameraSim = new PhotonCameraSim(camera, cameraProperties, VisionConstants.aprilTagLayout);
         visionSim.addCamera(cameraSim, robotToCamera);
 
         // Enable the raw and processed streams. These are enabled by default.
