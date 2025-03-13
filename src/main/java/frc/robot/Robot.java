@@ -4,14 +4,20 @@ import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.hal.AllianceStationID;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.IterativeRobotBase;
 import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.Threads;
+import edu.wpi.first.wpilibj.Watchdog;
 import edu.wpi.first.wpilibj.simulation.DriverStationSim;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
-import frc.robot.subsystems.vision.VisionConstants;
 import frc.robot.util.LoggedTunableSparkPID;
 import frc.robot.util.Pn532;
+
+import java.lang.reflect.Field;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.function.BiConsumer;
 
 import org.littletonrobotics.junction.LogFileUtil;
 import org.littletonrobotics.junction.LoggedRobot;
@@ -29,6 +35,12 @@ import au.grapplerobotics.CanBridge;
  * project, you must also update the build.gradle file in the project.
  */
 public class Robot extends LoggedRobot {
+    /**
+     * The timeout for the robot to print a loop overrun message, in seconds. We do some reflection trickery to adjust
+     * the private field in IterativeRobotBase.
+     */
+    private static final double loopOverrunWarningTimeout = 0.2;
+
     private Command autonomousCommand;
     private RobotContainer robotContainer;
 
@@ -80,18 +92,49 @@ public class Robot extends LoggedRobot {
         // Start AdvantageKit logger
         Logger.start();
 
+        // Adjust the loop overrun warning timeout; taken from 6328's code.
+        // This is obviously a bit hacky, but we log our loop times and consistently watch them,
+        // so the loop overrun messages just become noise and make it hard to see real issues in
+        // the console. Therefore, we increase the timeout to 0.2 seconds to reduce the noise.
+        try {
+            // The field is private by default, so we need to make it accessible and
+            // use reflection to access its value. This is a bit hacky, but it works.
+            Field watchdogField = IterativeRobotBase.class.getDeclaredField("m_watchdog");
+            watchdogField.setAccessible(true);
+            Watchdog watchdog = (Watchdog) watchdogField.get(this);
+            watchdog.setTimeout(loopOverrunWarningTimeout);
+        } catch(Exception e) {
+            DriverStation.reportWarning("Failed to disable loop overrun warnings.", false);
+        }
+
         DriverStation.silenceJoystickConnectionWarning(true);
+
+        // Log active commands. Also taken from 6328's code.
+        Map<String, Integer> commandCounts = new HashMap<>();
+        BiConsumer<Command, Boolean> logCommandFunction = (Command command, Boolean active) -> {
+            String name = command.getName();
+            int count = commandCounts.getOrDefault(name, 0) + (active ? 1 : -1);
+            commandCounts.put(name, count);
+            // We currently don't log unique commands unless we're in replay since it isn't
+            // very helpful and adds a lot of noise to the logs.
+            if(Constants.currentMode == Constants.Mode.REPLAY) {
+                Logger.recordOutput("CommandsUnique/" + name + "_" + Integer.toHexString(command.hashCode()), active);
+            }
+
+            Logger.recordOutput("CommandsAll/" + name, count > 0);
+        };
+        CommandScheduler.getInstance()
+            .onCommandInitialize((Command command) -> logCommandFunction.accept(command, true));
+        CommandScheduler.getInstance().onCommandFinish((Command command) -> logCommandFunction.accept(command, false));
+        CommandScheduler.getInstance()
+            .onCommandInterrupt((Command command) -> logCommandFunction.accept(command, false));
 
         // This most likely isn't a good idea, but we experience so many power issues
         // that we reduce the RoboRIO brownout voltage. The RoboRIO 2 originally had a
         // brownout voltage of 6.25 before it was increased, so we're comfortable
-        // setting it to 6.0. This hasn't been caused issues in the past, but it's
-        // obviously not an ideal solution.
+        // setting it to 6.0. This hasn't caused issues in the past, but it's obviously
+        // not an ideal solution.
         RobotController.setBrownoutVoltage(6.0);
-
-        // Instantiate our RobotContainer. This will perform all our button bindings,
-        // and put our autonomous chooser on the dashboard.
-        robotContainer = new RobotContainer();
 
         // For GrappleHook
         if(Constants.currentMode == Constants.Mode.REAL && Constants.tuningMode) {
@@ -99,6 +142,16 @@ public class Robot extends LoggedRobot {
         }
 
         robotContainer.resetSimulatedRobot();
+
+        // Configure the driver station in simulation
+        if(Constants.currentMode == Constants.Mode.SIM) {
+            DriverStationSim.setAllianceStationId(AllianceStationID.Blue3);
+            DriverStationSim.notifyNewData();
+        }
+
+        // Instantiate our RobotContainer. This will perform all our button bindings,
+        // and put our autonomous chooser on the dashboard.
+        robotContainer = new RobotContainer();
 
         if(Constants.currentMode == Constants.Mode.REAL && Constants.useSuperDangerousRTThreadPriority) {
             // Switch the thread to high priority to improve loop timing.
@@ -146,21 +199,11 @@ public class Robot extends LoggedRobot {
         robotContainer.resetSimulationField();
     }
 
-    /** This function is called periodically when disabled. */
-    @Override
-    public void disabledPeriodic() {
-    }
-
     /** This autonomous runs the autonomous command selected by your {@link RobotContainer} class. */
     @Override
     public void autonomousInit() {
         autonomousCommand = robotContainer.getAutonomousCommand();
         if(autonomousCommand != null) autonomousCommand.schedule();
-    }
-
-    /** This function is called periodically during autonomous. */
-    @Override
-    public void autonomousPeriodic() {
     }
 
     /** This function is called once when teleop is enabled. */
@@ -173,11 +216,6 @@ public class Robot extends LoggedRobot {
         if(autonomousCommand != null) autonomousCommand.cancel();
     }
 
-    /** This function is called periodically during operator control. */
-    @Override
-    public void teleopPeriodic() {
-    }
-
     /** This function is called once when test mode is enabled. */
     @Override
     public void testInit() {
@@ -185,17 +223,6 @@ public class Robot extends LoggedRobot {
         CommandScheduler.getInstance().cancelAll();
 
         robotContainer.resetSimulatedRobot();
-    }
-
-    /** This function is called periodically during test mode. */
-    @Override
-    public void testPeriodic() {
-    }
-
-    /** This function is called once when the robot is first started up. */
-    @Override
-    public void simulationInit() {
-        DriverStationSim.setAllianceStationId(AllianceStationID.Blue3);
     }
 
     /** This function is called periodically whilst in simulation. */
