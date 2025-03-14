@@ -74,6 +74,13 @@ public class Drive extends SubsystemBase {
     private final SwerveSetpointGenerator setpointGenerator;
     private SwerveSetpoint previousSetpoint;
 
+    /** If the setpoints have been updated this loop. Used to avoid continuing at a speed when we tell it to stop. */
+    private boolean setpointsUpdated = false;
+    /** If we're currently controlling the robot with velocity. */
+    private boolean velocityControlMode = true;
+    /** The latest speed setpoint for velocity control. */
+    private ChassisSpeeds latestSpeedSetpoint = new ChassisSpeeds();
+
     private SwerveDrivePoseEstimator poseEstimator = new SwerveDrivePoseEstimator(kinematics, rawGyroRotation,
         lastModulePositions, Pose2d.kZero);
 
@@ -142,80 +149,6 @@ public class Drive extends SubsystemBase {
         LEDs.robotSpeedSupplier = this::getLinearSpeedMetersPerSec;
     }
 
-    @Override
-    public void periodic() {
-        odometryLock.lock(); // Prevents odometry updates while reading data
-        gyroIO.updateInputs(gyroInputs);
-        Logger.processInputs("Drive/Gyro", gyroInputs);
-        for(var module : modules) module.periodic();
-        odometryLock.unlock();
-
-        // Stop moving when disabled
-        if(DriverStation.isDisabled()) {
-            for(var module : modules) module.stop();
-        }
-
-        // Unlock wheels if we've been disabled for a while
-        boolean shouldLock = unlockWheelsDebouncer.calculate(DriverStation.isEnabled());
-        if(shouldLock != wheelsLocked) {
-            wheelsLocked = shouldLock;
-            for(var module : modules) module.setBrakeMode(wheelsLocked);
-        }
-
-        // Log empty setpoint states when disabled
-        if(DriverStation.isDisabled()) {
-            Logger.recordOutput("SwerveStates/Setpoints", new SwerveModuleState[] {});
-            Logger.recordOutput("SwerveStates/SetpointsOptimized", new SwerveModuleState[] {});
-        }
-
-        // Update odometry
-        double[] sampleTimestamps = modules[0].getOdometryTimestamps(); // All signals are sampled together
-        int sampleCount = sampleTimestamps.length;
-        for(int i = 0; i < sampleCount; i++) {
-            // Read wheel positions and deltas from each module
-            SwerveModulePosition[] modulePositions = new SwerveModulePosition[4];
-            SwerveModulePosition[] moduleDeltas = new SwerveModulePosition[4];
-            for(int moduleIndex = 0; moduleIndex < 4; moduleIndex++) {
-                modulePositions[moduleIndex] = modules[moduleIndex].getOdometryPositions()[i];
-                moduleDeltas[moduleIndex] = new SwerveModulePosition(
-                    modulePositions[moduleIndex].distanceMeters - lastModulePositions[moduleIndex].distanceMeters,
-                    modulePositions[moduleIndex].angle);
-                lastModulePositions[moduleIndex] = modulePositions[moduleIndex];
-            }
-
-            // Update gyro angle
-            if(gyroInputs.connected) {
-                // Use the real gyro angle
-                rawGyroRotation = gyroInputs.odometryYawPositions[i];
-            } else {
-                // Use the angle delta from the kinematics and module deltas
-                Twist2d twist = kinematics.toTwist2d(moduleDeltas);
-                rawGyroRotation = rawGyroRotation.plus(new Rotation2d(twist.dtheta));
-            }
-
-            // Apply update
-            poseEstimator.updateWithTime(sampleTimestamps[i], rawGyroRotation, modulePositions);
-        }
-
-        // Call the abrupt stop callback if needed
-        if(abruptStopCallback != null) {
-            if(gyroInputs.accelerationGs > ABRUPT_STOP_THRESHOLD_GS && !previousAbruptStop) {
-                abruptStopCallback.run();
-                previousAbruptStop = true;
-            } else if(gyroInputs.accelerationGs < 0.5) {
-                previousAbruptStop = false;
-            }
-        }
-
-        // Update gyro alert
-        gyroDisconnectedAlert.set(!gyroInputs.connected && Constants.currentMode != Mode.SIM);
-
-        // Update the driver station interface
-        DriverStationInterface.getInstance().updateRobotPose(getPose());
-
-        LoggedTracer.record("Drive");
-    }
-
     /**
      * Runs the drive at the desired robot-relative velocity with the specified feedforwards.
      *
@@ -243,6 +176,12 @@ public class Drive extends SubsystemBase {
      * @param speeds Speeds in meters/sec
      */
     public void runVelocity(ChassisSpeeds speeds, LinearAcceleration[] accelerations) {
+        Logger.recordOutput("SwerveChassisSpeeds/TargetSpeeds", speeds);
+
+        setpointsUpdated = true;
+        velocityControlMode = true;
+        latestSpeedSetpoint = speeds;
+
         // Calculate module setpoints
         SwerveModuleState[] setpointStates;
         if(DriveConstants.USE_SETPOINT_GENERATOR) {
@@ -266,11 +205,13 @@ public class Drive extends SubsystemBase {
 
     /** Runs the drive in a straight line with the specified drive output. */
     public void runCharacterization(double output) {
+        velocityControlMode = false;
         for(int i = 0; i < 4; i++) modules[i].runCharacterization(output);
     }
 
     /** Runs a particular module in a straight line with the specified drive output. */
     public void runCharacterization(int module, double output) {
+        velocityControlMode = false;
         modules[module].runCharacterization(output);
     }
 
@@ -386,5 +327,88 @@ public class Drive extends SubsystemBase {
     /** Returns the maximum angular speed in radians per sec. */
     public double getMaxAngularSpeedRadPerSec() {
         return maxSpeedMetersPerSec / driveBaseRadius;
+    }
+
+    @Override
+    public void periodic() {
+        odometryLock.lock(); // Prevents odometry updates while reading data
+        gyroIO.updateInputs(gyroInputs);
+        Logger.processInputs("Drive/Gyro", gyroInputs);
+        for(var module : modules) module.periodic();
+        odometryLock.unlock();
+
+        // Stop moving when disabled
+        if(DriverStation.isDisabled()) {
+            for(var module : modules) module.stop();
+        }
+
+        // Unlock wheels if we've been disabled for a while
+        boolean shouldLock = unlockWheelsDebouncer.calculate(DriverStation.isEnabled());
+        if(shouldLock != wheelsLocked) {
+            wheelsLocked = shouldLock;
+            for(var module : modules) module.setBrakeMode(wheelsLocked);
+        }
+
+        // Log empty setpoint states when disabled
+        if(DriverStation.isDisabled()) {
+            Logger.recordOutput("SwerveStates/Setpoints", new SwerveModuleState[] {});
+            Logger.recordOutput("SwerveStates/SetpointsOptimized", new SwerveModuleState[] {});
+        }
+
+        // Update odometry
+        double[] sampleTimestamps = modules[0].getOdometryTimestamps(); // All signals are sampled together
+        int sampleCount = sampleTimestamps.length;
+        for(int i = 0; i < sampleCount; i++) {
+            // Read wheel positions and deltas from each module
+            SwerveModulePosition[] modulePositions = new SwerveModulePosition[4];
+            SwerveModulePosition[] moduleDeltas = new SwerveModulePosition[4];
+            for(int moduleIndex = 0; moduleIndex < 4; moduleIndex++) {
+                modulePositions[moduleIndex] = modules[moduleIndex].getOdometryPositions()[i];
+                moduleDeltas[moduleIndex] = new SwerveModulePosition(
+                    modulePositions[moduleIndex].distanceMeters - lastModulePositions[moduleIndex].distanceMeters,
+                    modulePositions[moduleIndex].angle);
+                lastModulePositions[moduleIndex] = modulePositions[moduleIndex];
+            }
+
+            // Update gyro angle
+            if(gyroInputs.connected) {
+                // Use the real gyro angle
+                rawGyroRotation = gyroInputs.odometryYawPositions[i];
+            } else {
+                // Use the angle delta from the kinematics and module deltas
+                Twist2d twist = kinematics.toTwist2d(moduleDeltas);
+                rawGyroRotation = rawGyroRotation.plus(new Rotation2d(twist.dtheta));
+            }
+
+            // Apply update
+            poseEstimator.updateWithTime(sampleTimestamps[i], rawGyroRotation, modulePositions);
+        }
+
+        // Call the abrupt stop callback if needed
+        if(abruptStopCallback != null) {
+            if(gyroInputs.accelerationGs > ABRUPT_STOP_THRESHOLD_GS && !previousAbruptStop) {
+                abruptStopCallback.run();
+                previousAbruptStop = true;
+            } else if(gyroInputs.accelerationGs < 0.5) {
+                previousAbruptStop = false;
+            }
+        }
+
+        // Update gyro alert
+        gyroDisconnectedAlert.set(!gyroInputs.connected && Constants.currentMode != Mode.SIM);
+
+        // Update the driver station interface
+        DriverStationInterface.getInstance().updateRobotPose(getPose());
+
+        // Subsystems are updated first, so this adds a bit of latency. Therefore,
+        // we only update when our commands already didn't immediately update.
+        // If they didn't, we manually run velocity control to avoid situations where the robot
+        // continues moving after we tell it to stop.
+        if(!setpointsUpdated && velocityControlMode) {
+            runVelocity(latestSpeedSetpoint);
+        }
+        setpointsUpdated = false;
+
+        LoggedTracer.record("Drive");
     }
 }

@@ -1,7 +1,5 @@
 {
-    "name": "2025 WAVE Robot",
-    "sourceUrl": "",
-    "disableSimplification": false,
+    "name": "Wave2025",
     "rotations": [
         {
             "axis": "x",
@@ -9,13 +7,13 @@
         },
         {
             "axis": "z",
-            "degrees": 270
+            "degrees": 0
         }
     ],
     "position": [
         0,
         0,
-        0
+        0.05
     ],
     "cameras": [
         {

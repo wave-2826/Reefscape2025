@@ -5,20 +5,27 @@ import java.util.function.Supplier;
 import org.littletonrobotics.junction.Logger;
 
 import com.pathplanner.lib.auto.AutoBuilder;
-import com.pathplanner.lib.util.FlippingUtil;
 
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Transform2d;
+import edu.wpi.first.math.geometry.Transform3d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.drive.Drive;
+import frc.robot.subsystems.vision.Vision;
+import frc.robot.subsystems.vision.VisionConstants;
 import frc.robot.util.LoggedTunableNumber;
 
 public class CloseLineupCommand extends Command {
     private final Drive drive;
-    private Supplier<Pose2d> targetPose;
-    private Pose2d currentPose;
+    private final Vision vision;
+    private final int tagToTrack;
+
+    private final Transform2d tagRelativeOffset;
+    private final Supplier<Transform2d> fieldRelativeOffset;
 
     private final PIDController xController, yController;
     private final PIDController thetaController;
@@ -53,14 +60,28 @@ public class CloseLineupCommand extends Command {
     }
 
     /**
-     * A command that lines up the robot to a target pose using PID control. Doesn't avoid obstacles. NOTE: This
-     * automatically flips the target pose for the correct alliance. Provide target poses relative to the blue alliance.
+     * A command that lines up the robot based on tracking the relative position of a single tag from the vision system
+     * with PID control. We found this to be the most reliable mechanism to automatically align because it doesn't
+     * depend on all tags the robot sees being in precise locations.
+     * <p>
+     * Internally, this actually _does_ track a field-relative position to allow us to take advantage of drivetrain
+     * odometry to run the PID loop faster. However, the target pose is always relative to the tag being tracked.
+     * <p>
+     * If the tag being tracked is not seen, this falls back to full field-relative tracking.
      * @param drive
-     * @param targetPose
+     * @param vision
+     * @param tagToTrack
+     * @param tagRelativeOffset The offset relative to the tag being tracked.
+     * @param fieldRelativeOffset The offset relative to the field. This is flipped to be alliance-relative.
      */
-    public CloseLineupCommand(Drive drive, Supplier<Pose2d> targetPose) {
+    public CloseLineupCommand(Drive drive, Vision vision, int tagToTrack, Transform2d tagRelativeOffset,
+        Supplier<Transform2d> fieldRelativeOffset) {
         this.drive = drive;
-        this.targetPose = targetPose;
+        this.vision = vision;
+        this.tagToTrack = tagToTrack;
+
+        this.tagRelativeOffset = tagRelativeOffset;
+        this.fieldRelativeOffset = fieldRelativeOffset;
 
         xController = new PIDController(translationKp.get(), translationKi.get(), translationKd.get());
         yController = new PIDController(translationKp.get(), translationKi.get(), translationKd.get());
@@ -76,11 +97,14 @@ public class CloseLineupCommand extends Command {
 
     @Override
     public void initialize() {
-        currentPose = drive.getPose();
-
         xController.reset();
         yController.reset();
         thetaController.reset();
+    }
+
+    Transform2d flipFieldTransform(Transform2d transform) {
+        return new Transform2d(new Translation2d(-transform.getX(), transform.getY()),
+            transform.getRotation().unaryMinus());
     }
 
     @Override
@@ -98,10 +122,24 @@ public class CloseLineupCommand extends Command {
             thetaController.setTolerance(values[2]);
         }, xTranslationTolerance, yTranslationTolerance, thetaRotationTolerance);
 
-        Pose2d currentTargetPose = targetPose.get();
-        if(AutoBuilder.shouldFlip()) {
-            currentTargetPose = FlippingUtil.flipFieldPose(currentTargetPose);
+        Pose2d correctedCurrentPose = drive.getPose();
+        Transform3d robotToTag = vision.getRobotToTag(tagToTrack);
+        Pose2d fieldTagPose = VisionConstants.aprilTagLayout.getTagPose(tagToTrack).get().toPose2d();
+        if(robotToTag != null) {
+            Transform2d robotToTag2d = new Transform2d(robotToTag.getTranslation().toTranslation2d(),
+                robotToTag.getRotation().toRotation2d());
+            correctedCurrentPose = fieldTagPose.plus(robotToTag2d);
         }
+        Logger.recordOutput("CloseLineup/CorrectedSingleTagPose", correctedCurrentPose);
+
+        Transform2d absoluteOffset = fieldRelativeOffset.get();
+        if(AutoBuilder.shouldFlip()) {
+            absoluteOffset = flipFieldTransform(absoluteOffset);
+        }
+
+        Pose2d currentTargetPose = fieldTagPose.transformBy(tagRelativeOffset);
+        currentTargetPose = new Pose2d(currentTargetPose.getTranslation().plus(absoluteOffset.getTranslation()),
+            currentTargetPose.getRotation().plus(absoluteOffset.getRotation()));
 
         xController.setSetpoint(currentTargetPose.getX());
         yController.setSetpoint(currentTargetPose.getY());
@@ -111,17 +149,18 @@ public class CloseLineupCommand extends Command {
         Logger.recordOutput("CloseLineup/TargetY", currentTargetPose.getY());
         Logger.recordOutput("CloseLineup/TargetRotation", currentTargetPose.getRotation());
 
-        currentPose = drive.getPose();
-        double xSpeed = xController.calculate(currentPose.getX());
-        double ySpeed = yController.calculate(currentPose.getY());
-        double thetaSpeed = thetaController.calculate(currentPose.getRotation().getRadians());
+        double xSpeed = xController.calculate(correctedCurrentPose.getX());
+        double ySpeed = yController.calculate(correctedCurrentPose.getY());
+        double thetaSpeed = thetaController.calculate(correctedCurrentPose.getRotation().getRadians());
 
         // Terrible solution. Do not copy.
         if(xController.atSetpoint()) xSpeed = 0.;
         if(yController.atSetpoint()) ySpeed = 0.;
 
         ChassisSpeeds wheelSpeeds = ChassisSpeeds.fromFieldRelativeSpeeds(xSpeed, ySpeed, thetaSpeed,
-            currentPose.getRotation());
+            correctedCurrentPose.getRotation());
+
+        System.out.println("xSpeed: " + xSpeed + ", ySpeed: " + ySpeed + ", thetaSpeed: " + thetaSpeed);
 
         drive.runVelocity(wheelSpeeds);
     }

@@ -5,12 +5,9 @@ import static edu.wpi.first.units.Units.Inches;
 import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.MetersPerSecond;
 
-import java.util.Set;
-
 import org.ironmaple.simulation.SimulatedArena;
 import org.ironmaple.simulation.drivesims.SwerveDriveSimulation;
 import org.ironmaple.simulation.seasonspecific.reefscape2025.ReefscapeCoralOnFly;
-import org.littletonrobotics.junction.networktables.LoggedNetworkNumber;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -26,7 +23,6 @@ import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.commands.AutoScoreCommands;
-import frc.robot.commands.arm.ScoringSequenceCommands;
 import frc.robot.commands.climber.ClimbCommands;
 import frc.robot.commands.drive.DriveCommands;
 import frc.robot.subsystems.arm.Arm;
@@ -36,8 +32,9 @@ import frc.robot.subsystems.arm.EndEffectorState;
 import frc.robot.subsystems.arm.ArmState.WristRotation;
 import frc.robot.subsystems.climber.Climber;
 import frc.robot.subsystems.drive.Drive;
+import frc.robot.subsystems.vision.Vision;
 import frc.robot.util.Container;
-import frc.robot.util.DriverStationInterface;
+import frc.robot.util.LoggedTunableNumber;
 
 public class Controls {
     private final Alert driverDisconnectedAlert = new Alert("Driver controller disconnected (port 0)",
@@ -48,10 +45,8 @@ public class Controls {
     private final CommandXboxController driver = new CommandXboxController(0);
     private final CommandXboxController operator = new CommandXboxController(1);
 
-    private final LoggedNetworkNumber endgameAlert1Time = new LoggedNetworkNumber("/SmartDashboard/EndgameAlert1Time",
-        30.0);
-    private final LoggedNetworkNumber endgameAlert2Time = new LoggedNetworkNumber("/SmartDashboard/EndgameAlert2Time",
-        15.0);
+    private final LoggedTunableNumber endgameAlert1Time = new LoggedTunableNumber("Controls/EndgameAlert1Time", 30.0);
+    private final LoggedTunableNumber endgameAlert2Time = new LoggedTunableNumber("Controls/EndgameAlert2Time", 15.0);
 
     private static final Controls instance = new Controls();
 
@@ -64,7 +59,8 @@ public class Controls {
     }
 
     /** Configures the controls. */
-    public void configureControls(Drive drive, SwerveDriveSimulation driveSimulation, Arm arm, Climber climber) {
+    public void configureControls(Drive drive, SwerveDriveSimulation driveSimulation, Arm arm, Vision vision,
+        Climber climber) {
         // Default command, normal field-relative drive
         drive.setDefaultCommand(DriveCommands.joystickDrive(drive, () -> -driver.getLeftY(), () -> -driver.getLeftX(),
             () -> -driver.getRightX()));
@@ -76,8 +72,9 @@ public class Controls {
         // Switch to X pattern when X button is pressed
         driver.x().onTrue(Commands.runOnce(drive::stopWithX, drive));
 
-        driver.b().whileTrue(AutoScoreCommands.autoScoreStartCommand(drive, arm, driver.rightBumper(), driver::getLeftX,
-            driver::getLeftY));
+        // driver.b().whileTrue(AutoScoreCommands.au
+        driver.b().toggleOnTrue(AutoScoreCommands.autoScoreStartCommand(drive, vision, arm, driver.rightBumper(),
+            driver::getLeftX, driver::getLeftY));
 
         // Reset gyro or odometry if in simulation
         final Runnable resetGyro = Constants.currentMode == Constants.Mode.SIM
@@ -107,12 +104,6 @@ public class Controls {
         }));
 
         operator.b().onTrue(arm.goToStateCommand(ArmConstants.restingState));
-        operator.y()
-            .whileTrue(
-                Commands.defer(
-                    () -> ScoringSequenceCommands
-                        .scoreAtLevel(DriverStationInterface.getInstance().getReefTarget().level(), arm, drive),
-                    Set.of(arm, drive)));
 
         operator.rightBumper()
             .onTrue(arm.goToStateCommand(new ArmState(Rotation2d.fromDegrees(30), Inches.of(20),

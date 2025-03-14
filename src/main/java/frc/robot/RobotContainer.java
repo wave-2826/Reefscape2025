@@ -168,7 +168,7 @@ public class RobotContainer {
         VisionTuningCommands.addTuningCommandsToAutoChooser(vision, autoChooser);
 
         // Configure the button bindings
-        Controls.getInstance().configureControls(drive, driveSimulation, arm, climber);
+        Controls.getInstance().configureControls(drive, driveSimulation, arm, vision, climber);
 
         configureAutoCommands();
     }

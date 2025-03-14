@@ -46,8 +46,7 @@ public class FieldConstants {
     public static final Distance reefBranchSeparation = Inches.of(13.25);
     public static final Distance reefBranchInset = Inches.of(12.066);
 
-    public static final Translation2d reefCenter = new Translation2d(Units.inchesToMeters(176.746),
-        Units.inchesToMeters(158.501));
+    public static final Translation2d reefCenter = new Translation2d(Units.inchesToMeters(176.746), fieldWidth / 2.);
 
     /**
      * A reef branch, as labelled by the FMS. See
@@ -81,10 +80,12 @@ public class FieldConstants {
 
         public Pose2d pose;
         public ReefFace face;
+        public boolean isLeft;
 
         ReefBranch(ReefFace face, boolean left) {
             this.pose = left ? face.getLeftBranchPose() : face.getRightBranchPose();
             this.face = face;
+            this.isLeft = left;
         }
     }
 
@@ -101,13 +102,13 @@ public class FieldConstants {
         FrontRight(17, 8);
         // @formatter:on
 
-        public final Pose2d pose;
+        public final Pose2d tagPose;
 
         public final int aprilTagBlue;
         public final int aprilTagRed;
 
         ReefFace(int blueAprilTag, int redAprilTag) {
-            this.pose = VisionConstants.aprilTagLayout.getTagPose(blueAprilTag).get().toPose2d();
+            this.tagPose = VisionConstants.aprilTagLayout.getTagPose(blueAprilTag).get().toPose2d();
             this.aprilTagBlue = blueAprilTag;
             this.aprilTagRed = redAprilTag;
         }
@@ -124,12 +125,12 @@ public class FieldConstants {
         }
 
         public Pose2d getLeftBranchPose() {
-            return pose.transformBy(
+            return tagPose.transformBy(
                 new Transform2d(-reefBranchInset.in(Meters), -reefBranchSeparation.in(Meters) / 2., Rotation2d.kZero));
         }
 
         public Pose2d getRightBranchPose() {
-            return pose.transformBy(
+            return tagPose.transformBy(
                 new Transform2d(-reefBranchInset.in(Meters), reefBranchSeparation.in(Meters) / 2., Rotation2d.kZero));
         }
     }

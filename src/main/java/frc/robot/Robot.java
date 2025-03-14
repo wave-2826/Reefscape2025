@@ -238,6 +238,11 @@ public class Robot extends LoggedRobot {
         robotContainer.resetSimulatedRobot();
     }
 
+    @Override
+    public void teleopPeriodic() {
+        // Stop the default "override me" alert
+    }
+
     /** This function is called periodically whilst in simulation. */
     @Override
     public void simulationPeriodic() {

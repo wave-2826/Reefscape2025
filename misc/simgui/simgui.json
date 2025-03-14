@@ -24,9 +24,11 @@
       "/AdvantageKit/RealOutputs/Alerts": "Alerts",
       "/AdvantageKit/RealOutputs/Mechanism2d/arm": "Mechanism2d",
       "/AdvantageKit/RealOutputs/Mechanism2d/climber": "Mechanism2d",
+      "/AdvantageKit/RealOutputs/PathPlanner": "Alerts",
       "/FMSInfo": "FMSInfo",
       "/SmartDashboard/Alerts": "Alerts",
       "/SmartDashboard/Auto Choices": "String Chooser",
+      "/SmartDashboard/PathPlanner": "Alerts",
       "/SmartDashboard/VisionSystemSim-main/Sim Field": "Field2d"
     },
     "windows": {
