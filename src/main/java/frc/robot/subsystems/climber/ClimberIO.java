@@ -25,6 +25,9 @@ public interface ClimberIO {
     public default void setClimberTargetAngle(Rotation2d angle) {
     }
 
+    public default void runClimberOpenLoop(double power) {
+    }
+
     public default void setClimberBrakeMode(boolean enable) {
     }
 }

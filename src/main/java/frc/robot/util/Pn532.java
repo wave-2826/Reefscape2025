@@ -4,57 +4,198 @@ import java.io.UnsupportedEncodingException;
 import java.util.Arrays;
 
 import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.I2C;
+import edu.wpi.first.wpilibj.SPI;
+import edu.wpi.first.wpilibj.Timer;
 
 /**
- * Super sketchy and inflexible Pn532 implementation for our battery tracking.
+ * Super sketchy and inflexible Pn532 implementation for our battery tracking. Credit to team 5924 for many of these
+ * implementation details! See https://github.com/Team5924/SPI-RFID-Example/
  */
 public class Pn532 implements AutoCloseable {
-    private final I2C connection;
+    private final SPI connection;
 
-    // https://github.com/elechouse/PN532/blob/PN532_HSU/PN532_I2C/PN532_I2C.cpp
+    // https://github.com/elechouse/PN532/blob/PN532_HSU/PN532_SPI/PN532_SPI.cpp
     // https://github.com/elechouse/PN532/blob/12663d9dc35e081277750f11fcbfc57e693b8768/PN532/PN532Interface.h#L6
 
-    private static final byte[] wakeupCommand = new byte[] {
-        (byte) 0x55, // Preamble
-        (byte) 0x55, // Preamble
-        (byte) 0x00, // Start code 1
-        (byte) 0x00, // Start code 2
-        (byte) 0x00, // Postamble
-    };
+    private static final byte PN532_PREAMBLE = (byte) 0x00;
+    private static final byte PN532_STARTCODE1 = (byte) 0x00;
+    private static final byte PN532_STARTCODE2 = (byte) 0xFF;
+    private static final byte PN532_POSTAMBLE = (byte) 0x00;
+
+    private static final byte PN532_HOSTTOPN532 = (byte) 0xD4;
+    // private static final byte PN532_PN532TOHOST = (byte) 0xD5;
+
+    private static final byte PN532_COMMAND_GETFIRMWAREVERSION = (byte) 0x02;
 
     private static final byte[] readCommand = new byte[] {
-        // TODO: Apparently we have to do some wakeup sequence? Idk...
-        (byte) 0x00, // Preamble
-        (byte) 0x00, // Start code 1
-        (byte) 0xFF, // Start code 2
-        (byte) 0x06, // Length
-        (byte) 0xFF - 0x06, // Length checksum
-        // Payload start
-        (byte) 0xD4, // Data direction: host to PN532
         (byte) 0x40, // Command: InDataExchange
         (byte) 0x01, // Target number
         (byte) 0x30, // Read type 2 NFC tags
         (byte) 0x00, // The block number to read; user data usually starts at block 4
-        (byte) 0xD6, // Data checksum (0x100 - sum of payload)
-        // Payload end
-        (byte) 0x00, // Postamble
     };
 
-    private static final int PN532_I2C_ADDRESS = 0x48; // 7-bit address
-    private static final byte PN532_READY = 0x01;
+    private static final byte PN532_SPI_DATAWRITE = (byte) 0x01;
+    private static final byte PN532_SPI_STATREAD = (byte) 0x02;
+    private static final byte PN532_SPI_DATAREAD = (byte) 0x03;
+    private static final byte PN532_SPI_READY = 0x01;
+
+    private static final byte[] PN532_ACKNOWLEDGEMENT = {
+        (byte) 0x00, (byte) 0x00, (byte) 0xFF, (byte) 0x00, (byte) 0xFF, (byte) 0x00
+    };
+    private static final byte[] PN532_RESPONSE_FIRMWAREVERS = {
+        (byte) 0x00, (byte) 0x00, (byte) 0xFF, (byte) 0x06, (byte) 0xFA, (byte) 0xD5
+    };
 
     public Pn532() {
-        // Note: do not use the onboard port on the roboRIO! It can cause system lockups.
-        connection = new I2C(I2C.Port.kMXP, PN532_I2C_ADDRESS);
+        connection = new SPI(SPI.Port.kOnboardCS0);
+        connection.setClockRate(1_000_000); // The maximum rate the Pn532 supports is 5Mhz
+        connection.setMode(SPI.Mode.kMode0); // The Pn532 only supports mode 0.
+        // connection.setMode(SPI.Mode.kMode3); // Or not..??
+        connection.setChipSelectActiveLow();
+    }
+
+    private byte reverseByte(byte b) {
+        byte reversedByte = 0;
+        for(int bit = 0; bit < 8; bit++) {
+            reversedByte = (byte) ((reversedByte << 1) | (b & 1));
+            b = (byte) (b >> 1);
+        }
+        return reversedByte;
+    }
+
+    private int writeCommand(byte[] command) {
+        int checksum;
+        int length = command.length;
+
+        byte[] p = new byte[9 + length];
+        length++;
+
+        p[0] = PN532_SPI_DATAWRITE;
+        p[1] = PN532_PREAMBLE;
+        p[2] = PN532_STARTCODE1;
+        p[3] = PN532_STARTCODE2;
+        checksum = PN532_PREAMBLE + PN532_STARTCODE1 + PN532_STARTCODE2;
+
+        p[4] = (byte) length;
+        p[5] = (byte) ((int) ((byte) ~length) + 1);
+        p[6] = PN532_HOSTTOPN532;
+        checksum += PN532_HOSTTOPN532;
+
+        for(int i = 0; i < length - 1; i++) {
+            p[i + 7] = command[i];
+
+            checksum += command[i];
+        }
+        int index = 6 + length;
+        p[index] = (byte) ~checksum;
+        p[index + 1] = PN532_POSTAMBLE;
+
+        return connection.write(p, 8 + length);
     }
 
     /**
-     * Sends the wakeup command to the PN532.
-     * @return True if the command was sent successfully.
+     * Determines if the device is ready.
+     * @return True if the device is ready.
+     * @throws InterruptedException
      */
-    private boolean sendWakeup() {
-        return !connection.writeBulk(wakeupCommand);
+    boolean isReady() throws InterruptedException {
+        byte[] cmdArray = {
+            reverseByte(PN532_SPI_STATREAD)
+        };
+
+        connection.write(cmdArray, 1);
+        Thread.sleep(100);
+
+        byte[] reply = new byte[1];
+        connection.read(false, reply, 1);
+        return reply[0] == reverseByte(PN532_SPI_READY);
+    }
+
+    /**
+     * Waits for the device to be ready.
+     * @return True if the device was successfully readied.
+     * @throws InterruptedException
+     */
+    boolean waitForReady(double timeoutSeconds) throws InterruptedException {
+        Timer timer = new Timer();
+        timer.reset();
+        while(!isReady()) {
+            if(timer.hasElapsed(timeoutSeconds)) { return false; }
+            Thread.sleep(10);
+        }
+        return true;
+    }
+
+    /**
+     * Reads an acknowledgement from the Pn532.
+     * @return
+     */
+    boolean readack() {
+        byte[] cmd = {
+            PN532_SPI_DATAREAD
+        };
+        if(connection.write(cmd, 1) == -1) return false;
+
+        byte[] buffer = new byte[6];
+        if(connection.read(false, buffer, 6) == -1) return false;
+
+        return buffer.equals(PN532_ACKNOWLEDGEMENT);
+    }
+
+    /**
+     * Sends a command and checks for an acknowledgement.
+     * @return
+     */
+    boolean sendCommandCheckAck(byte[] command, double timeoutSeconds) throws InterruptedException {
+        writeCommand(command);
+
+        if(!waitForReady(timeoutSeconds)) { return false; }
+        if(!readack()) { return false; }
+
+        // Wait for chip to say its ready!
+        if(!waitForReady(timeoutSeconds)) { return false; }
+
+        return true; // ack'd command
+    }
+
+    boolean readData(byte[] buff, int len) {
+        byte[] cmd = {
+            PN532_SPI_DATAREAD
+        };
+        if(connection.write(cmd, 1) == -1) return false;
+        if(connection.read(false, buff, len) == -1) return false;
+        return true;
+    }
+
+    /**
+     * Gets the board's firmware version.
+     * @return
+     */
+    int getFirmwareVersion() throws InterruptedException {
+        int response;
+
+        byte[] pn532_packetbuffer = {
+            PN532_COMMAND_GETFIRMWAREVERSION
+        };
+
+        if(!sendCommandCheckAck(pn532_packetbuffer, 0.5)) { return 0; }
+
+        byte[] buffer = new byte[PN532_RESPONSE_FIRMWAREVERS.length];
+        readData(buffer, buffer.length);
+
+        // check some basic stuff
+        if(!buffer.equals(PN532_RESPONSE_FIRMWAREVERS)) { return 0; }
+
+        int offset = 7;
+        response = buffer[offset++];
+        response <<= 8;
+        response |= buffer[offset++];
+        response <<= 8;
+        response |= buffer[offset++];
+        response <<= 8;
+        response |= buffer[offset++];
+
+        return response;
     }
 
     /**
@@ -65,42 +206,16 @@ public class Pn532 implements AutoCloseable {
      */
     private boolean sendReadCommand(int blockNumber) throws InterruptedException {
         byte[] command = Arrays.copyOf(readCommand, readCommand.length);
-        command[9] = (byte) blockNumber; // Set the block number to read
+        command[3] = (byte) blockNumber; // Set the block number to read
 
         // Send the command
-        return !connection.writeBulk(command);
-    }
-
-    /**
-     * The PN532 sets its status byte to 0x01 when data is ready... I think?
-     * @return
-     * @throws InterruptedException
-     */
-    private boolean waitForResponse() throws InterruptedException {
-        byte[] status = new byte[1];
-        for(int i = 0; i < 20; i++) { // Try for 200ms
-            if(!connection.readOnly(status, 1) && status[0] == PN532_READY) { return true; }
-            Thread.sleep(10); // Wait 10ms before retrying
-        }
-        return false;
-    }
-
-    /**
-     * Waits up to 200ms for an I2C connection.
-     * @return True if the device is connected.
-     */
-    private boolean waitForConnection() throws InterruptedException {
-        for(int i = 0; i < 20; i++) { // Try for 200ms
-            if(!connection.addressOnly()) { return true; }
-            Thread.sleep(10); // Wait 10ms before retrying
-        }
-        return false;
+        return sendCommandCheckAck(command, 1);
     }
 
     private byte[] readTagData() {
         // First, we need to read the initial response frame to determine the length.
         byte[] header = new byte[6];
-        if(connection.readOnly(header, 6)) {
+        if(!readData(header, header.length)) {
             DriverStation.reportError("Error reading NFC tag: Failed to read response header.", null);
             return null;
         }
@@ -122,7 +237,7 @@ public class Pn532 implements AutoCloseable {
         // Read the full response plus two bytes for the data checksum and postamble
         byte[] response = new byte[length + 2];
 
-        if(connection.readOnly(response, response.length)) {
+        if(!readData(response, response.length)) {
             DriverStation.reportError("Error reading NFC tag: Failed to read response data.", null);
             return null;
         }
@@ -151,42 +266,28 @@ public class Pn532 implements AutoCloseable {
             return null;
         }
 
-        if(!waitForResponse()) {
-            DriverStation.reportError("Error reading NFC: PN532 did not respond.", false);
-            return null;
-        }
-
         return readTagData();
     }
 
     public String readAsciiBytes() {
-        try {
-            if(!waitForConnection()) {
-                DriverStation.reportError("Error reading NFC: Device not on the I2C bus.", false);
-                return null;
-            }
+        // try {
+        //     byte[] data = readBlock(4);
+        //     if(data == null) {
+        //         DriverStation.reportError("Error reading NFC: Failed to read block 4.", false);
+        //         return null;
+        //     }
 
-            if(!sendWakeup()) {
-                DriverStation.reportError("Error reading NFC: Failed to send wakeup command.", false);
-                return null;
-            }
-
-            byte[] data = readBlock(4);
-            if(data == null) {
-                DriverStation.reportError("Error reading NFC: Failed to read block 4.", false);
-                return null;
-            }
-
-            try {
-                return new String(data, "US-ASCII");
-            } catch(UnsupportedEncodingException e) {
-                DriverStation.reportError("Error reading NFC: Failed to convert data to ASCII.", false);
-                return null;
-            }
-        } catch(InterruptedException e) {
-            DriverStation.reportError("Error reading NFC: Interrupted while reading from PN532.", false);
-            return null;
-        }
+        //     try {
+        //         return new String(data, "US-ASCII");
+        //     } catch(UnsupportedEncodingException e) {
+        //         DriverStation.reportError("Error reading NFC: Failed to convert data to ASCII.", false);
+        //         return null;
+        //     }
+        // } catch(InterruptedException e) {
+        //     DriverStation.reportError("Error reading NFC: Interrupted while reading from PN532.", false);
+        //     return null;
+        // }
+        return null;
     }
 
     @Override

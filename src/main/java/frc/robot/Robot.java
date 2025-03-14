@@ -9,6 +9,7 @@ import edu.wpi.first.wpilibj.Watchdog;
 import edu.wpi.first.wpilibj.simulation.DriverStationSim;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import frc.robot.util.LoggedTracer;
 import frc.robot.util.LoggedTunableSparkPID;
 import frc.robot.util.NTClientLogger;
 import frc.robot.util.Pn532;
@@ -140,8 +141,6 @@ public class Robot extends LoggedRobot {
             CanBridge.runTCP();
         }
 
-        robotContainer.resetSimulatedRobot();
-
         // Configure the driver station in simulation
         if(Constants.currentMode == Constants.Mode.SIM) {
             DriverStationSim.setAllianceStationId(AllianceStationID.Blue3);
@@ -151,6 +150,8 @@ public class Robot extends LoggedRobot {
         // Instantiate our RobotContainer. This will perform all our button bindings,
         // and put our autonomous chooser on the dashboard.
         robotContainer = new RobotContainer();
+
+        robotContainer.resetSimulatedRobot();
 
         if(Constants.currentMode == Constants.Mode.REAL && Constants.useSuperDangerousRTThreadPriority) {
             // Switch the thread to high priority to improve loop timing.
@@ -171,6 +172,8 @@ public class Robot extends LoggedRobot {
     /** This function is called periodically during all modes. */
     @Override
     public void robotPeriodic() {
+        LoggedTracer.reset();
+
         // Switch thread to high priority to improve loop timing
         if(!Constants.useSuperDangerousRTThreadPriority) Threads.setCurrentThreadPriority(true, 99);
 

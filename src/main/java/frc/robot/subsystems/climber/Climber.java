@@ -31,7 +31,12 @@ public class Climber extends SubsystemBase {
         io.setClimberTargetAngle(position);
     }
 
+    public void runClimberOpenLoop(double power) {
+        io.runClimberOpenLoop(power);
+    }
+
     public void disableClimber() {
+        // TODO: Call this??
         io.setClimberBrakeMode(false);
     }
 

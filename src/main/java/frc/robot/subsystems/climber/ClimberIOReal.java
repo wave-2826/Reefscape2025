@@ -95,6 +95,11 @@ public class ClimberIOReal implements ClimberIO {
     }
 
     @Override
+    public void runClimberOpenLoop(double power) {
+        climberMotor.set(power);
+    }
+
+    @Override
     public void setClimberBrakeMode(boolean enable) {
         SparkMaxConfig newConfig = new SparkMaxConfig();
         newConfig.idleMode(enable ? IdleMode.kBrake : IdleMode.kCoast);
