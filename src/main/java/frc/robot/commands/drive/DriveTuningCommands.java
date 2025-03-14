@@ -184,7 +184,7 @@ public class DriveTuningCommands {
 
     private static class WheelRadiusCharacterizationState {
         double[] positions = new double[4];
-        Rotation2d lastAngle = new Rotation2d();
+        Rotation2d lastAngle = Rotation2d.kZero;
         double gyroDelta = 0.0;
     }
 

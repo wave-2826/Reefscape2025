@@ -65,7 +65,7 @@ public class AutoScoreCommands {
         Pose2d currentPose = drive.getPose();
 
         // The pose to pathfind to is slightly further outward than the target pose to ensure we don't get stuck
-        Pose2d pathfindPose = targetPose.transformBy(new Transform2d(Units.inchesToMeters(-3), 0.0, new Rotation2d()));
+        Pose2d pathfindPose = targetPose.transformBy(new Transform2d(Units.inchesToMeters(-3), 0.0, Rotation2d.kZero));
         // A pose to initially pathfind to if we're near the reef
         Pose2d safeReefPose = new Pose2d(
             currentPose.getTranslation()
@@ -75,7 +75,7 @@ public class AutoScoreCommands {
 
         Supplier<Pose2d> getTarget = () -> targetPose.plus(
             new Transform2d(new Translation2d(-tweakX.getAsDouble() * Units.inchesToMeters(autoAlignTweakAmount.get()),
-                tweakY.getAsDouble() * Units.inchesToMeters(autoAlignTweakAmount.get())), new Rotation2d()));
+                tweakY.getAsDouble() * Units.inchesToMeters(autoAlignTweakAmount.get())), Rotation2d.kZero));
 
         // Since AutoBuilder is configured, we can use it to build pathfinding commands
         // @formatter:off
@@ -149,7 +149,7 @@ public class AutoScoreCommands {
                 }
                 return false;
             }, Set.of(drive, arm)).finallyDo(() -> {
-                Logger.recordOutput("AutoScore/TargetPose", new Pose2d());
+                Logger.recordOutput("AutoScore/TargetPose", Pose2d.kZero);
             });
     }
 }

@@ -65,6 +65,21 @@ public class Robot extends LoggedRobot {
 
         Logger.recordMetadata("BatteryID", getBatteryID());
 
+        // Adjust the loop overrun warning timeout; taken from 6328's code.
+        // This is obviously a bit hacky, but we log our loop times and consistently watch them,
+        // so the loop overrun messages just become noise and make it hard to see real issues in
+        // the console. Therefore, we increase the timeout to 0.2 seconds to reduce the noise.
+        try {
+            // The field is private by default, so we need to make it accessible and
+            // use reflection to access its value. This is a bit hacky, but it works.
+            Field watchdogField = IterativeRobotBase.class.getDeclaredField("m_watchdog");
+            watchdogField.setAccessible(true);
+            Watchdog watchdog = (Watchdog) watchdogField.get(this);
+            watchdog.setTimeout(loopOverrunWarningTimeout);
+        } catch(Exception e) {
+            DriverStation.reportWarning("Failed to disable loop overrun warnings.", false);
+        }
+
         // Set up data receivers & replay source
         switch(Constants.currentMode) {
             case REAL:
@@ -91,21 +106,6 @@ public class Robot extends LoggedRobot {
 
         // Start AdvantageKit logger
         Logger.start();
-
-        // Adjust the loop overrun warning timeout; taken from 6328's code.
-        // This is obviously a bit hacky, but we log our loop times and consistently watch them,
-        // so the loop overrun messages just become noise and make it hard to see real issues in
-        // the console. Therefore, we increase the timeout to 0.2 seconds to reduce the noise.
-        try {
-            // The field is private by default, so we need to make it accessible and
-            // use reflection to access its value. This is a bit hacky, but it works.
-            Field watchdogField = IterativeRobotBase.class.getDeclaredField("m_watchdog");
-            watchdogField.setAccessible(true);
-            Watchdog watchdog = (Watchdog) watchdogField.get(this);
-            watchdog.setTimeout(loopOverrunWarningTimeout);
-        } catch(Exception e) {
-            DriverStation.reportWarning("Failed to disable loop overrun warnings.", false);
-        }
 
         DriverStation.silenceJoystickConnectionWarning(true);
 
@@ -187,15 +187,23 @@ public class Robot extends LoggedRobot {
         // Return to normal thread priority
         if(!Constants.useSuperDangerousRTThreadPriority) Threads.setCurrentThreadPriority(false, 10);
 
+        LoggedTracer.record("Commands");
+
         // Tunable spark PIDs
         LoggedTunableSparkPID.periodic();
+
+        LoggedTracer.record("Tunables");
 
         // Alert-related updates
         RioAlerts.getInstance().update();
         Controls.getInstance().update();
 
+        LoggedTracer.record("Alerts");
+
         // Miscellaneous logging
         NTClientLogger.log();
+
+        LoggedTracer.record("Logging");
     }
 
     /** This function is called once when the robot is disabled. */

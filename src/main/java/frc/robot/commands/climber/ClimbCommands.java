@@ -11,13 +11,13 @@ import frc.robot.util.Container;
 
 public class ClimbCommands {
     private static final double CLIMB_SPEED_DEGREES = 20.;
-    private static Container<Rotation2d> climberRotation = new Container<Rotation2d>(new Rotation2d());
+    private static Container<Rotation2d> climberRotation = new Container<Rotation2d>(Rotation2d.kZero);
 
     private ClimbCommands() {
     }
 
     public static Command resetClimbPosition() {
-        return Commands.runOnce(() -> climberRotation.value = new Rotation2d());
+        return Commands.runOnce(() -> climberRotation.value = Rotation2d.kZero);
     }
 
     public static Command climbCommand(Climber climber, DoubleSupplier climbSupplier) {

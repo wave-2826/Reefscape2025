@@ -49,9 +49,19 @@ public class Pn532 implements AutoCloseable {
     public Pn532() {
         connection = new SPI(SPI.Port.kOnboardCS0);
         connection.setClockRate(1_000_000); // The maximum rate the Pn532 supports is 5Mhz
-        connection.setMode(SPI.Mode.kMode0); // The Pn532 only supports mode 0.
-        // connection.setMode(SPI.Mode.kMode3); // Or not..??
+        // connection.setMode(SPI.Mode.kMode0); // The Pn532 only supports mode 0.
+        connection.setMode(SPI.Mode.kMode3); // Or not..??
         connection.setChipSelectActiveLow();
+
+        try {
+            if(!waitForReady(0.5)) {
+                DriverStation.reportError("Error reading NFC: device wasn't ready when waiting for acknowledgement.",
+                    false);
+            }
+            System.out.println("Connected to Pn532 with firmware version " + getFirmwareVersion());
+        } catch(InterruptedException e) {
+            DriverStation.reportError("Error reading NFC: Interrupted while waiting for device to be ready.", false);
+        }
     }
 
     private byte reverseByte(byte b) {
@@ -98,16 +108,16 @@ public class Pn532 implements AutoCloseable {
      * @return True if the device is ready.
      * @throws InterruptedException
      */
-    boolean isReady() throws InterruptedException {
+    private boolean isReady() throws InterruptedException {
         byte[] cmdArray = {
             reverseByte(PN532_SPI_STATREAD)
         };
 
-        connection.write(cmdArray, 1);
+        if(connection.write(cmdArray, 1) == -1) { return false; }
         Thread.sleep(100);
 
         byte[] reply = new byte[1];
-        connection.read(false, reply, 1);
+        if(connection.read(false, reply, 1) == -1) { return false; }
         return reply[0] == reverseByte(PN532_SPI_READY);
     }
 
@@ -116,9 +126,9 @@ public class Pn532 implements AutoCloseable {
      * @return True if the device was successfully readied.
      * @throws InterruptedException
      */
-    boolean waitForReady(double timeoutSeconds) throws InterruptedException {
+    private boolean waitForReady(double timeoutSeconds) throws InterruptedException {
         Timer timer = new Timer();
-        timer.reset();
+        timer.start();
         while(!isReady()) {
             if(timer.hasElapsed(timeoutSeconds)) { return false; }
             Thread.sleep(10);
@@ -130,14 +140,20 @@ public class Pn532 implements AutoCloseable {
      * Reads an acknowledgement from the Pn532.
      * @return
      */
-    boolean readack() {
+    private boolean readAcknowledgement() {
         byte[] cmd = {
             PN532_SPI_DATAREAD
         };
-        if(connection.write(cmd, 1) == -1) return false;
+        if(connection.write(cmd, 1) == -1) {
+            DriverStation.reportError("Error reading NFC: writing data read for acknowledgement failed.", false);
+            return false;
+        }
 
         byte[] buffer = new byte[6];
-        if(connection.read(false, buffer, 6) == -1) return false;
+        if(connection.read(false, buffer, 6) == -1) {
+            DriverStation.reportError("Error reading NFC: reading acknowledgement failed.", false);
+            return false;
+        }
 
         return buffer.equals(PN532_ACKNOWLEDGEMENT);
     }
@@ -146,24 +162,41 @@ public class Pn532 implements AutoCloseable {
      * Sends a command and checks for an acknowledgement.
      * @return
      */
-    boolean sendCommandCheckAck(byte[] command, double timeoutSeconds) throws InterruptedException {
+    private boolean sendCommandCheckAck(byte[] command, double timeoutSeconds) throws InterruptedException {
         writeCommand(command);
 
-        if(!waitForReady(timeoutSeconds)) { return false; }
-        if(!readack()) { return false; }
+        if(!waitForReady(timeoutSeconds)) {
+            DriverStation.reportError("Error reading NFC: device wasn't reacy when waiting for acknowledgement.",
+                false);
+            return false;
+        }
+        if(!readAcknowledgement()) {
+            DriverStation.reportError("Error reading NFC: reading acknowledgement failed.", false);
+            return false;
+        }
 
         // Wait for chip to say its ready!
-        if(!waitForReady(timeoutSeconds)) { return false; }
+        if(!waitForReady(timeoutSeconds)) {
+            DriverStation.reportError("Error reading NFC: device wasn't reacy when waiting after acknowledgement.",
+                false);
+            return false;
+        }
 
         return true; // ack'd command
     }
 
-    boolean readData(byte[] buff, int len) {
+    private boolean readData(byte[] buff, int len) {
         byte[] cmd = {
             PN532_SPI_DATAREAD
         };
-        if(connection.write(cmd, 1) == -1) return false;
-        if(connection.read(false, buff, len) == -1) return false;
+        if(connection.write(cmd, 1) == -1) {
+            DriverStation.reportError("Error reading NFC: failed to write data read command.", false);
+            return false;
+        }
+        if(connection.read(false, buff, len) == -1) {
+            DriverStation.reportError("Error reading NFC: failed to read data.", false);
+            return false;
+        }
         return true;
     }
 
@@ -171,7 +204,7 @@ public class Pn532 implements AutoCloseable {
      * Gets the board's firmware version.
      * @return
      */
-    int getFirmwareVersion() throws InterruptedException {
+    private int getFirmwareVersion() throws InterruptedException {
         int response;
 
         byte[] pn532_packetbuffer = {
@@ -209,7 +242,7 @@ public class Pn532 implements AutoCloseable {
         command[3] = (byte) blockNumber; // Set the block number to read
 
         // Send the command
-        return sendCommandCheckAck(command, 1);
+        return sendCommandCheckAck(command, 0.5);
     }
 
     private byte[] readTagData() {
@@ -270,24 +303,23 @@ public class Pn532 implements AutoCloseable {
     }
 
     public String readAsciiBytes() {
-        // try {
-        //     byte[] data = readBlock(4);
-        //     if(data == null) {
-        //         DriverStation.reportError("Error reading NFC: Failed to read block 4.", false);
-        //         return null;
-        //     }
+        try {
+            byte[] data = readBlock(4);
+            if(data == null) {
+                DriverStation.reportError("Error reading NFC: Failed to read block 4.", false);
+                return null;
+            }
 
-        //     try {
-        //         return new String(data, "US-ASCII");
-        //     } catch(UnsupportedEncodingException e) {
-        //         DriverStation.reportError("Error reading NFC: Failed to convert data to ASCII.", false);
-        //         return null;
-        //     }
-        // } catch(InterruptedException e) {
-        //     DriverStation.reportError("Error reading NFC: Interrupted while reading from PN532.", false);
-        //     return null;
-        // }
-        return null;
+            try {
+                return new String(data, "US-ASCII");
+            } catch(UnsupportedEncodingException e) {
+                DriverStation.reportError("Error reading NFC: Failed to convert data to ASCII.", false);
+                return null;
+            }
+        } catch(InterruptedException e) {
+            DriverStation.reportError("Error reading NFC: Interrupted while reading from PN532.", false);
+            return null;
+        }
     }
 
     @Override

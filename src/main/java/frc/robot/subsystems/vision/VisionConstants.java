@@ -8,6 +8,7 @@ import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.util.Units;
 
 public class VisionConstants {
+    /****** Simulation ******/
     /**
      * Enable drawing a wireframe visualization of the field to the camera streams in simulation mode. This is extremely
      * resource-intensive!
@@ -16,9 +17,15 @@ public class VisionConstants {
 
     /**
      * If we should enable vision simulation. Turning off vision sim can dramatically improve loop times, but it's
-     * obviously less representative of real robot odometry.
+     * obviously far less representative of real robot odometry.
      */
     public static boolean enableVisionSimulation = true;
+
+    /**
+     * Enable raw streams for simulated cameras. This can increase loop times slightly.
+     */
+    public static boolean enableRawStreams = false;
+    /************************/
 
     /**
      * The set of AprilTags used. This needs to be configurable because there are two different sets of AprilTags in

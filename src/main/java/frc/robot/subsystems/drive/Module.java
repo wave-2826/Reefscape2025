@@ -158,7 +158,7 @@ public class Module {
      */
     public void runCharacterization(double output) {
         io.setDriveOpenLoop(output);
-        io.setTurnPosition(new Rotation2d());
+        io.setTurnPosition(Rotation2d.kZero);
     }
 
     /** Disables all outputs to motors. */

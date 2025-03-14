@@ -8,6 +8,7 @@ import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
+import frc.robot.util.LoggedTracer;
 
 /**
  * The climber subsystem. Manages the climber motor and resetting.
@@ -48,5 +49,7 @@ public class Climber extends SubsystemBase {
         visualizer.update(inputs.climberAbsolutePosition);
 
         climberDisconnectedAlert.set(!inputs.climberMotorConnected);
+
+        LoggedTracer.record("Climber");
     }
 }

@@ -15,6 +15,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.subsystems.arm.ArmState.WristRotation;
+import frc.robot.util.LoggedTracer;
 import frc.robot.util.LoggedTunableNumber;
 
 /**
@@ -167,5 +168,7 @@ public class Arm extends SubsystemBase {
         armPitchMotorDisconnectedAlert.set(!inputs.armPitchMotorConnected);
         armWristMotorDisconnectedAlert.set(!inputs.armWristMotorConnected);
         endEffectorMotorDisconnectedAlert.set(!inputs.endEffectorMotorConnected);
+
+        LoggedTracer.record("Arm");
     }
 }

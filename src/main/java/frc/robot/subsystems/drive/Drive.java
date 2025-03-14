@@ -38,6 +38,8 @@ import frc.robot.Constants.Mode;
 import frc.robot.subsystems.leds.LEDs;
 import frc.robot.util.DriverStationInterface;
 import frc.robot.util.LocalADStarAK;
+import frc.robot.util.LoggedTracer;
+
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
@@ -58,7 +60,7 @@ public class Drive extends SubsystemBase {
         AlertType.kError);
 
     private SwerveDriveKinematics kinematics = new SwerveDriveKinematics(moduleTranslations);
-    private Rotation2d rawGyroRotation = new Rotation2d();
+    private Rotation2d rawGyroRotation = Rotation2d.kZero;
     // For delta tracking
     private SwerveModulePosition[] lastModulePositions = new SwerveModulePosition[] {
         new SwerveModulePosition(), new SwerveModulePosition(), new SwerveModulePosition(), new SwerveModulePosition()
@@ -73,7 +75,7 @@ public class Drive extends SubsystemBase {
     private SwerveSetpoint previousSetpoint;
 
     private SwerveDrivePoseEstimator poseEstimator = new SwerveDrivePoseEstimator(kinematics, rawGyroRotation,
-        lastModulePositions, new Pose2d());
+        lastModulePositions, Pose2d.kZero);
 
     private final Consumer<Pose2d> resetSimulationPoseCallBack;
     /** The acceleration that needs to be experienced for an "abrupt stop". */
@@ -210,6 +212,8 @@ public class Drive extends SubsystemBase {
 
         // Update the driver station interface
         DriverStationInterface.getInstance().updateRobotPose(getPose());
+
+        LoggedTracer.record("Drive");
     }
 
     /**

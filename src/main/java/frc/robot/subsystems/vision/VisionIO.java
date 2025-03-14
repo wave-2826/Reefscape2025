@@ -11,9 +11,16 @@ public interface VisionIO {
     public static class VisionIOInputs {
         public boolean connected = false;
         public Transform3d bestTagTransform = new Transform3d();
-        public TargetObservation latestTargetObservation = new TargetObservation(new Rotation2d(), new Rotation2d());
+        public TargetObservation latestTargetObservation = new TargetObservation(Rotation2d.kZero, Rotation2d.kZero);
         public PoseObservation[] poseObservations = new PoseObservation[0];
-        public int[] tagIds = new int[0];
+        /**
+         * Individual tag results. Only stores the latest results because this is used for drive feedback, not odometry.
+         */
+        public SingleApriltagResult[] individualTags = new SingleApriltagResult[0];
+    }
+
+    /** Represents an estimated robot pose from an individual Apriltag. */
+    public static record SingleApriltagResult(int fiducialId, Transform3d robotToTarget, double ambiguity) {
     }
 
     /** Represents the angle to a simple target, not used for pose estimation. */
@@ -22,11 +29,7 @@ public interface VisionIO {
 
     /** Represents a robot pose sample used for pose estimation. */
     public static record PoseObservation(double timestamp, Pose3d pose, double ambiguity, int tagCount,
-        double averageTagDistance, PoseObservationType type) {
-    }
-
-    public static enum PoseObservationType {
-        PHOTONVISION
+        double averageTagDistance) {
     }
 
     public default void updateInputs(VisionIOInputs inputs) {

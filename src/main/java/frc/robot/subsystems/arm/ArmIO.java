@@ -11,12 +11,12 @@ public interface ArmIO {
         public boolean gamePiecePresent = false;
 
         /** The recorded arm pitch position. 0 degrees is upward and positive is clockwise. */
-        public Rotation2d armPitchPosition = new Rotation2d();
+        public Rotation2d armPitchPosition = Rotation2d.kZero;
         /** The recorded arm pitch angular velocity in radians per second. */
         public double armPitchVelocity = 0.0;
 
         /** The recorded arm wrist position. */
-        public Rotation2d armWristPosition = new Rotation2d();
+        public Rotation2d armWristPosition = Rotation2d.kZero;
         /** The recorded arm wrist velocity in radians per second. */
         public double armWristVelocity = 0.0;
 

@@ -82,7 +82,7 @@ public class Controls {
         // Reset gyro or odometry if in simulation
         final Runnable resetGyro = Constants.currentMode == Constants.Mode.SIM
             ? () -> drive.setPose(driveSimulation.getSimulatedDriveTrainPose()) // Reset odometry to actual robot pose during simulation
-            : () -> drive.setPose(new Pose2d(drive.getPose().getTranslation(), new Rotation2d())); // Zero gyro
+            : () -> drive.setPose(new Pose2d(drive.getPose().getTranslation(), Rotation2d.kZero)); // Zero gyro
 
         driver.start().onTrue(Commands.runOnce(resetGyro, drive).ignoringDisable(true));
 

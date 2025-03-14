@@ -10,7 +10,6 @@ import org.littletonrobotics.junction.Logger;
 
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Notifier;
-import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.util.Color;
@@ -22,6 +21,8 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.drive.DriveConstants;
+import frc.robot.util.LoggedTracer;
+import frc.robot.RioAlerts;
 
 // TODO: Alpha compositing with custom RGBA color class? (not that we care _that_ much, I suppose...)
 
@@ -41,11 +42,6 @@ public class LEDs extends SubsystemBase {
      * The duration of the hit wall animation, in seconds.
      */
     private static final double HIT_WALL_ANIMATION_DURATION = 0.4;
-
-    /**
-     * The minimum voltage for the battery to be considered low when the robot is disabled.
-     */
-    private static final double LOW_BATTERY_VOLTAGE = 10.75;
 
     /** The WAVE Blue color. */
     private static final Color WAVE_BLUE = new Color("#00A0C3");
@@ -190,8 +186,8 @@ public class LEDs extends SubsystemBase {
      * Registers the LED triggers.
      */
     private void registerLEDTriggers() {
-        Trigger lowBatteryTrigger = new Trigger(
-            () -> DriverStation.isDisabled() && RobotController.getBatteryVoltage() < LEDs.LOW_BATTERY_VOLTAGE);
+        var rioAlerts = RioAlerts.getInstance();
+        Trigger lowBatteryTrigger = new Trigger(rioAlerts::batteryLow);
         Trigger eStoppedTrigger = new Trigger(DriverStation::isEStopped);
 
         // RobotModeTriggers exists, but some of them don't respect disabled mode? This seems cleaner anyway.
@@ -457,5 +453,7 @@ public class LEDs extends SubsystemBase {
         Logger.recordOutput("LEDs/RobotSpeedMultiplier", robotSpeedMultiplier);
 
         io.pushLEDs(colors);
+
+        LoggedTracer.record("LEDs");
     }
 }

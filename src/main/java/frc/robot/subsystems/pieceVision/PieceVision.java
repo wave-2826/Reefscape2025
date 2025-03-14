@@ -4,6 +4,7 @@ import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
+import frc.robot.util.LoggedTracer;
 
 /**
  * Handles autonomous tracking of game pieces. This is separated from the main vision subsystem because it doesn't need
@@ -53,5 +54,7 @@ public class PieceVision extends SubsystemBase {
         //    detecting the piece.
 
         // TODO: Implement the above algorithm.
+
+        LoggedTracer.record("PieceVision");
     }
 }

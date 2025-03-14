@@ -8,7 +8,7 @@ public interface ClimberIO {
     @AutoLog
     public static class ClimberIOInputs {
         public boolean climberMotorConnected = false;
-        public Rotation2d climberAbsolutePosition = new Rotation2d();
+        public Rotation2d climberAbsolutePosition = Rotation2d.kZero;
     }
 
     /**

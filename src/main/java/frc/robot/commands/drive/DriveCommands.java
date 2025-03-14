@@ -36,7 +36,7 @@ public class DriveCommands {
 
         // Return new linear velocity
         return new Pose2d(new Translation2d(), linearDirection)
-            .transformBy(new Transform2d(linearMagnitude, 0.0, new Rotation2d())).getTranslation();
+            .transformBy(new Transform2d(linearMagnitude, 0.0, Rotation2d.kZero)).getTranslation();
     }
 
     /**

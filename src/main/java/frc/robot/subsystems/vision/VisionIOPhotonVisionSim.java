@@ -46,7 +46,7 @@ public class VisionIOPhotonVisionSim extends VisionIOPhotonVision {
         visionSim.addCamera(cameraSim, robotToCamera);
 
         // Enable the raw and processed streams. These are enabled by default.
-        cameraSim.enableRawStream(true);
+        cameraSim.enableRawStream(VisionConstants.enableRawStreams);
         cameraSim.enableProcessedStream(true);
 
         // Enable drawing a wireframe visualization of the field to the camera streams.

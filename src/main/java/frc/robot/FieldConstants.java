@@ -11,11 +11,18 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.Distance;
+import edu.wpi.first.wpilibj.DriverStation;
+import frc.robot.subsystems.vision.VisionConstants;
 
 /**
  * Field-related constants for the 2025 game. All measurements are by default relative to the blue alliance.
  */
 public class FieldConstants {
+    /** The field length in meters. */
+    public static final double fieldLength = VisionConstants.aprilTagLayout.getFieldLength();
+    /** The field width in meters. */
+    public static final double fieldWidth = VisionConstants.aprilTagLayout.getFieldWidth();
+
     public enum ReefLevel {
         // @formatter:off
         L4(Inches.of(72), Degrees.of(-90)),
@@ -37,6 +44,8 @@ public class FieldConstants {
     }
 
     public static final Distance reefBranchSeparation = Inches.of(13.25);
+    public static final Distance reefBranchInset = Inches.of(12.066);
+
     public static final Translation2d reefCenter = new Translation2d(Units.inchesToMeters(176.746),
         Units.inchesToMeters(158.501));
 
@@ -46,34 +55,36 @@ public class FieldConstants {
      */
     public enum ReefBranch {
         /** The left branch of the face closest to the driver station. */
-        A(ReefFace.Front.getLeftBranchPose()),
+        A(ReefFace.Front, true),
         /** The right branch of the face closest to the driver station. */
-        B(ReefFace.Front.getRightBranchPose()),
+        B(ReefFace.Front, false),
         /** The left branch of the face on the right when at driver stations. */
-        C(ReefFace.FrontRight.getLeftBranchPose()),
+        C(ReefFace.FrontRight, true),
         /** The right branch of the face on the right when at driver stations. */
-        D(ReefFace.FrontRight.getRightBranchPose()),
+        D(ReefFace.FrontRight, false),
         /** The left branch of the face closest to the processor. */
-        E(ReefFace.BackRight.getLeftBranchPose()),
+        E(ReefFace.BackRight, true),
         /** The right branch of the face closest to the processor. */
-        F(ReefFace.BackRight.getRightBranchPose()),
+        F(ReefFace.BackRight, false),
         /** The left branch of the face furthest from the driver station. */
-        G(ReefFace.Back.getLeftBranchPose()),
+        G(ReefFace.Back, true),
         /** The right branch of the face furthest from the driver station. */
-        H(ReefFace.Back.getRightBranchPose()),
+        H(ReefFace.Back, false),
         /** The left branch of the face on the back left when at driver stations. */
-        I(ReefFace.BackLeft.getLeftBranchPose()),
+        I(ReefFace.BackLeft, true),
         /** The right branch of the face on the back left when at driver stations. */
-        J(ReefFace.BackLeft.getRightBranchPose()),
+        J(ReefFace.BackLeft, false),
         /** The left branch of the face on the left when at driver stations. */
-        K(ReefFace.FrontLeft.getLeftBranchPose()),
+        K(ReefFace.FrontLeft, true),
         /** The right branch of the face on the left when at driver stations. */
-        L(ReefFace.FrontLeft.getRightBranchPose());
+        L(ReefFace.FrontLeft, false);
 
         public Pose2d pose;
+        public ReefFace face;
 
-        ReefBranch(Pose2d pose) {
-            this.pose = pose;
+        ReefBranch(ReefFace face, boolean left) {
+            this.pose = left ? face.getLeftBranchPose() : face.getRightBranchPose();
+            this.face = face;
         }
     }
 
@@ -82,44 +93,44 @@ public class FieldConstants {
      */
     public enum ReefFace {
         // @formatter:off
-        Front(new Pose2d(
-            Units.inchesToMeters(144.003),
-            Units.inchesToMeters(158.500),
-            Rotation2d.fromDegrees(180))),
-        FrontLeft(new Pose2d(
-            Units.inchesToMeters(160.373),
-            Units.inchesToMeters(186.857),
-            Rotation2d.fromDegrees(120))),
-        BackLeft(new Pose2d(
-            Units.inchesToMeters(193.116),
-            Units.inchesToMeters(186.858),
-            Rotation2d.fromDegrees(60))),
-        Back(new Pose2d(
-            Units.inchesToMeters(209.489),
-            Units.inchesToMeters(158.502),
-            Rotation2d.fromDegrees(0))),
-        BackRight(new Pose2d(
-            Units.inchesToMeters(193.118),
-            Units.inchesToMeters(130.145),
-            Rotation2d.fromDegrees(-60))),
-        FrontRight(new Pose2d(
-            Units.inchesToMeters(160.375),
-            Units.inchesToMeters(130.144),
-            Rotation2d.fromDegrees(-120)));
+        Front(18, 7),
+        FrontLeft(19, 6),
+        BackLeft(20, 11),
+        Back(21, 10),
+        BackRight(22, 9),
+        FrontRight(17, 8);
         // @formatter:on
 
         public final Pose2d pose;
 
-        ReefFace(Pose2d pose) {
-            this.pose = pose;
+        public final int aprilTagBlue;
+        public final int aprilTagRed;
+
+        ReefFace(int blueAprilTag, int redAprilTag) {
+            this.pose = VisionConstants.aprilTagLayout.getTagPose(blueAprilTag).get().toPose2d();
+            this.aprilTagBlue = blueAprilTag;
+            this.aprilTagRed = redAprilTag;
+        }
+
+        /** Gets the AprilTag ID for a given alliance. */
+        public int getAprilTagID(boolean isRed) {
+            return isRed ? aprilTagRed : aprilTagBlue;
+        }
+
+        /** Gets the AprilTag ID for the current alliance. */
+        public int getAprilTagID() {
+            return getAprilTagID(DriverStation.getAlliance().isPresent()
+                && DriverStation.getAlliance().get() == DriverStation.Alliance.Red);
         }
 
         public Pose2d getLeftBranchPose() {
-            return pose.transformBy(new Transform2d(0., -reefBranchSeparation.in(Meters) / 2., new Rotation2d()));
+            return pose.transformBy(
+                new Transform2d(-reefBranchInset.in(Meters), -reefBranchSeparation.in(Meters) / 2., Rotation2d.kZero));
         }
 
         public Pose2d getRightBranchPose() {
-            return pose.transformBy(new Transform2d(0., reefBranchSeparation.in(Meters) / 2., new Rotation2d()));
+            return pose.transformBy(
+                new Transform2d(-reefBranchInset.in(Meters), reefBranchSeparation.in(Meters) / 2., Rotation2d.kZero));
         }
     }
 }

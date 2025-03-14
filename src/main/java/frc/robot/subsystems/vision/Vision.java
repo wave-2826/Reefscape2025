@@ -6,14 +6,16 @@ import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
-import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.subsystems.vision.VisionIO.SingleApriltagResult;
+import frc.robot.util.LoggedTracer;
 
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import org.littletonrobotics.junction.Logger;
@@ -23,6 +25,17 @@ public class Vision extends SubsystemBase {
     private final VisionIO[] io;
     private final VisionIOInputsAutoLogged[] inputs;
     private final Alert[] disconnectedAlerts;
+
+    private static record RobotToTag(Transform3d robotToTag, double ambiguity) {
+    }
+
+    /**
+     * A map from the robot position to each of the individual tags we currently see. When multiple cameras see the same
+     * tag, we trust the camera with the lowest ambiguity.
+     * <p>
+     * TODO: We should test if it's more reliable to average the robotToTag transforms from all cameras in these cases.
+     */
+    private final HashMap<Integer, RobotToTag> robotToIndividualTags = new HashMap<>();
 
     public Vision(VisionConsumer consumer, VisionIO... io) {
         this.consumer = consumer;
@@ -42,17 +55,18 @@ public class Vision extends SubsystemBase {
         }
     }
 
-    public int getCameraCount() {
-        return io.length;
+    /**
+     * Get the transform from the robot to the tag with the given ID. Returns null if the tag is not seen.
+     * @param id
+     * @return
+     */
+    public Transform3d getRobotToTag(int id) {
+        if(robotToIndividualTags.containsKey(id)) { return robotToIndividualTags.get(id).robotToTag; }
+        return null;
     }
 
-    /**
-     * Returns the X angle to the best target, which can be used for simple servoing with vision.
-     *
-     * @param cameraIndex The index of the camera to use.
-     */
-    public Rotation2d getTargetX(int cameraIndex) {
-        return inputs[cameraIndex].latestTargetObservation.tx();
+    public int getCameraCount() {
+        return io.length;
     }
 
     @Override
@@ -68,6 +82,8 @@ public class Vision extends SubsystemBase {
         List<Pose3d> allRobotPosesAccepted = new LinkedList<>();
         List<Pose3d> allRobotPosesRejected = new LinkedList<>();
 
+        robotToIndividualTags.clear();
+
         // Loop over cameras
         for(int cameraIndex = 0; cameraIndex < io.length; cameraIndex++) {
             // Update disconnected alert
@@ -80,9 +96,27 @@ public class Vision extends SubsystemBase {
             List<Pose3d> robotPosesRejected = new LinkedList<>();
 
             // Add tag poses
-            for(int tagId : inputs[cameraIndex].tagIds) {
-                var tagPose = aprilTagLayout.getTagPose(tagId);
+            for(SingleApriltagResult result : inputs[cameraIndex].individualTags) {
+                int id = result.fiducialId();
+
+                var tagPose = aprilTagLayout.getTagPose(id);
                 if(tagPose.isPresent()) tagPoses.add(tagPose.get());
+
+                // Add to robotToIndividualTags map if it isn't obviously wrong
+                Transform3d transform = result.robotToTarget();
+                boolean rejectPose = result.ambiguity() > maxAmbiguity // Cannot be high ambiguity
+                    || Math.abs(transform.getZ()) > maxZError // Must have realistic Z coordinate
+                    // Must be within the field boundaries
+                    || transform.getX() < 0.0 || transform.getX() > aprilTagLayout.getFieldLength()
+                    || transform.getY() < 0.0 || transform.getY() > aprilTagLayout.getFieldWidth();
+
+                if(rejectPose) continue;
+
+                Transform3d robotToTag = result.robotToTarget();
+                if(!robotToIndividualTags.containsKey(id)
+                    || result.ambiguity() < robotToIndividualTags.get(id).ambiguity()) {
+                    robotToIndividualTags.put(id, new RobotToTag(robotToTag, result.ambiguity()));
+                }
             }
 
             // Loop over pose observations
@@ -142,6 +176,8 @@ public class Vision extends SubsystemBase {
             allRobotPosesAccepted.toArray(new Pose3d[allRobotPosesAccepted.size()]));
         Logger.recordOutput("Vision/Summary/RobotPosesRejected",
             allRobotPosesRejected.toArray(new Pose3d[allRobotPosesRejected.size()]));
+
+        LoggedTracer.record("Vision");
     }
 
     public Transform3d[] getBestTagTransforms() {
