@@ -29,6 +29,8 @@ import frc.robot.subsystems.drive.ModuleIO;
 import frc.robot.subsystems.drive.ModuleIOSim;
 import frc.robot.subsystems.drive.ModuleIOSpark;
 import frc.robot.subsystems.intake.Intake;
+import frc.robot.subsystems.intake.IntakeIO;
+import frc.robot.subsystems.intake.IntakeIOReal;
 import frc.robot.subsystems.leds.LEDIO;
 import frc.robot.subsystems.leds.LEDIORio;
 import frc.robot.subsystems.leds.LEDIOSim;
@@ -87,7 +89,7 @@ public class RobotContainer {
                     new VisionIOPhotonVision(VisionConstants.camera3Name, VisionConstants.robotToCamera3));
                 arm = new Arm(new ArmIOReal());
                 climber = new Climber(new ClimberIOReal());
-                intake = new Intake();
+                intake = new Intake(new IntakeIOReal());
 
                 leds = new LEDs(new LEDIORio());
                 break;
@@ -117,7 +119,8 @@ public class RobotContainer {
                         driveSimulation::getSimulatedDriveTrainPose));
                 arm = new Arm(new ArmIOSim());
                 climber = new Climber(new ClimberIOSim());
-                intake = new Intake();
+                intake = new Intake(new IntakeIO() {
+                }); // TODO
 
                 leds = new LEDs(new LEDIOSim());
                 break;
@@ -151,7 +154,9 @@ public class RobotContainer {
                 climber = new Climber(new ClimberIO() {
                     /** Replayed robot doesn't have IO */
                 });
-                intake = new Intake();
+                intake = new Intake(new IntakeIO() {
+                    /** Replayed robot doesn't have IO */
+                });
 
                 leds = new LEDs(new LEDIO() {
                     /** Replayed robot doesn't have IO */
@@ -168,7 +173,7 @@ public class RobotContainer {
         VisionTuningCommands.addTuningCommandsToAutoChooser(vision, autoChooser);
 
         // Configure the button bindings
-        Controls.getInstance().configureControls(drive, driveSimulation, arm, vision, climber);
+        Controls.getInstance().configureControls(drive, driveSimulation, arm, intake, vision, climber);
 
         configureAutoCommands();
     }

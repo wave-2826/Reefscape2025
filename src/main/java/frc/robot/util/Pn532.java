@@ -28,15 +28,15 @@ public class Pn532 implements AutoCloseable {
     private static final byte PN532_COMMAND_GETFIRMWAREVERSION = (byte) 0x02;
 
     private static final byte[] readCommand = new byte[] {
-        (byte) 0x40, // Command: InDataExchange
-        (byte) 0x01, // Target number
-        (byte) 0x30, // Read type 2 NFC tags
-        (byte) 0x00, // The block number to read; user data usually starts at block 4
+        reverseByte((byte) 0x40), // Command: InDataExchange
+        reverseByte((byte) 0x01), // Target number
+        reverseByte((byte) 0x30), // Read type 2 NFC tags
+        reverseByte((byte) 0x00), // The block number to read; user data usually starts at block 4
     };
 
-    private static final byte PN532_SPI_DATAWRITE = (byte) 0x01;
-    private static final byte PN532_SPI_STATREAD = (byte) 0x02;
-    private static final byte PN532_SPI_DATAREAD = (byte) 0x03;
+    private static final byte PN532_SPI_DATA_WRITE = (byte) 0x01;
+    private static final byte PN532_SPI_STATUS_READ = (byte) 0x02;
+    private static final byte PN532_SPI_DATA_READ = (byte) 0x03;
     private static final byte PN532_SPI_READY = 0x01;
 
     private static final byte[] PN532_ACKNOWLEDGEMENT = {
@@ -64,7 +64,7 @@ public class Pn532 implements AutoCloseable {
         }
     }
 
-    private byte reverseByte(byte b) {
+    private static byte reverseByte(byte b) {
         byte reversedByte = 0;
         for(int bit = 0; bit < 8; bit++) {
             reversedByte = (byte) ((reversedByte << 1) | (b & 1));
@@ -80,7 +80,7 @@ public class Pn532 implements AutoCloseable {
         byte[] p = new byte[9 + length];
         length++;
 
-        p[0] = PN532_SPI_DATAWRITE;
+        p[0] = PN532_SPI_DATA_WRITE;
         p[1] = PN532_PREAMBLE;
         p[2] = PN532_STARTCODE1;
         p[3] = PN532_STARTCODE2;
@@ -109,16 +109,32 @@ public class Pn532 implements AutoCloseable {
      * @throws InterruptedException
      */
     private boolean isReady() throws InterruptedException {
-        byte[] cmdArray = {
-            reverseByte(PN532_SPI_STATREAD)
+        byte[] statusReadCommand = {
+            reverseByte(PN532_SPI_STATUS_READ)
         };
 
-        if(connection.write(cmdArray, 1) == -1) { return false; }
-        Thread.sleep(100);
+        if(connection.write(statusReadCommand, statusReadCommand.length) == -1) {
+            DriverStation.reportError("Error reading NFC: unable to write when checking ready status.", false);
+            return false;
+        }
+
+        // Thread.sleep(10);
 
         byte[] reply = new byte[1];
-        if(connection.read(false, reply, 1) == -1) { return false; }
-        return reply[0] == reverseByte(PN532_SPI_READY);
+        if(connection.read(false, reply, reply.length) == -1) {
+            DriverStation.reportError("Error reading NFC: unable to read when checking ready status.", false);
+            return false;
+        }
+
+        boolean replyCorrect = reply[0] == reverseByte(PN532_SPI_READY);
+
+        if(!replyCorrect) {
+            DriverStation.reportError("Error reading NFC: Got response, but it was invalid (" + reply[0] + ", expected "
+                + reverseByte(PN532_SPI_READY) + ").", false);
+            return false;
+        }
+
+        return true;
     }
 
     /**
@@ -142,7 +158,7 @@ public class Pn532 implements AutoCloseable {
      */
     private boolean readAcknowledgement() {
         byte[] cmd = {
-            PN532_SPI_DATAREAD
+            PN532_SPI_DATA_READ
         };
         if(connection.write(cmd, 1) == -1) {
             DriverStation.reportError("Error reading NFC: writing data read for acknowledgement failed.", false);
@@ -166,7 +182,7 @@ public class Pn532 implements AutoCloseable {
         writeCommand(command);
 
         if(!waitForReady(timeoutSeconds)) {
-            DriverStation.reportError("Error reading NFC: device wasn't reacy when waiting for acknowledgement.",
+            DriverStation.reportError("Error reading NFC: device wasn't ready when waiting for acknowledgement.",
                 false);
             return false;
         }
@@ -177,7 +193,7 @@ public class Pn532 implements AutoCloseable {
 
         // Wait for chip to say its ready!
         if(!waitForReady(timeoutSeconds)) {
-            DriverStation.reportError("Error reading NFC: device wasn't reacy when waiting after acknowledgement.",
+            DriverStation.reportError("Error reading NFC: device wasn't ready when waiting after acknowledgement.",
                 false);
             return false;
         }
@@ -187,7 +203,7 @@ public class Pn532 implements AutoCloseable {
 
     private boolean readData(byte[] buff, int len) {
         byte[] cmd = {
-            PN532_SPI_DATAREAD
+            PN532_SPI_DATA_READ
         };
         if(connection.write(cmd, 1) == -1) {
             DriverStation.reportError("Error reading NFC: failed to write data read command.", false);

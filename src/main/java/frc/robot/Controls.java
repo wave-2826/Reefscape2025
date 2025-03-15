@@ -25,6 +25,7 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.commands.AutoScoreCommands;
 import frc.robot.commands.climber.ClimbCommands;
 import frc.robot.commands.drive.DriveCommands;
+import frc.robot.commands.intake.IntakeCommands;
 import frc.robot.subsystems.arm.Arm;
 import frc.robot.subsystems.arm.ArmConstants;
 import frc.robot.subsystems.arm.ArmState;
@@ -32,6 +33,7 @@ import frc.robot.subsystems.arm.EndEffectorState;
 import frc.robot.subsystems.arm.ArmState.WristRotation;
 import frc.robot.subsystems.climber.Climber;
 import frc.robot.subsystems.drive.Drive;
+import frc.robot.subsystems.intake.Intake;
 import frc.robot.subsystems.vision.Vision;
 import frc.robot.util.Container;
 import frc.robot.util.LoggedTunableNumber;
@@ -59,8 +61,8 @@ public class Controls {
     }
 
     /** Configures the controls. */
-    public void configureControls(Drive drive, SwerveDriveSimulation driveSimulation, Arm arm, Vision vision,
-        Climber climber) {
+    public void configureControls(Drive drive, SwerveDriveSimulation driveSimulation, Arm arm, Intake intake,
+        Vision vision, Climber climber) {
         // Default command, normal field-relative drive
         drive.setDefaultCommand(DriveCommands.joystickDrive(drive, () -> -driver.getLeftY(), () -> -driver.getLeftX(),
             () -> -driver.getRightX()));
@@ -102,6 +104,8 @@ public class Controls {
             return new ArmState(Rotation2d.fromDegrees(pitch.value), Meters.of(height.value),
                 horizontal.value ? WristRotation.Horizontal : WristRotation.Vertical, endEffectorState);
         }));
+
+        operator.x().whileTrue(IntakeCommands.intakeCommand(intake, operator::getLeftY, operator::getRightY));
 
         operator.b().onTrue(arm.goToStateCommand(ArmConstants.restingState));
 

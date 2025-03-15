@@ -63,7 +63,9 @@ public class Robot extends LoggedRobot {
                 break;
         }
 
-        Logger.recordMetadata("BatteryID", getBatteryID());
+        String batteryID = getBatteryID();
+        Logger.recordMetadata("BatteryID", batteryID);
+        System.out.println("Detected battery " + batteryID + "!");
 
         // Adjust the loop overrun warning timeout; taken from 6328's code.
         // This is obviously a bit hacky, but we log our loop times and consistently watch them,
@@ -161,6 +163,8 @@ public class Robot extends LoggedRobot {
     }
 
     private String getBatteryID() {
+        System.out.println("Reading battery NFC data from Pn532...");
+
         Pn532 reader = new Pn532();
         String result = reader.readAsciiBytes();
         reader.close();
@@ -241,6 +245,11 @@ public class Robot extends LoggedRobot {
     @Override
     public void teleopPeriodic() {
         // Stop the default "override me" alert
+    }
+
+    @Override
+    public void disabledPeriodic() {
+        // Stop the default "override me alert"
     }
 
     /** This function is called periodically whilst in simulation. */

@@ -404,7 +404,7 @@ public class Drive extends SubsystemBase {
         // we only update when our commands already didn't immediately update.
         // If they didn't, we manually run velocity control to avoid situations where the robot
         // continues moving after we tell it to stop.
-        if(!setpointsUpdated && velocityControlMode) {
+        if(!setpointsUpdated && velocityControlMode && DriverStation.isEnabled()) {
             runVelocity(latestSpeedSetpoint);
         }
         setpointsUpdated = false;
