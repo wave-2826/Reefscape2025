@@ -25,7 +25,6 @@ import frc.robot.FieldConstants.ReefFace;
 import frc.robot.FieldConstants.ReefLevel;
 import frc.robot.commands.arm.ScoringSequenceCommands;
 import frc.robot.commands.drive.CloseLineupCommand;
-import frc.robot.commands.drive.DriveCommands;
 import frc.robot.commands.util.RestartWhenCommand;
 import frc.robot.subsystems.arm.Arm;
 import frc.robot.subsystems.drive.Drive;
@@ -52,7 +51,7 @@ public class AutoScoreCommands {
      * The amount the driver can tweak the auto lineup position, in inches.
      */
     private static final LoggedTunableNumber autoAlignTweakAmount = new LoggedTunableNumber(
-        "AutoScore/AutoAlignTweakInches", 3.0);
+        "AutoScore/AutoAlignTweakInches", 5.0);
 
     /**
      * Gets a command that pathfinds to the target pose and precisely aligns to it. Because PathPlanner's default
@@ -73,14 +72,14 @@ public class AutoScoreCommands {
             : robotReefLineupBranchDistance.get();
 
         Transform2d tagRelativeOffset = new Transform2d(
-            new Translation2d(distanceAway, isLeft ? FieldConstants.reefBranchSeparation.in(Meters) / 2.
-                : -FieldConstants.reefBranchSeparation.in(Meters) / 2.),
+            new Translation2d(distanceAway, isLeft ? -FieldConstants.reefBranchSeparation.in(Meters) / 2.
+                : FieldConstants.reefBranchSeparation.in(Meters) / 2.),
             Rotation2d.k180deg);
 
         ReefFace reefFace = target.branch().face;
 
         Pose2d initialLineupPosition = reefFace.tagPose.transformBy(tagRelativeOffset)
-            .plus(new Transform2d(new Translation2d(Units.inchesToMeters(5.), 0.), Rotation2d.kZero));
+            .plus(new Transform2d(new Translation2d(Units.inchesToMeters(-5.), 0.), Rotation2d.kZero));
 
         // A pose to initially pathfind to if we're near the reef
         Pose2d safeReefPose = new Pose2d(
@@ -107,7 +106,7 @@ public class AutoScoreCommands {
             }),
             Commands.parallel(
                 AutoBuilder.pathfindToPoseFlipped(initialLineupPosition, constraints, MetersPerSecond.of(0.0)), // Move to the target pose
-                coarseLineupCommand
+                coarseLineupCommand.withTimeout(3)
             ),
             Commands.runOnce(() -> Logger.recordOutput("AutoScore/RunningCloseLineup", true)),
             Commands.parallel(

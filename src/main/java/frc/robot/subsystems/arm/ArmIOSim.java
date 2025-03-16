@@ -13,6 +13,7 @@ import edu.wpi.first.wpilibj.simulation.DCMotorSim;
 import edu.wpi.first.wpilibj.simulation.ElevatorSim;
 import edu.wpi.first.wpilibj.simulation.RoboRioSim;
 import edu.wpi.first.wpilibj.simulation.SingleJointedArmSim;
+import frc.robot.subsystems.intake.IntakeIOSim;
 import frc.robot.util.sim.LaserCanSim;
 
 public class ArmIOSim extends ArmIOReal {
@@ -48,7 +49,7 @@ public class ArmIOSim extends ArmIOReal {
     private static final double endEffectorMOI = 0.0001;
 
     /** Whether there's currently a game piece in the end effector. */
-    private boolean gamePieceInEndEffector = false;
+    private static boolean gamePieceInEndEffector = false;
 
     public ArmIOSim() {
         super(
@@ -127,6 +128,29 @@ public class ArmIOSim extends ArmIOReal {
         if(needsToReset) {
             elevatorMotorSim.setPosition(elevatorSim.getPositionMeters());
             needsToReset = false;
+        }
+
+        if(inputs.absoluteHeightMeters < Units.inchesToMeters(25) && inputs.armPitchPosition.getDegrees() < -80
+            && inputs.endEffectorVelocity < -0.1 && IntakeIOSim.takeCoral()) {
+            gamePieceInEndEffector = true;
+        } else if(inputs.endEffectorVelocity > 0.1) {
+            gamePieceInEndEffector = false;
+            // TODO
+            // SimulatedArena.getInstance().addGamePieceProjectile(new ReefscapeCoralOnFly(
+            //     // Obtain robot position from drive simulation
+            //     driveSimulation.getSimulatedDriveTrainPose().getTranslation(),
+            //     // The scoring mechanism is installed at (0.46, 0) (meters) on the robot
+            //     new Translation2d(0.35, 0),
+            //     // Obtain robot speed from drive simulation
+            //     driveSimulation.getDriveTrainSimulatedChassisSpeedsFieldRelative(),
+            //     // Obtain robot facing from drive simulation
+            //     driveSimulation.getSimulatedDriveTrainPose().getRotation(),
+            //     // The height at which the coral is ejected
+            //     Meters.of(1.28),
+            //     // The initial speed of the coral
+            //     MetersPerSecond.of(2),
+            //     // The coral is ejected at a 35-degree slope
+            //     Degrees.of(-35)));
         }
 
         inputs.gamePiecePresent = gamePieceInEndEffector;

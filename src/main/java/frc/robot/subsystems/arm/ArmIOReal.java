@@ -351,6 +351,7 @@ public class ArmIOReal implements ArmIO {
 
     @Override
     public void setEndEffectorState(EndEffectorState state) {
+        // Positive velocity is outward.
         var velocity = state.getVelocityControl();
         if(velocity.isPresent()) {
             endEffectorController.setReference(velocity.get(), ControlType.kVelocity,

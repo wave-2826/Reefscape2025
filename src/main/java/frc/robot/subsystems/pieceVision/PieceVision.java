@@ -1,10 +1,16 @@
 package frc.robot.subsystems.pieceVision;
 
+import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
+import frc.robot.subsystems.drive.Drive;
+import frc.robot.subsystems.pieceVision.PieceVisionIO.PieceLocation;
+import frc.robot.subsystems.pieceVision.PieceVisionIO.PieceLocations;
 import frc.robot.util.LoggedTracer;
 
 /**
@@ -17,10 +23,47 @@ public class PieceVision extends SubsystemBase {
     private final PieceVisionIOInputsAutoLogged inputs = new PieceVisionIOInputsAutoLogged();
     private boolean wasDisabled = false;
 
+    private static record TargetPath(Translation2d origin, Rotation2d direction) {
+    }
+
+    /**
+     * The piece we're currently locked on to. This is used to track a piece over time.
+     */
+    private PieceLocation lockedPiece = null;
+    /**
+     * The target path of the robot. When we see a piece, we create a line from the robot's position when we made the
+     * observation to the piece location. We then attempt to follow this line as closely as possible.
+     */
+    private TargetPath targetPath = null;
+
     public PieceVision(PieceVisionIO io) {
         this.io = io;
 
         io.setEnabled(false);
+    }
+
+    public Command followTargetLine(Drive drive) {
+        return Commands.run(() -> {
+            // drive.runVelocity(ChassisSpeeds.)
+        }, drive);
+    }
+
+    private PieceLocation getBestPieceLocation(PieceLocations locations) {
+        if(locations.locations() == null || locations.locations().length == 0) { return null; }
+
+        PieceLocation best = locations.locations()[0];
+        for(PieceLocation location : locations.locations()) {
+            if(location.area() > 0.5) {
+                // Discard pieces that are too large.
+                continue;
+            }
+
+            if(location.area() > best.area()) {
+                best = location;
+            }
+        }
+
+        return best;
     }
 
     @Override
@@ -60,6 +103,13 @@ public class PieceVision extends SubsystemBase {
         //    detecting the piece.
 
         // TODO: Implement the above algorithm.
+        if(inputs.locations != null) {
+            if(lockedPiece == null) {
+                // Step 2: Pick the best piece to track.
+                lockedPiece = getBestPieceLocation(inputs.locations);
+                // TODO: Update target path
+            }
+        }
 
         LoggedTracer.record("PieceVision");
     }

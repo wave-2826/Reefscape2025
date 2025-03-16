@@ -48,7 +48,7 @@ public class IntakeIOReal implements IntakeIO {
             .velocityConversionFactor(IntakeConstants.pitchAbsoluteVelocityFactor)
             .zeroOffset(Constants.currentMode == Constants.Mode.SIM ? 0 : IntakeConstants.intakeZeroAngle)
             .zeroCentered(true).inverted(IntakeConstants.pitchEncoderInverted);
-        pitchConfig.idleMode(IdleMode.kBrake).smartCurrentLimit(IntakeConstants.pitchMotorCurrentLimit)
+        pitchConfig.idleMode(IdleMode.kCoast).smartCurrentLimit(IntakeConstants.pitchMotorCurrentLimit)
             .voltageCompensation(Constants.voltageCompensation).inverted(IntakeConstants.pitchMotorInverted);
         pitchConfig.signals.apply(SparkUtil.defaultSignals) //
             .primaryEncoderPositionAlwaysOn(false).primaryEncoderVelocityAlwaysOn(false)
@@ -102,14 +102,19 @@ public class IntakeIOReal implements IntakeIO {
     }
 
     @Override
-    public void runVelocity(double power) {
-        powerController.setReference(power * 1000., ControlType.kVelocity);
-        transportController.setReference(power * 5000., ControlType.kVelocity);
+    public void runVelocity(double intakePower, double transportPower) {
+        powerController.setReference(intakePower * 1000., ControlType.kVelocity);
+        transportController.setReference(transportPower * 5000., ControlType.kVelocity);
     }
 
     @Override
     public void setIntakePitch(Rotation2d pitch) {
         pitchController.setReference(pitch.getRadians(), ControlType.kPosition);
+    }
+
+    @Override
+    public void setIntakeCoast() {
+        pitchMotor.stopMotor();
     }
 
     @Override
@@ -119,8 +124,8 @@ public class IntakeIOReal implements IntakeIO {
 
     @Override
     public void updateInputs(IntakeIOInputs inputs) {
-        inputs.intakeSensorTriggered = intakeSensor.get();
-        inputs.transortSensorTriggered = transportSensor.get();
+        inputs.intakeSensorTriggered = !intakeSensor.get();
+        inputs.transortSensorTriggered = !transportSensor.get();
         inputs.intakePitch = Rotation2d.fromRadians(absolutePitchSensor.getPosition());
         inputs.intakeWheelSpeed = powerEncoder.getVelocity();
     }

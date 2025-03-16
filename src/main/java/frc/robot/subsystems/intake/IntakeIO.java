@@ -21,7 +21,10 @@ public interface IntakeIO {
     public default void setIntakePitch(Rotation2d pitch) {
     }
 
-    public default void runVelocity(double power) {
+    public default void setIntakeCoast() {
+    }
+
+    public default void runVelocity(double intakePower, double transportPower) {
     }
 
     public default void overridePitchPower(double power) {

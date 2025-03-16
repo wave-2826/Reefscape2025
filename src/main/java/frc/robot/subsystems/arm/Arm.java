@@ -16,6 +16,8 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 import frc.robot.subsystems.arm.ArmState.WristRotation;
+import frc.robot.subsystems.intake.Intake;
+import frc.robot.subsystems.intake.IntakeConstants;
 import frc.robot.util.LoggedTracer;
 import frc.robot.util.LoggedTunableNumber;
 
@@ -62,6 +64,7 @@ public class Arm extends SubsystemBase {
     public Command goToStateCommand(ArmState state) {
         return Commands.run(() -> {
             targetState = state;
+            adjustedTarget = getAdjustedTarget();
         }, this).until(this::isAtTarget).handleInterrupt(() -> {
             // If we are interrupted, set the target state to the current state
             targetState = new ArmState(inputs.armPitchPosition, Meters.of(inputs.elevatorHeightMeters),

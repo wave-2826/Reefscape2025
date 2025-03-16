@@ -8,6 +8,7 @@ import com.pathplanner.lib.auto.AutoBuilder;
 
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation2d;
@@ -125,10 +126,12 @@ public class CloseLineupCommand extends Command {
         Pose2d correctedCurrentPose = drive.getPose();
         Transform3d robotToTag = vision.getRobotToTag(tagToTrack);
         Pose2d fieldTagPose = VisionConstants.aprilTagLayout.getTagPose(tagToTrack).get().toPose2d();
+
+        Logger.recordOutput("CloseLineup/UsingSingleTag", robotToTag != null);
         if(robotToTag != null) {
             Transform2d robotToTag2d = new Transform2d(robotToTag.getTranslation().toTranslation2d(),
                 robotToTag.getRotation().toRotation2d());
-            correctedCurrentPose = fieldTagPose.plus(robotToTag2d);
+            correctedCurrentPose = fieldTagPose.plus(robotToTag2d.inverse());
         }
         Logger.recordOutput("CloseLineup/CorrectedSingleTagPose", correctedCurrentPose);
 
@@ -145,9 +148,7 @@ public class CloseLineupCommand extends Command {
         yController.setSetpoint(currentTargetPose.getY());
         thetaController.setSetpoint(currentTargetPose.getRotation().getRadians());
 
-        Logger.recordOutput("CloseLineup/TargetX", currentTargetPose.getX());
-        Logger.recordOutput("CloseLineup/TargetY", currentTargetPose.getY());
-        Logger.recordOutput("CloseLineup/TargetRotation", currentTargetPose.getRotation());
+        Logger.recordOutput("CloseLineup/TargetPose", currentTargetPose);
 
         double xSpeed = xController.calculate(correctedCurrentPose.getX());
         double ySpeed = yController.calculate(correctedCurrentPose.getY());
@@ -159,8 +160,6 @@ public class CloseLineupCommand extends Command {
 
         ChassisSpeeds wheelSpeeds = ChassisSpeeds.fromFieldRelativeSpeeds(xSpeed, ySpeed, thetaSpeed,
             correctedCurrentPose.getRotation());
-
-        System.out.println("xSpeed: " + xSpeed + ", ySpeed: " + ySpeed + ", thetaSpeed: " + thetaSpeed);
 
         drive.runVelocity(wheelSpeeds);
     }

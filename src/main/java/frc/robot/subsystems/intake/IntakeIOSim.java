@@ -12,6 +12,7 @@ import com.revrobotics.sim.SparkMaxSim;
 
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.system.plant.LinearSystemId;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.simulation.DCMotorSim;
 import edu.wpi.first.wpilibj.simulation.DIOSim;
 import edu.wpi.first.wpilibj.simulation.RoboRioSim;
@@ -51,7 +52,14 @@ public class IntakeIOSim extends IntakeIOReal {
      * The simulated coral position, from 0 to 1, as it moves through the intake and transport. Null if we don't
      * currently have a game piece.
      */
-    private Double simulatedCoralPosition = null;
+    private static Double simulatedCoralPosition = null;
+
+    /** Returns true and clears the simulated coral in the intake if one is present. */
+    public static boolean takeCoral() {
+        if(simulatedCoralPosition == null) return false;
+        simulatedCoralPosition = null;
+        return true;
+    }
 
     public IntakeIOSim(SwerveDriveSimulation driveTrainSimulation) {
         super();
@@ -107,13 +115,26 @@ public class IntakeIOSim extends IntakeIOReal {
         }
 
         // TODO: Track coral path and activate sensors
-        intakeDIOSim.setValue(false);
-        transportDIOSim.setValue(false);
+        intakeDIOSim
+            .setValue(simulatedCoralPosition != null && simulatedCoralPosition > 0.1 && simulatedCoralPosition < 0.5);
+        transportDIOSim
+            .setValue(simulatedCoralPosition != null && simulatedCoralPosition > 0.6 && simulatedCoralPosition < 0.9);
+
+        double transportLength = Units.inchesToMeters(25);
+        simulatedCoralPosition += powerSim.getAngularVelocityRadPerSec() * Units.inchesToMeters(3.) * 0.9
+            / transportLength;
+        if(simulatedCoralPosition > 1) {
+            simulatedCoralPosition = 1.;
+        }
+
+        if(intakeSimulation.obtainGamePieceFromIntake()) {
+            simulatedCoralPosition = 0.;
+        }
 
         super.updateInputs(inputs);
 
         if(Math.abs(inputs.intakePitch.getDegrees()) < MAX_INTAKE_ACTIVATION_PITCH
-            && inputs.intakeWheelSpeed > MIN_INTAKE_WHEEL_SPEED ||
+            && inputs.intakeWheelSpeed > MIN_INTAKE_WHEEL_SPEED &&
             // I don't currently want to deal with simulating issues with multiple game pieces, so we
             // just disallow intaking if we have a game piece.
             simulatedCoralPosition != null) {

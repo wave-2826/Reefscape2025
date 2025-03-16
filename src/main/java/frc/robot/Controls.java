@@ -20,6 +20,7 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.commands.AutoScoreCommands;
 import frc.robot.commands.climber.ClimbCommands;
 import frc.robot.commands.drive.DriveCommands;
+import frc.robot.commands.intake.IntakeCommands;
 import frc.robot.subsystems.arm.Arm;
 import frc.robot.subsystems.arm.ArmConstants;
 import frc.robot.subsystems.arm.ArmState;
@@ -104,13 +105,7 @@ public class Controls {
                 horizontal.value ? WristRotation.Horizontal : WristRotation.Vertical, endEffectorState);
         }));
 
-        operator.rightBumper().and(normalOperator).whileTrue(Commands.startEnd(() -> {
-            intake.setIntakePitch(Rotation2d.kZero);
-            intake.runIntakeOpenLoop(1.0);
-        }, () -> {
-            intake.setIntakePitch(Rotation2d.fromDegrees(80));
-            intake.runIntakeOpenLoop(0.0);
-        }));
+        operator.rightBumper().and(normalOperator).whileTrue(IntakeCommands.intakeCommand(intake, arm));
 
         operator.b().and(normalOperator).onTrue(arm.goToStateCommand(ArmConstants.restingState));
 

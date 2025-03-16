@@ -113,24 +113,28 @@ public class Pn532 implements AutoCloseable {
             reverseByte(PN532_SPI_STATUS_READ)
         };
 
-        if(connection.write(statusReadCommand, statusReadCommand.length) == -1) {
-            DriverStation.reportError("Error reading NFC: unable to write when checking ready status.", false);
-            return false;
-        }
+        // if(connection.write(statusReadCommand, statusReadCommand.length) == -1) {
+        //     DriverStation.reportError("Error reading NFC: unable to write when checking ready status.", false);
+        //     return false;
+        // }
 
-        // Thread.sleep(10);
+        // // Thread.sleep(10);
 
         byte[] reply = new byte[1];
-        if(connection.read(false, reply, reply.length) == -1) {
+        // if(connection.read(false, reply, reply.length) == -1) {
+        //     DriverStation.reportError("Error reading NFC: unable to read when checking ready status.", false);
+        //     return false;
+        // }
+        if(connection.transaction(statusReadCommand, reply, reply.length) == -1) {
             DriverStation.reportError("Error reading NFC: unable to read when checking ready status.", false);
             return false;
         }
 
-        boolean replyCorrect = reply[0] == reverseByte(PN532_SPI_READY);
+        boolean replyCorrect = (reverseByte(reply[0]) & 1) == 1;
 
         if(!replyCorrect) {
-            DriverStation.reportError("Error reading NFC: Got response, but it was invalid (" + reply[0] + ", expected "
-                + reverseByte(PN532_SPI_READY) + ").", false);
+            DriverStation.reportError("Error reading NFC: Got response, but it was invalid (" + reverseByte(reply[0])
+                + ", expected " + PN532_SPI_READY + ").", false);
             return false;
         }
 
