@@ -1,18 +1,13 @@
 package frc.robot;
 
-import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.Inches;
 import static edu.wpi.first.units.Units.Meters;
-import static edu.wpi.first.units.Units.MetersPerSecond;
 
-import org.ironmaple.simulation.SimulatedArena;
 import org.ironmaple.simulation.drivesims.SwerveDriveSimulation;
-import org.ironmaple.simulation.seasonspecific.reefscape2025.ReefscapeCoralOnFly;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj.DriverStation;
@@ -67,15 +62,13 @@ public class Controls {
         drive.setDefaultCommand(DriveCommands.joystickDrive(drive, () -> -driver.getLeftY(), () -> -driver.getLeftX(),
             () -> -driver.getRightX()));
 
-        // Lock to 0° when A button is held
         driver.a().whileTrue(DriveCommands.joystickDriveAtAngle(drive, () -> -driver.getLeftY(),
             () -> -driver.getLeftX(), () -> Rotation2d.fromRadians(Math.atan2(driver.getRightY(), driver.getLeftY()))));
 
         // Switch to X pattern when X button is pressed
         driver.x().onTrue(Commands.runOnce(drive::stopWithX, drive));
 
-        // driver.b().whileTrue(AutoScoreCommands.au
-        driver.b().toggleOnTrue(AutoScoreCommands.autoScoreStartCommand(drive, vision, arm, driver.rightBumper(),
+        driver.b().whileTrue(AutoScoreCommands.autoScoreStartCommand(drive, vision, arm, driver.rightBumper(),
             driver::getLeftX, driver::getLeftY));
 
         // Reset gyro or odometry if in simulation
@@ -114,28 +107,27 @@ public class Controls {
                 WristRotation.Horizontal, EndEffectorState.velocity(-6))))
             .onFalse(arm.goToStateCommand(ArmConstants.restingState));
 
-        // operator.back().or(DriverStation::isTest).whileTrue(overrideControlsCommand(arm));
         operator.back().onTrue(Commands.runOnce(arm::resetToAbsolute));
+        operator.back().and(operator.start()).toggleOnTrue(operatorOverrideControls(arm, intake, climber));
 
-        // Example Coral Placement Code
-        // TODO: Implement this for our actual robot logic
         if(Constants.currentMode == Constants.Mode.SIM) {
+            // TODO
             // L4 placement
-            operator.y()
-                .onTrue(Commands.runOnce(() -> SimulatedArena.getInstance()
-                    .addGamePieceProjectile(new ReefscapeCoralOnFly(
-                        driveSimulation.getSimulatedDriveTrainPose().getTranslation(), new Translation2d(0.4, 0),
-                        driveSimulation.getDriveTrainSimulatedChassisSpeedsFieldRelative(),
-                        driveSimulation.getSimulatedDriveTrainPose().getRotation(), Meters.of(2),
-                        MetersPerSecond.of(1.5), Degrees.of(-80)))));
-            // L3 placement
-            operator.b()
-                .onTrue(Commands.runOnce(() -> SimulatedArena.getInstance()
-                    .addGamePieceProjectile(new ReefscapeCoralOnFly(
-                        driveSimulation.getSimulatedDriveTrainPose().getTranslation(), new Translation2d(0.4, 0),
-                        driveSimulation.getDriveTrainSimulatedChassisSpeedsFieldRelative(),
-                        driveSimulation.getSimulatedDriveTrainPose().getRotation(), Meters.of(1.35),
-                        MetersPerSecond.of(1.5), Degrees.of(-60)))));
+            // operator.y()
+            //     .onTrue(Commands.runOnce(() -> SimulatedArena.getInstance()
+            //         .addGamePieceProjectile(new ReefscapeCoralOnFly(
+            //             driveSimulation.getSimulatedDriveTrainPose().getTranslation(), new Translation2d(0.4, 0),
+            //             driveSimulation.getDriveTrainSimulatedChassisSpeedsFieldRelative(),
+            //             driveSimulation.getSimulatedDriveTrainPose().getRotation(), Meters.of(2),
+            //             MetersPerSecond.of(1.5), Degrees.of(-80)))));
+            // // L3 placement
+            // operator.b()
+            //     .onTrue(Commands.runOnce(() -> SimulatedArena.getInstance()
+            //         .addGamePieceProjectile(new ReefscapeCoralOnFly(
+            //             driveSimulation.getSimulatedDriveTrainPose().getTranslation(), new Translation2d(0.4, 0),
+            //             driveSimulation.getDriveTrainSimulatedChassisSpeedsFieldRelative(),
+            //             driveSimulation.getSimulatedDriveTrainPose().getRotation(), Meters.of(1.35),
+            //             MetersPerSecond.of(1.5), Degrees.of(-60)))));
         }
 
         // Endgame Alerts
@@ -149,10 +141,31 @@ public class Controls {
             .andThen(Commands.waitSeconds(0.1)).repeatedly().withTimeout(0.9)); // Rumble three times
     }
 
-    private Command overrideControlsCommand(Arm arm) {
+    private Command operatorOverrideControls(Arm arm, Intake intake, Climber climber) {
         return Commands.run(() -> {
-            // TODO
-        }, arm);
+            boolean intakeControlMode = operator.b().getAsBoolean();
+            boolean climbControlMode = operator.y().getAsBoolean();
+
+            if(intakeControlMode) {
+                intake.overridePitchPower(MathUtil.applyDeadband(operator.getRightY(), 0.2));
+                intake.runIntakeOpenLoop(MathUtil.applyDeadband(operator.getLeftY(), 0.2) * 0.4);
+            } else if(climbControlMode) {
+                climber.runClimberOpenLoop(MathUtil.applyDeadband(operator.getLeftY(), 0.2));
+            } else {
+                // Arm control mode
+                arm.overrideHeightPower(MathUtil.applyDeadband(operator.getLeftY(), 0.2) * 0.3);
+                arm.overridePitchPower(MathUtil.applyDeadband(operator.getRightY(), 0.2) * 0.3);
+
+                if(operator.leftBumper().getAsBoolean()) {
+                    arm.overrideWristPower(-0.1);
+                } else if(operator.rightBumper().getAsBoolean()) {
+                    arm.overrideWristPower(0.1);
+                }
+
+                arm.overrideEndEffectorPower(
+                    MathUtil.applyDeadband(operator.getLeftTriggerAxis() - operator.getRightTriggerAxis(), 0.2) * 0.4);
+            }
+        }, arm, intake, climber).alongWith(controllerRumbleWhileRunning(false, true, RumbleType.kLeftRumble));
     }
 
     private double operatorOverrideRumbleLeft = 0.0;

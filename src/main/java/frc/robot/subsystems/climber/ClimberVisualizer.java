@@ -40,6 +40,6 @@ public class ClimberVisualizer {
 
         var climberOrigin = ClimberConstants.climberOrigin;
         Logger.recordOutput("Mechanism3d/" + name + "/Climber",
-            new Pose3d(climberOrigin, new Rotation3d(0.0, rotation.getDegrees(), 0.0)));
+            new Pose3d(climberOrigin, new Rotation3d(0.0, rotation.getRadians(), Math.PI / 2)));
     }
 }

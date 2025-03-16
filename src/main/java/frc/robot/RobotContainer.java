@@ -3,8 +3,10 @@ package frc.robot;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
 
+import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import frc.robot.commands.drive.DriveTuningCommands;
@@ -31,10 +33,15 @@ import frc.robot.subsystems.drive.ModuleIOSpark;
 import frc.robot.subsystems.intake.Intake;
 import frc.robot.subsystems.intake.IntakeIO;
 import frc.robot.subsystems.intake.IntakeIOReal;
+import frc.robot.subsystems.intake.IntakeIOSim;
 import frc.robot.subsystems.leds.LEDIO;
 import frc.robot.subsystems.leds.LEDIORio;
 import frc.robot.subsystems.leds.LEDIOSim;
 import frc.robot.subsystems.leds.LEDs;
+import frc.robot.subsystems.pieceVision.PieceVision;
+import frc.robot.subsystems.pieceVision.PieceVisionIO;
+import frc.robot.subsystems.pieceVision.PieceVisionIOLimelight;
+import frc.robot.subsystems.pieceVision.PieceVisionIOSim;
 import frc.robot.subsystems.vision.Vision;
 import frc.robot.subsystems.vision.VisionConstants;
 import frc.robot.subsystems.vision.VisionIO;
@@ -52,14 +59,11 @@ import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 public class RobotContainer {
     // Subsystems
     private final Drive drive;
-    @SuppressWarnings("unused")
     private final Vision vision;
-    @SuppressWarnings("unused")
     private final Arm arm;
-    @SuppressWarnings("unused")
     private final Climber climber;
-    @SuppressWarnings("unused")
     private final Intake intake;
+    private final PieceVision pieceVision;
 
     @SuppressWarnings("unused")
     private final LEDs leds;
@@ -87,6 +91,7 @@ public class RobotContainer {
                     new VisionIOPhotonVision(VisionConstants.camera1Name, VisionConstants.robotToCamera1),
                     new VisionIOPhotonVision(VisionConstants.camera2Name, VisionConstants.robotToCamera2),
                     new VisionIOPhotonVision(VisionConstants.camera3Name, VisionConstants.robotToCamera3));
+                pieceVision = new PieceVision(new PieceVisionIOLimelight("limelight"));
                 arm = new Arm(new ArmIOReal());
                 climber = new Climber(new ClimberIOReal());
                 intake = new Intake(new IntakeIOReal());
@@ -117,10 +122,10 @@ public class RobotContainer {
                         driveSimulation::getSimulatedDriveTrainPose),
                     new VisionIOPhotonVisionSim(VisionConstants.camera3Name, VisionConstants.robotToCamera3,
                         driveSimulation::getSimulatedDriveTrainPose));
+                pieceVision = new PieceVision(new PieceVisionIOSim());
                 arm = new Arm(new ArmIOSim());
                 climber = new Climber(new ClimberIOSim());
-                intake = new Intake(new IntakeIO() {
-                }); // TODO
+                intake = new Intake(new IntakeIOSim(driveSimulation));
 
                 leds = new LEDs(new LEDIOSim());
                 break;
@@ -146,6 +151,9 @@ public class RobotContainer {
                 }, new VisionIO() {
                     /** Replayed robot doesn't have IO */
                 }, new VisionIO() {
+                    /** Replayed robot doesn't have IO */
+                });
+                pieceVision = new PieceVision(new PieceVisionIO() {
                     /** Replayed robot doesn't have IO */
                 });
                 arm = new Arm(new ArmIO() {
@@ -213,5 +221,10 @@ public class RobotContainer {
         Logger.recordOutput("FieldSimulation/RobotPosition", driveSimulation.getSimulatedDriveTrainPose());
         Logger.recordOutput("FieldSimulation/Coral", SimulatedArena.getInstance().getGamePiecesArrayByType("Coral"));
         Logger.recordOutput("FieldSimulation/Algae", SimulatedArena.getInstance().getGamePiecesArrayByType("Algae"));
+
+        if(!VisionConstants.enableVisionSimulation) {
+            drive.addVisionMeasurement(driveSimulation.getSimulatedDriveTrainPose(), Timer.getTimestamp(),
+                VecBuilder.fill(0, 0, 0));
+        }
     }
 }

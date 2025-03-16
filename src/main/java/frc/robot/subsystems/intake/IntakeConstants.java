@@ -1,5 +1,10 @@
 package frc.robot.subsystems.intake;
 
+import static edu.wpi.first.units.Units.Inches;
+
+import edu.wpi.first.math.geometry.Translation3d;
+import edu.wpi.first.math.system.plant.DCMotor;
+import edu.wpi.first.units.measure.Distance;
 import frc.robot.util.LoggedTunableSparkPID;
 import frc.robot.util.PIDConstants;
 
@@ -7,44 +12,54 @@ import frc.robot.util.PIDConstants;
  * Constants related to the intake subsystem.
  */
 public class IntakeConstants {
-    public static int intakePitchMotorId = 44;
-    public static LoggedTunableSparkPID pitchPID = new LoggedTunableSparkPID("IntakePitch") // Position
-        .addRealRobotGains(new PIDConstants(0.4, 0, 0)).addSimGains(new PIDConstants(0.5, 0, 0));
+    public static final int intakePitchMotorId = 44;
+    public static final LoggedTunableSparkPID pitchPID = new LoggedTunableSparkPID("Intake/Pitch") // Position
+        .addRealRobotGains(new PIDConstants(0.4, 0, 0)).addSimGains(new PIDConstants(10.0, 0, 0));
 
-    public static boolean pitchMotorInverted = false;
-    public static boolean pitchEncoderInverted = true;
+    public static final DCMotor intakePitchMotor = DCMotor.getNeo550(1);
 
-    public static int pitchMotorCurrentLimit = 30;
+    public static final boolean pitchMotorInverted = false;
+    public static final boolean pitchEncoderInverted = false;
 
-    public static double pitchAbsolutePositionFactor = 2 * Math.PI;
-    public static double pitchAbsoluteVelocityFactor = pitchAbsolutePositionFactor / 60.;
+    public static final int pitchMotorCurrentLimit = 30;
 
-    public static LoggedTunableSparkPID powerPID = new LoggedTunableSparkPID("IntakePower") // Velocity
+    public static final double pitchAbsolutePositionFactor = 2 * Math.PI;
+    public static final double pitchAbsoluteVelocityFactor = pitchAbsolutePositionFactor / 60.;
+
+    public static final LoggedTunableSparkPID powerPID = new LoggedTunableSparkPID("Intake/Power") // Velocity
         .addRealRobotGains(new PIDConstants(0.001, 0, 0, 1 / 6000.))
         .addSimGains(new PIDConstants(0.001, 0, 0, 1 / 6000.));
 
-    public static double powerPositionConversionFactor = 2 * Math.PI;
-    public static double powerVelocityConversionFactor = powerPositionConversionFactor / 60.;
+    public static final DCMotor intakePowerMotor = DCMotor.getNeoVortex(1);
 
-    public static boolean powerMotorInverted = false;
-    public static int powerMotorCurrentLimit = 65;
+    public static final double powerPositionConversionFactor = 2 * Math.PI;
+    public static final double powerVelocityConversionFactor = powerPositionConversionFactor / 60.;
 
-    public static double intakeZeroAngle = 0.0672255;
+    public static final boolean powerMotorInverted = false;
+    public static final int powerMotorCurrentLimit = 65;
 
-    public static int intakeDriveMotorId = 45;
+    public static final double intakeZeroAngle = 0.8223482;
 
-    public static LoggedTunableSparkPID transportPID = new LoggedTunableSparkPID("Transport") // Velocity
+    public static final int intakeDriveMotorId = 45;
+
+    public static final LoggedTunableSparkPID transportPID = new LoggedTunableSparkPID("Transport") // Velocity
         .addRealRobotGains(new PIDConstants(0.001, 0, 0, 1 / 6000.))
         .addSimGains(new PIDConstants(0.001, 0, 0, 1 / 6000.));
 
-    public static int transportDriveMotorId = 46;
-    public static int transportMotorCurrentLimit = 40;
+    public static final DCMotor transportMotor = DCMotor.getNeo550(1);
 
-    public static double transportPositionConversionFactor = 2 * Math.PI;
-    public static double transportVelocityConversionFactor = transportPositionConversionFactor / 60.;
+    public static final int transportDriveMotorId = 46;
+    public static final int transportMotorCurrentLimit = 40;
 
-    public static boolean transportMotorInverted = false;
+    public static final double transportPositionConversionFactor = 2 * Math.PI;
+    public static final double transportVelocityConversionFactor = transportPositionConversionFactor / 60.;
 
-    public static int intakeSensorDIOPort = 0;
-    public static int transportSensorDIOPort = 1;
+    public static final boolean transportMotorInverted = false;
+
+    public static final int intakeSensorDIOPort = 0;
+    public static final int transportSensorDIOPort = 1;
+
+    // For simulation
+    public static final Distance intakeLength = Inches.of(20);
+    public static final Translation3d intakeOrigin = new Translation3d(-0.229, 0.002, 0.196);
 }

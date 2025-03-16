@@ -14,7 +14,7 @@ public class IntakeCommands {
         var pitch = new Container<Rotation2d>(Rotation2d.kZero);
         return Commands.run(() -> {
             pitch.value = Rotation2d.fromDegrees(
-                pitch.value.getDegrees() - MathUtil.applyDeadband(pitchStick.getAsDouble(), 0.2) * 60 * 0.02);
+                pitch.value.getDegrees() - MathUtil.applyDeadband(pitchStick.getAsDouble(), 0.2) * 180 * 0.02);
             intake.setIntakePitch(pitch.value);
             intake.runIntakeOpenLoop(MathUtil.applyDeadband(powerStick.getAsDouble(), 0.2));
         }, intake);

@@ -11,6 +11,7 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 public class Intake extends SubsystemBase {
     private IntakeIO io;
     private IntakeIOInputsAutoLogged inputs = new IntakeIOInputsAutoLogged();
+    private IntakeVisualizer visualizer = new IntakeVisualizer("intake");
 
     public Intake(IntakeIO io) {
         this.io = io;
@@ -22,12 +23,18 @@ public class Intake extends SubsystemBase {
     }
 
     public void runIntakeOpenLoop(double power) {
-        io.runIntakeOpenLoop(power);
+        io.runVelocity(power);
+    }
+
+    public void overridePitchPower(double power) {
+        io.overridePitchPower(power);
     }
 
     @Override
     public void periodic() {
         io.updateInputs(inputs);
         Logger.processInputs("Intake", inputs);
+
+        visualizer.update(inputs.intakePitch);
     }
 }

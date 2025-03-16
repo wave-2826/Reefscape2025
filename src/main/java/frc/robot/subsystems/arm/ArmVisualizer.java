@@ -9,6 +9,7 @@ import org.littletonrobotics.junction.mechanism.LoggedMechanismLigament2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
+import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.util.Color8Bit;
@@ -35,6 +36,9 @@ public class ArmVisualizer {
             ArmConstants.ShoulderConstants.armLength.in(Meters), 0., 10.0, new Color8Bit("#0000FF")));
     }
 
+    /** A constant offset to correct for the simplified model not exactly matching the real robot model. */
+    private static double carriageOffsetMeters = Units.inchesToMeters(12.);
+
     /**
      * Updates the arm visualization.
      * @param elevatorHeightMeters The height of the elevator relative to its hardstop.
@@ -50,26 +54,28 @@ public class ArmVisualizer {
 
         // The second stage is technically ambiguous in position, but we assume that it's at the minimum height so that the
         // carriage is at the top.
-        final double outerStageHeight = Math
-            .max(elevatorHeightMeters - ArmConstants.ElevatorConstants.outerStageMaximumHeight.in(Meters), 0.0);
         final double carriageHeight = elevatorHeightMeters;
+        final double passiveStageHeight = Math
+            .max(carriageHeight + ArmConstants.ElevatorConstants.carriageHeight.in(Meters)
+                - ArmConstants.ElevatorConstants.carriageMaxHeight.in(Meters) - carriageOffsetMeters, 0.0);
 
         var elevatorOrigin = ArmConstants.ElevatorConstants.elevatorOrigin;
 
-        Pose3d armPose = new Pose3d(
-            elevatorOrigin.plus(ArmConstants.ElevatorConstants.elevatorToCarriage)
-                .plus(ArmConstants.ShoulderConstants.carriageToPivot),
-            new Rotation3d(wristRotation.getRadians(), armPitch.getRadians(), 0.0));
+        Pose3d carriagePose = new Pose3d(elevatorOrigin.plus(ArmConstants.ElevatorConstants.elevatorToCarriage)
+            .plus(new Translation3d(0.0, 0.0, carriageHeight)), new Rotation3d());
+        Pose3d armShoulderPose = carriagePose.plus(new Transform3d(ArmConstants.ShoulderConstants.carriageToShoulder,
+            new Rotation3d(0.0, Math.PI / 2 - armPitch.getRadians(), 0.0)));
+        Pose3d armWristPose = armShoulderPose.plus(new Transform3d(ArmConstants.ShoulderConstants.shoulderToWrist,
+            new Rotation3d(0.0, 0.0, wristRotation.getRadians())));
 
         Logger.recordOutput("Mechanism3d/" + name + "/Arm",
             // Outer stage    
-            new Pose3d(elevatorOrigin.plus(ArmConstants.ElevatorConstants.elevatorToOuterStage)
-                .plus(new Translation3d(outerStageHeight, new Rotation3d(0.0, 0.0, 0.0))), new Rotation3d()),
+            new Pose3d(elevatorOrigin.plus(ArmConstants.ElevatorConstants.elevatorToPassiveStage)
+                .plus(new Translation3d(0.0, 0.0, passiveStageHeight)), new Rotation3d()),
             // Inner stage (carriage)
-            new Pose3d(elevatorOrigin.plus(ArmConstants.ElevatorConstants.elevatorToCarriage)
-                .plus(new Translation3d(carriageHeight, new Rotation3d(0.0, 0.0, 0.0))), new Rotation3d()),
+            carriagePose,
             // Arm
-            armPose);
+            armShoulderPose, armWristPose);
 
         if(hasGamePiece) {
             Logger.recordOutput("Mechanism3d/" + name + "/Coral", new Pose3d()); // TODO

@@ -26,7 +26,9 @@ import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.Alert;
+import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.Alert.AlertType;
 import frc.robot.Constants;
 import frc.robot.subsystems.arm.ArmState.WristRotation;
@@ -49,8 +51,8 @@ public class ArmIOReal implements ArmIO {
     private SparkClosedLoopController armWristController;
     private SparkClosedLoopController endEffectorController;
 
-    private RelativeEncoder elevatorHeightEncoder1;
-    private RelativeEncoder elevatorHeightEncoder2;
+    protected RelativeEncoder leaderElevatorHeightEncoder;
+    private RelativeEncoder followerElevatorHeightEncoder;
     private AbsoluteEncoder armPitchEncoder;
     private AbsoluteEncoder armWristEncoder;
     private RelativeEncoder armWristRelativeEncoder;
@@ -83,7 +85,7 @@ public class ArmIOReal implements ArmIO {
      * If we have reset to absolute. If we can't immediately reset to an absolute position because we have invalid data,
      * we attempt to repeatedly until it works.
      */
-    private boolean needsToReset = true;
+    protected boolean needsToReset = true;
 
     public ArmIOReal() {
         this(null);
@@ -115,7 +117,7 @@ public class ArmIOReal implements ArmIO {
         elevatorMotorLeaderConfig.signals.apply(SparkUtil.defaultSignals).primaryEncoderPositionAlwaysOn(true)
             .primaryEncoderVelocityAlwaysOn(true).primaryEncoderPositionPeriodMs(20).primaryEncoderVelocityPeriodMs(20);
         double bottomSoftStopMarginMeters = ArmConstants.ElevatorConstants.softStopMarginBottom.in(Meters);
-        double topSoftStopMarginMeters = ArmConstants.ElevatorConstants.softStopMarginBottom.in(Meters);
+        double topSoftStopMarginMeters = ArmConstants.ElevatorConstants.softStopMarginTop.in(Meters);
         elevatorMotorLeaderConfig.softLimit.forwardSoftLimitEnabled(true).reverseSoftLimitEnabled(true)
             .forwardSoftLimit(ArmConstants.ElevatorConstants.maxElevatorHeight.in(Meters) - topSoftStopMarginMeters)
             .reverseSoftLimit(bottomSoftStopMarginMeters);
@@ -145,8 +147,9 @@ public class ArmIOReal implements ArmIO {
         armPitchConfig.absoluteEncoder
             .positionConversionFactor(ArmConstants.ShoulderConstants.pitchAbsolutePositionFactor)
             .velocityConversionFactor(ArmConstants.ShoulderConstants.pitchAbsoluteVelocityFactor)
-            .zeroOffset(ArmConstants.ShoulderConstants.pitchZeroOffset).zeroCentered(true)
-            .inverted(ArmConstants.ShoulderConstants.pitchEncoderInverted);
+            .zeroOffset(
+                Constants.currentMode == Constants.Mode.SIM ? 0 : ArmConstants.ShoulderConstants.pitchZeroOffset)
+            .zeroCentered(true).inverted(ArmConstants.ShoulderConstants.pitchEncoderInverted);
         armPitchConfig.idleMode(IdleMode.kBrake)
             .smartCurrentLimit(ArmConstants.ShoulderConstants.pitchMotorCurrentLimit)
             .voltageCompensation(Constants.voltageCompensation)
@@ -167,7 +170,9 @@ public class ArmIOReal implements ArmIO {
         armWristConfig.absoluteEncoder
             .positionConversionFactor(ArmConstants.ShoulderConstants.wristAbsolutePositionFactor)
             .velocityConversionFactor(ArmConstants.ShoulderConstants.wristAbsoluteVelocityFactor)
-            .zeroOffset(ArmConstants.ShoulderConstants.wristZeroOffset).zeroCentered(true);
+            .zeroOffset(
+                Constants.currentMode == Constants.Mode.SIM ? 0 : ArmConstants.ShoulderConstants.wristZeroOffset)
+            .zeroCentered(true);
         armWristConfig.idleMode(IdleMode.kBrake)
             .smartCurrentLimit(ArmConstants.ShoulderConstants.wristMotorCurrentLimit)
             .voltageCompensation(Constants.voltageCompensation)
@@ -214,8 +219,8 @@ public class ArmIOReal implements ArmIO {
         armWristController = armWristMotor.getClosedLoopController();
         endEffectorController = endEffectorMotor.getClosedLoopController();
 
-        elevatorHeightEncoder1 = elevatorHeightMotorLeader.getEncoder();
-        elevatorHeightEncoder2 = elevatorHeightMotorFollower.getEncoder();
+        leaderElevatorHeightEncoder = elevatorHeightMotorLeader.getEncoder();
+        followerElevatorHeightEncoder = elevatorHeightMotorFollower.getEncoder();
 
         armPitchEncoder = armPitchMotor.getAbsoluteEncoder();
         armWristEncoder = armWristMotor.getAbsoluteEncoder();
@@ -252,12 +257,12 @@ public class ArmIOReal implements ArmIO {
         ifOk(new SparkBase[] {
             elevatorHeightMotorLeader, elevatorHeightMotorFollower
         }, new DoubleSupplier[] {
-            elevatorHeightEncoder1::getPosition, elevatorHeightEncoder2::getPosition
+            leaderElevatorHeightEncoder::getPosition, followerElevatorHeightEncoder::getPosition
         }, (v) -> inputs.elevatorHeightMeters = (v[0] + v[1]) / 2.);
         ifOk(new SparkBase[] {
             elevatorHeightMotorLeader, elevatorHeightMotorFollower
         }, new DoubleSupplier[] {
-            elevatorHeightEncoder1::getVelocity, elevatorHeightEncoder2::getVelocity
+            leaderElevatorHeightEncoder::getVelocity, followerElevatorHeightEncoder::getVelocity
         }, (v) -> inputs.elevatorVelocityMetersPerSecond = (v[0] + v[1]) / 2.);
         inputs.elevatorMotorsConnected = elevatorConnectedDebouncer.calculate(!sparkStickyFault);
 
@@ -266,22 +271,23 @@ public class ArmIOReal implements ArmIO {
         inputs.absoluteHeightMeters = (float) measurement.distance_mm / 1000.;
         inputs.validAbsoluteMeasurement = measurement.status == LaserCan.LASERCAN_STATUS_VALID_MEASUREMENT;
 
-        if(needsToReset && inputs.validAbsoluteMeasurement) {
+        Logger.recordOutput("Arm/ElevatorNeedsToReset", needsToReset);
+        // For some reason, this doens't work with simulated sparks. We do this in ArmIOSim instead.
+        if(needsToReset && inputs.validAbsoluteMeasurement && Constants.currentMode != Constants.Mode.SIM) {
             // TODO: Use ifOk and only adjust once this works?
             tryUntilOk(elevatorHeightMotorLeader, 2,
-                () -> elevatorHeightEncoder1.setPosition(inputs.absoluteHeightMeters));
+                () -> leaderElevatorHeightEncoder.setPosition(inputs.absoluteHeightMeters));
             tryUntilOk(elevatorHeightMotorFollower, 2,
-                () -> elevatorHeightEncoder2.setPosition(inputs.absoluteHeightMeters));
+                () -> followerElevatorHeightEncoder.setPosition(inputs.absoluteHeightMeters));
             needsToReset = false;
         }
 
-        // measurement.status;
         laserCANNoiseIssue.set(measurement.status == LaserCan.LASERCAN_STATUS_NOISE_ISSUE);
         laserCANWeakSignal.set(measurement.status == LaserCan.LASERCAN_STATUS_WEAK_SIGNAL);
         laserCANOutOfBounds.set(measurement.status == LaserCan.LASERCAN_STATUS_OUT_OF_BOUNDS);
         laserCANWraparound.set(measurement.status == LaserCan.LASERCAN_STATUS_WRAPAROUND);
 
-        Logger.recordOutput("Elevator/AmbientLight", measurement.ambient);
+        Logger.recordOutput("Arm/ElevatorAmbientLight", measurement.ambient);
 
         // Update arm pitch motor inputs
         sparkStickyFault = false;
@@ -306,8 +312,13 @@ public class ArmIOReal implements ArmIO {
 
     @Override
     public void setElevatorHeight(double heightMeters, double feedforwardVolts) {
-        elevatorHeightController.setReference(heightMeters, ControlType.kPosition, ClosedLoopSlot.kSlot0,
-            feedforwardVolts, ArbFFUnits.kVoltage);
+        double extraMargin = Units.inchesToMeters(0.25);
+        double minValue = ArmConstants.ElevatorConstants.softStopMarginBottom.in(Meters) + extraMargin;
+        double maxValue = ArmConstants.ElevatorConstants.maxElevatorHeight.in(Meters)
+            - ArmConstants.ElevatorConstants.softStopMarginTop.in(Meters) - extraMargin;
+
+        elevatorHeightController.setReference(MathUtil.clamp(heightMeters, minValue, maxValue), ControlType.kPosition,
+            ClosedLoopSlot.kSlot0, feedforwardVolts, ArbFFUnits.kVoltage);
     }
 
     @Override
@@ -320,6 +331,22 @@ public class ArmIOReal implements ArmIO {
     public void setWristRotation(WristRotation rotation) {
         armWristController.setReference(MathUtil.angleModulus(rotation.rotation.getRadians()), ControlType.kPosition,
             ArmConstants.ShoulderConstants.armWristPositionSlot);
+    }
+
+    public void overrideHeightPower(double power, double feedforward) {
+        elevatorHeightMotorLeader.setVoltage(power * RobotController.getBatteryVoltage() + feedforward);
+    }
+
+    public void overridePitchPower(double power) {
+        armPitchMotor.set(power);
+    }
+
+    public void overrideWristPower(double power) {
+        armWristMotor.set(power);
+    }
+
+    public void overrideEndEffectorPower(double power) {
+        endEffectorMotor.set(power);
     }
 
     @Override

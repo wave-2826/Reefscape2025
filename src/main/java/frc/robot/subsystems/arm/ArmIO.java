@@ -58,6 +58,18 @@ public interface ArmIO {
     public default void setEndEffectorState(EndEffectorState mode) {
     }
 
+    public default void overrideHeightPower(double power, double feedforward) {
+    }
+
+    public default void overridePitchPower(double power) {
+    }
+
+    public default void overrideWristPower(double power) {
+    }
+
+    public default void overrideEndEffectorPower(double power) {
+    }
+
     public default void updateInputs(ArmIOInputs inputs) {
     }
 }

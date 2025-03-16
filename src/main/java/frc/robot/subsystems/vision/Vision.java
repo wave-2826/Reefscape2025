@@ -12,6 +12,7 @@ import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.Constants;
 import frc.robot.subsystems.vision.VisionIO.SingleApriltagResult;
 import frc.robot.util.LoggedTracer;
 
@@ -71,6 +72,8 @@ public class Vision extends SubsystemBase {
 
     @Override
     public void periodic() {
+        if(Constants.currentMode == Constants.Mode.SIM && !VisionConstants.enableVisionSimulation) { return; }
+
         for(int i = 0; i < io.length; i++) {
             io[i].updateInputs(inputs[i]);
             Logger.processInputs("Vision/Camera" + Integer.toString(i), inputs[i]);

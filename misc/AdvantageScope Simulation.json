@@ -1,193 +1,309 @@
 {
-    "hubs": [
-        {
-            "x": 303,
-            "y": 184,
-            "width": 1101,
-            "height": 650,
-            "state": {
-                "sidebar": {
-                    "width": 294,
-                    "expanded": [
-                        "/SmartDashboard/Field",
-                        "/SmartDashboard/field",
-                        "/AdvantageKit",
-                        "/RealOutputs",
-                        "/RealOutputs/FieldSimulation",
-                        "/RealOutputs/Odometry",
-                        "/RealOutputs/Vision",
-                        "/RealOutputs/Vision/AprilTags",
-                        "/RealOutputs/Vision/AprilTags/Filtering",
-                        "/RealOutputs/SwerveStates/Measured/0",
-                        "/RealOutputs/SwerveStates/Measured/0/angle",
-                        "/Drive/Module0",
-                        "/Drive/Module0/TurnAbsolutePosition",
-                        "/Robot",
-                        "/Robot/SwerveDrivetrain/Sim",
-                        "/Robot/SwerveDrivetrain/Sim/GroundTruthPose",
-                        "/Robot/SwerveTeleopControlCommand",
-                        "/Robot/SwerveTeleopControlCommand/CommandedSpeeds",
-                        "/Robot/SwerveDrivetrain",
-                        "/Robot/SwerveDrivetrain/State",
-                        "/Robot/SwerveDrivetrain/State/ModuleStates",
-                        "/RealOutputs/Field",
-                        "/Pose",
-                        "/RealOutputs/Vision/MeasurementErrors",
-                        "/RealOutputs/Vision/AprilTags/MeasurementErrors",
-                        "/RealOutputs/Vision/AprilTags/Results",
-                        "/RealOutputs/LoggedRobot",
-                        "/SmartDashboard",
-                        "/PathPlanner",
-                        "/SmartDashboard/SwerveDrive",
-                        "/RealOutputs/SwerveStates/Measured/1",
-                        "/RealOutputs/SwerveStates/Measured/1/angle",
-                        "/RealOutputs/SwerveStates/Measured/2",
-                        "/RealOutputs/SwerveStates/Measured/2/angle",
-                        "/RealOutputs/SwerveStates/Measured/3",
-                        "/RealOutputs/SwerveStates/Measured/3/angle",
-                        "/RealOutputs/SwerveStates",
-                        "/RealOutputs/Odometry/Robot",
-                        "/RealOutputs/SwerveStates/Measured"
-                    ]
+  "hubs": [
+    {
+      "x": -1544,
+      "y": -8,
+      "width": 1552,
+      "height": 840,
+      "state": {
+        "sidebar": {
+          "width": 344,
+          "expanded": [
+            "NT:/AdvantageKit/SmartDashboard/Field",
+            "NT:/AdvantageKit/SmartDashboard/field",
+            "NT:/AdvantageKitNT:/AdvantageKit",
+            "NT:/AdvantageKit/RealOutputs",
+            "NT:/AdvantageKit/RealOutputs/FieldSimulation",
+            "NT:/AdvantageKit/RealOutputs/Odometry",
+            "NT:/AdvantageKit/RealOutputs/Vision",
+            "NT:/AdvantageKit/RealOutputs/Vision/AprilTags",
+            "NT:/AdvantageKit/RealOutputs/Vision/AprilTags/Filtering",
+            "NT:/AdvantageKit/RealOutputs/SwerveStates/Measured/0",
+            "NT:/AdvantageKit/RealOutputs/SwerveStates/Measured/0/angle",
+            "NT:/AdvantageKit/Drive/Module0",
+            "NT:/AdvantageKit/Drive/Module0/TurnAbsolutePosition",
+            "NT:/AdvantageKit/Robot",
+            "NT:/AdvantageKit/Robot/SwerveDrivetrain/Sim",
+            "NT:/AdvantageKit/Robot/SwerveDrivetrain/Sim/GroundTruthPose",
+            "NT:/AdvantageKit/Robot/SwerveTeleopControlCommand",
+            "NT:/AdvantageKit/Robot/SwerveTeleopControlCommand/CommandedSpeeds",
+            "NT:/AdvantageKit/Robot/SwerveDrivetrain",
+            "NT:/AdvantageKit/Robot/SwerveDrivetrain/State",
+            "NT:/AdvantageKit/Robot/SwerveDrivetrain/State/ModuleStates",
+            "NT:/AdvantageKit/RealOutputs/Field",
+            "NT:/AdvantageKit/Pose",
+            "NT:/AdvantageKit/RealOutputs/Vision/MeasurementErrors",
+            "NT:/AdvantageKit/RealOutputs/Vision/AprilTags/MeasurementErrors",
+            "NT:/AdvantageKit/RealOutputs/Vision/AprilTags/Results",
+            "NT:/AdvantageKit/RealOutputs/LoggedRobot",
+            "NT:/AdvantageKit/SmartDashboard",
+            "NT:/AdvantageKit/PathPlanner",
+            "NT:/AdvantageKit/SmartDashboard/SwerveDrive",
+            "NT:/AdvantageKit/RealOutputs/SwerveStates/Measured/1",
+            "NT:/AdvantageKit/RealOutputs/SwerveStates/Measured/1/angle",
+            "NT:/AdvantageKit/RealOutputs/SwerveStates/Measured/2",
+            "NT:/AdvantageKit/RealOutputs/SwerveStates/Measured/2/angle",
+            "NT:/AdvantageKit/RealOutputs/SwerveStates/Measured/3",
+            "NT:/AdvantageKit/RealOutputs/SwerveStates/Measured/3/angle",
+            "NT:/AdvantageKit/RealOutputs/SwerveStates",
+            "NT:/AdvantageKit/RealOutputs/Odometry/Robot",
+            "NT:/AdvantageKit/RealOutputs/SwerveStates/Measured",
+            "/AdvantageKit",
+            "/AdvantageKit/RealOutputs/Mechanism3d/climber",
+            "/AdvantageKit/RealOutputs/Mechanism3d/arm",
+            "/AdvantageKit/RealOutputs/Mechanism3d/arm/Arm",
+            "/AdvantageKit/RealOutputs/Mechanism3d/intake",
+            "/AdvantageKit/RealOutputs",
+            "/AdvantageKit/RealOutputs/Elevator",
+            "/AdvantageKit/RealOutputs/Arm",
+            "/AdvantageKit/Arm",
+            "/AdvantageKit/RealOutputs/AutoScore",
+            "/AdvantageKit/RealOutputs/FieldSimulation"
+          ]
+        },
+        "tabs": {
+          "selected": 1,
+          "tabs": [
+            {
+              "type": 0,
+              "title": "",
+              "controller": null,
+              "controllerUUID": "yq3yn60elpo6599mgcl2zblor1vbvqkd",
+              "renderer": "#/",
+              "controlsHeight": 0
+            },
+            {
+              "type": 3,
+              "title": "3D Field",
+              "controller": {
+                "sources": [
+                  {
+                    "type": "ghost",
+                    "logKey": "NT:/AdvantageKit/RealOutputs/Odometry/Robot",
+                    "logType": "Pose2d",
+                    "visible": true,
+                    "options": {
+                      "model": "Wave2025",
+                      "color": "#00ff00"
+                    }
+                  },
+                  {
+                    "type": "robot",
+                    "logKey": "NT:/AdvantageKit/RealOutputs/FieldSimulation/RobotPosition",
+                    "logType": "Pose2d",
+                    "visible": true,
+                    "options": {
+                      "model": "Wave2025"
+                    }
+                  },
+                  {
+                    "type": "swerveStates",
+                    "logKey": "NT:/AdvantageKit/RealOutputs/SwerveStates/Setpoints",
+                    "logType": "SwerveModuleState[]",
+                    "visible": true,
+                    "options": {
+                      "color": "#00ff00",
+                      "arrangement": "0,1,2,3"
+                    }
+                  },
+                  {
+                    "type": "swerveStates",
+                    "logKey": "NT:/AdvantageKit/RealOutputs/SwerveStates/Measured",
+                    "logType": "SwerveModuleState[]",
+                    "visible": true,
+                    "options": {
+                      "color": "#ff8c00",
+                      "arrangement": "0,1,2,3"
+                    }
+                  },
+                  {
+                    "type": "component",
+                    "logKey": "NT:/AdvantageKit/RealOutputs/Mechanism3d/intake/Intake",
+                    "logType": "Pose3d",
+                    "visible": true,
+                    "options": {}
+                  },
+                  {
+                    "type": "component",
+                    "logKey": "NT:/AdvantageKit/RealOutputs/Mechanism3d/climber/Climber",
+                    "logType": "Pose3d",
+                    "visible": true,
+                    "options": {}
+                  },
+                  {
+                    "type": "component",
+                    "logKey": "NT:/AdvantageKit/RealOutputs/Mechanism3d/arm/Arm/0",
+                    "logType": "Pose3d",
+                    "visible": true,
+                    "options": {}
+                  },
+                  {
+                    "type": "component",
+                    "logKey": "NT:/AdvantageKit/RealOutputs/Mechanism3d/arm/Arm/1",
+                    "logType": "Pose3d",
+                    "visible": true,
+                    "options": {}
+                  },
+                  {
+                    "type": "component",
+                    "logKey": "NT:/AdvantageKit/RealOutputs/Mechanism3d/arm/Arm/2",
+                    "logType": "Pose3d",
+                    "visible": true,
+                    "options": {}
+                  },
+                  {
+                    "type": "component",
+                    "logKey": "NT:/AdvantageKit/RealOutputs/Mechanism3d/arm/Arm/3",
+                    "logType": "Pose3d",
+                    "visible": true,
+                    "options": {}
+                  },
+                  {
+                    "type": "ghost",
+                    "logKey": "NT:/AdvantageKit/RealOutputs/AutoScore/InitialLineupPose",
+                    "logType": "Pose2d",
+                    "visible": true,
+                    "options": {
+                      "model": "Wave2025",
+                      "color": "#0000ff"
+                    }
+                  },
+                  {
+                    "type": "gamePiece",
+                    "logKey": "NT:/AdvantageKit/RealOutputs/FieldSimulation/Algae",
+                    "logType": "Pose3d[]",
+                    "visible": true,
+                    "options": {
+                      "variant": "Algae"
+                    }
+                  },
+                  {
+                    "type": "gamePiece",
+                    "logKey": "NT:/AdvantageKit/RealOutputs/FieldSimulation/Coral",
+                    "logType": "Pose3d[]",
+                    "visible": true,
+                    "options": {
+                      "variant": "Coral"
+                    }
+                  }
+                ],
+                "game": "2025 Field (Welded)",
+                "origin": "blue"
+              },
+              "controllerUUID": "9p30xnq3grwk3msk2y4y54whg8n1qz7x",
+              "renderer": {
+                "cameraIndex": -1,
+                "orbitFov": 50,
+                "cameraPosition": [
+                  7.424661173287336,
+                  4.820752558182416,
+                  -5.900970768194372
+                ],
+                "cameraTarget": [
+                  4.1305409841806995,
+                  -1.6345598227864424,
+                  0.5256838137722653
+                ]
+              },
+              "controlsHeight": 200
+            },
+            {
+              "type": 1,
+              "title": "Line Graph",
+              "controller": {
+                "leftSources": [
+                  {
+                    "type": "stepped",
+                    "logKey": "NT:/AdvantageKit/Arm/AbsoluteHeightMeters",
+                    "logType": "Number",
+                    "visible": true,
+                    "options": {
+                      "color": "#2b66a2",
+                      "size": "normal"
+                    }
+                  }
+                ],
+                "rightSources": [],
+                "discreteSources": [],
+                "leftLockedRange": null,
+                "rightLockedRange": null,
+                "leftUnitConversion": {
+                  "type": null,
+                  "factor": 1
                 },
-                "tabs": {
-                    "selected": 1,
-                    "tabs": [
-                        {
-                            "type": 0,
-                            "title": "",
-                            "controller": null,
-                            "controllerUUID": "yq3yn60elpo6599mgcl2zblor1vbvqkd",
-                            "renderer": "#/",
-                            "controlsHeight": 0
-                        },
-                        {
-                            "type": 3,
-                            "title": "3D Field",
-                            "controller": {
-                                "sources": [
-                                    {
-                                        "type": "ghost",
-                                        "logKey": "/RealOutputs/Odometry/Robot",
-                                        "logType": "Pose2d",
-                                        "visible": true,
-                                        "options": {
-                                            "model": "Crab Bot",
-                                            "color": "#00ff00"
-                                        }
-                                    },
-                                    {
-                                        "type": "robot",
-                                        "logKey": "/RealOutputs/FieldSimulation/RobotPosition",
-                                        "logType": "Pose2d",
-                                        "visible": true,
-                                        "options": {
-                                            "model": "Crab Bot"
-                                        }
-                                    },
-                                    {
-                                        "type": "swerveStates",
-                                        "logKey": "/RealOutputs/SwerveStates/Setpoints",
-                                        "logType": "SwerveModuleState[]",
-                                        "visible": true,
-                                        "options": {
-                                            "color": "#00ff00",
-                                            "arrangement": "0,1,2,3"
-                                        }
-                                    },
-                                    {
-                                        "type": "swerveStates",
-                                        "logKey": "/RealOutputs/SwerveStates/Measured",
-                                        "logType": "SwerveModuleState[]",
-                                        "visible": true,
-                                        "options": {
-                                            "color": "#ff8c00",
-                                            "arrangement": "0,1,2,3"
-                                        }
-                                    }
-                                ],
-                                "game": "2024 Field",
-                                "origin": "blue"
-                            },
-                            "controllerUUID": "9p30xnq3grwk3msk2y4y54whg8n1qz7x",
-                            "renderer": {
-                                "cameraIndex": -1,
-                                "orbitFov": 50,
-                                "cameraPosition": [
-                                    1.7313564491338231,
-                                    5.968403479160117,
-                                    -10.365530546036977
-                                ],
-                                "cameraTarget": [
-                                    3.4044435760286507,
-                                    -1.5105765402205444,
-                                    0.3822893203493872
-                                ]
-                            },
-                            "controlsHeight": 200
-                        },
-                        {
-                            "type": 9,
-                            "title": "Swerve",
-                            "controller": {
-                                "sources": [
-                                    {
-                                        "type": "states",
-                                        "logKey": "/RealOutputs/SwerveStates/Measured",
-                                        "logType": "SwerveModuleState[]",
-                                        "visible": true,
-                                        "options": {
-                                            "color": "#ff0000",
-                                            "arrangement": "0,1,2,3"
-                                        }
-                                    },
-                                    {
-                                        "type": "states",
-                                        "logKey": "/RealOutputs/SwerveStates/Setpoints",
-                                        "logType": "SwerveModuleState[]",
-                                        "visible": true,
-                                        "options": {
-                                            "color": "#0000ff",
-                                            "arrangement": "0,1,2,3"
-                                        }
-                                    },
-                                    {
-                                        "type": "rotation",
-                                        "logKey": "/RealOutputs/Odometry/Robot/rotation",
-                                        "logType": "Rotation2d",
-                                        "visible": true,
-                                        "options": {}
-                                    }
-                                ],
-                                "maxSpeed": 5,
-                                "sizeX": 0.65,
-                                "sizeY": 0.65,
-                                "orientation": 1
-                            },
-                            "controllerUUID": "cmc14v22quwz2mrzq00id113vvoyy7id",
-                            "renderer": null,
-                            "controlsHeight": 200
-                        },
-                        {
-                            "type": 8,
-                            "title": "Joysticks",
-                            "controller": [
-                                "Xbox Controller (White)",
-                                "None",
-                                "None",
-                                "None",
-                                "None",
-                                "None"
-                            ],
-                            "controllerUUID": "1mu7lxp5m9rejv61d0z96e8ltd6p7xmi",
-                            "renderer": null,
-                            "controlsHeight": 85
-                        }
-                    ]
-                }
+                "rightUnitConversion": {
+                  "type": null,
+                  "factor": 1
+                },
+                "leftFilter": 0,
+                "rightFilter": 0
+              },
+              "controllerUUID": "91ad3pmc6qup098qq6o1k0k94qxmmty9",
+              "renderer": null,
+              "controlsHeight": 200
+            },
+            {
+              "type": 9,
+              "title": "Swerve",
+              "controller": {
+                "sources": [
+                  {
+                    "type": "states",
+                    "logKey": "NT:/AdvantageKit/RealOutputs/SwerveStates/Measured",
+                    "logType": "SwerveModuleState[]",
+                    "visible": true,
+                    "options": {
+                      "color": "#ff0000",
+                      "arrangement": "0,1,2,3"
+                    }
+                  },
+                  {
+                    "type": "states",
+                    "logKey": "NT:/AdvantageKit/RealOutputs/SwerveStates/Setpoints",
+                    "logType": "SwerveModuleState[]",
+                    "visible": true,
+                    "options": {
+                      "color": "#0000ff",
+                      "arrangement": "0,1,2,3"
+                    }
+                  },
+                  {
+                    "type": "rotation",
+                    "logKey": "NT:/AdvantageKit/RealOutputs/Odometry/Robot/rotation",
+                    "logType": "Rotation2d",
+                    "visible": true,
+                    "options": {}
+                  }
+                ],
+                "maxSpeed": 5,
+                "sizeX": 0.65,
+                "sizeY": 0.65,
+                "orientation": 1
+              },
+              "controllerUUID": "cmc14v22quwz2mrzq00id113vvoyy7id",
+              "renderer": null,
+              "controlsHeight": 200
+            },
+            {
+              "type": 8,
+              "title": "Joysticks",
+              "controller": [
+                "Xbox Controller (White)",
+                "None",
+                "None",
+                "None",
+                "None",
+                "None"
+              ],
+              "controllerUUID": "1mu7lxp5m9rejv61d0z96e8ltd6p7xmi",
+              "renderer": null,
+              "controlsHeight": 85
             }
+          ]
         }
-    ],
-    "satellites": [],
-    "version": "4.0.0-beta-3"
+      }
+    }
+  ],
+  "satellites": [],
+  "version": "4.1.2"
 }
