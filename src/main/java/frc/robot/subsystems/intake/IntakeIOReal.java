@@ -53,6 +53,7 @@ public class IntakeIOReal implements IntakeIO {
         pitchConfig.signals.apply(SparkUtil.defaultSignals) //
             .primaryEncoderPositionAlwaysOn(false).primaryEncoderVelocityAlwaysOn(false)
             .absoluteEncoderPositionAlwaysOn(true).absoluteEncoderPositionPeriodMs(20);
+        pitchConfig.closedLoopRampRate(0.2);
 
         tryUntilOk(pitchMotor, 5,
             () -> pitchMotor.configure(pitchConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters));

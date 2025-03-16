@@ -28,7 +28,7 @@ public class PieceVisionIOLimelight implements PieceVisionIO {
     private final DoubleArraySubscriber rawDetectionSubscriber;
     /**
      * A value that dictates how many frames will be skipped between processed frames. This reduces the temperature rise
-     * of the Limelight, so we set it to 200 while the robot is disabled.
+     * of the Limelight, so we set it to 20 while the robot is disabled.
      */
     private final IntegerPublisher throttleSetPublisher;
     /**
@@ -55,7 +55,7 @@ public class PieceVisionIOLimelight implements PieceVisionIO {
 
     @Override
     public void setEnabled(boolean enabled) {
-        throttleSetPublisher.set(enabled ? 0 : 200);
+        throttleSetPublisher.set(enabled ? 0 : 20);
     }
 
     @Override

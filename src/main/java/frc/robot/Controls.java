@@ -20,7 +20,6 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.commands.AutoScoreCommands;
 import frc.robot.commands.climber.ClimbCommands;
 import frc.robot.commands.drive.DriveCommands;
-import frc.robot.commands.intake.IntakeCommands;
 import frc.robot.subsystems.arm.Arm;
 import frc.robot.subsystems.arm.ArmConstants;
 import frc.robot.subsystems.arm.ArmState;
@@ -45,6 +44,10 @@ public class Controls {
     private final LoggedTunableNumber endgameAlert1Time = new LoggedTunableNumber("Controls/EndgameAlert1Time", 30.0);
     private final LoggedTunableNumber endgameAlert2Time = new LoggedTunableNumber("Controls/EndgameAlert2Time", 15.0);
 
+    private final Trigger normalOperator;
+    private final Trigger operatorOverride;
+    private boolean isInOverrideMode = false;
+
     private static final Controls instance = new Controls();
 
     public static Controls getInstance() {
@@ -53,6 +56,8 @@ public class Controls {
 
     private Controls() {
         // This is a singleton
+        normalOperator = new Trigger(() -> !isInOverrideMode);
+        operatorOverride = new Trigger(() -> isInOverrideMode);
     }
 
     /** Configures the controls. */
@@ -78,14 +83,15 @@ public class Controls {
 
         driver.start().onTrue(Commands.runOnce(resetGyro, drive).ignoringDisable(true));
 
-        RobotModeTriggers.teleop().onTrue(ClimbCommands.resetClimbPosition());
-        operator.start().whileTrue(ClimbCommands.climbCommand(climber, operator::getRightY));
+        // Normal operator controls
+        operator.start().and(normalOperator).whileTrue(ClimbCommands.climbCommand(climber, operator::getRightY));
 
+        // Temporary manual override mode
         Container<Double> height = new Container<Double>(0.525);
         Container<Double> pitch = new Container<Double>(0.0);
         Container<Boolean> horizontal = new Container<Boolean>(false);
-        operator.povLeft().onTrue(Commands.runOnce(() -> horizontal.value = !horizontal.value));
-        operator.a().toggleOnTrue(arm.setTargetStateCommand(() -> {
+        operator.povLeft().and(normalOperator).onTrue(Commands.runOnce(() -> horizontal.value = !horizontal.value));
+        operator.a().and(normalOperator).toggleOnTrue(arm.setTargetStateCommand(() -> {
             boolean controllingHeight = operator.leftBumper().getAsBoolean();
             double eeSpeed = MathUtil.applyDeadband(controllingHeight ? 0. : operator.getLeftY(), 0.15) * -200.; // Rad/sec
             EndEffectorState endEffectorState = eeSpeed == 0.0 ? EndEffectorState.hold()
@@ -98,37 +104,65 @@ public class Controls {
                 horizontal.value ? WristRotation.Horizontal : WristRotation.Vertical, endEffectorState);
         }));
 
-        operator.x().whileTrue(IntakeCommands.intakeCommand(intake, operator::getLeftY, operator::getRightY));
+        operator.rightBumper().and(normalOperator).whileTrue(Commands.startEnd(() -> {
+            intake.setIntakePitch(Rotation2d.kZero);
+            intake.runIntakeOpenLoop(1.0);
+        }, () -> {
+            intake.setIntakePitch(Rotation2d.fromDegrees(80));
+            intake.runIntakeOpenLoop(0.0);
+        }));
 
-        operator.b().onTrue(arm.goToStateCommand(ArmConstants.restingState));
+        operator.b().and(normalOperator).onTrue(arm.goToStateCommand(ArmConstants.restingState));
 
-        operator.rightBumper()
+        operator.leftBumper().and(normalOperator)
             .onTrue(arm.goToStateCommand(new ArmState(Rotation2d.fromDegrees(30), Inches.of(20),
                 WristRotation.Horizontal, EndEffectorState.velocity(-6))))
             .onFalse(arm.goToStateCommand(ArmConstants.restingState));
 
-        operator.back().onTrue(Commands.runOnce(arm::resetToAbsolute));
-        operator.back().and(operator.start()).toggleOnTrue(operatorOverrideControls(arm, intake, climber));
+        operator.back().and(normalOperator).onTrue(Commands.runOnce(arm::resetToAbsolute));
 
+        // Override mode enable
+        operator.back().and(operator.start()).toggleOnTrue(Commands.startEnd(() -> {
+            isInOverrideMode = true;
+        }, () -> {
+            isInOverrideMode = false;
+        }).alongWith(controllerRumbleWhileRunning(false, true, RumbleType.kLeftRumble)));
+
+        // Override operator controls
+        var intakeOverride = operator.b().and(operatorOverride);
+        var climberOverride = operator.y().and(operatorOverride);
+        intakeOverride.whileTrue(Commands.run(() -> {
+            intake.overridePitchPower(MathUtil.applyDeadband(operator.getRightY(), 0.2));
+            intake.runIntakeOpenLoop(MathUtil.applyDeadband(operator.getLeftY(), 0.2) * 0.4);
+        }, intake));
+        climberOverride.whileTrue(Commands.run(() -> {
+            climber.runClimberOpenLoop(MathUtil.applyDeadband(operator.getLeftY(), 0.2));
+        }, climber));
+
+        normalOperator.or(intakeOverride).or(climberOverride).whileFalse(Commands.run(() -> {
+            // Arm control mode
+            arm.overrideHeightPower(-MathUtil.applyDeadband(operator.getLeftY(), 0.2) * 0.3);
+            arm.overridePitchPower(-MathUtil.applyDeadband(operator.getRightY(), 0.2) * 0.3);
+
+            if(operator.leftBumper().getAsBoolean()) {
+                arm.overrideWristPower(-0.1);
+            } else if(operator.rightBumper().getAsBoolean()) {
+                arm.overrideWristPower(0.1);
+            } else {
+                arm.overrideWristPower(0.0);
+            }
+
+            arm.overrideEndEffectorPower(
+                MathUtil.applyDeadband(operator.getLeftTriggerAxis() - operator.getRightTriggerAxis(), 0.2) * 0.4);
+        }, arm));
+
+        // Simulation-specific controls
         if(Constants.currentMode == Constants.Mode.SIM) {
             // TODO
-            // L4 placement
-            // operator.y()
-            //     .onTrue(Commands.runOnce(() -> SimulatedArena.getInstance()
-            //         .addGamePieceProjectile(new ReefscapeCoralOnFly(
-            //             driveSimulation.getSimulatedDriveTrainPose().getTranslation(), new Translation2d(0.4, 0),
-            //             driveSimulation.getDriveTrainSimulatedChassisSpeedsFieldRelative(),
-            //             driveSimulation.getSimulatedDriveTrainPose().getRotation(), Meters.of(2),
-            //             MetersPerSecond.of(1.5), Degrees.of(-80)))));
-            // // L3 placement
-            // operator.b()
-            //     .onTrue(Commands.runOnce(() -> SimulatedArena.getInstance()
-            //         .addGamePieceProjectile(new ReefscapeCoralOnFly(
-            //             driveSimulation.getSimulatedDriveTrainPose().getTranslation(), new Translation2d(0.4, 0),
-            //             driveSimulation.getDriveTrainSimulatedChassisSpeedsFieldRelative(),
-            //             driveSimulation.getSimulatedDriveTrainPose().getRotation(), Meters.of(1.35),
-            //             MetersPerSecond.of(1.5), Degrees.of(-60)))));
         }
+
+        // Automatic mode actions
+        RobotModeTriggers.teleop().onTrue(ClimbCommands.resetClimbPosition());
 
         // Endgame Alerts
         Trigger endgameAlert1Trigger = new Trigger(() -> DriverStation.isTeleopEnabled()
@@ -139,33 +173,6 @@ public class Controls {
         endgameAlert1Trigger.onTrue(controllerRumbleWhileRunning(true, false, RumbleType.kLeftRumble).withTimeout(0.5));
         endgameAlert2Trigger.onTrue(controllerRumbleWhileRunning(true, false, RumbleType.kLeftRumble).withTimeout(0.2)
             .andThen(Commands.waitSeconds(0.1)).repeatedly().withTimeout(0.9)); // Rumble three times
-    }
-
-    private Command operatorOverrideControls(Arm arm, Intake intake, Climber climber) {
-        return Commands.run(() -> {
-            boolean intakeControlMode = operator.b().getAsBoolean();
-            boolean climbControlMode = operator.y().getAsBoolean();
-
-            if(intakeControlMode) {
-                intake.overridePitchPower(MathUtil.applyDeadband(operator.getRightY(), 0.2));
-                intake.runIntakeOpenLoop(MathUtil.applyDeadband(operator.getLeftY(), 0.2) * 0.4);
-            } else if(climbControlMode) {
-                climber.runClimberOpenLoop(MathUtil.applyDeadband(operator.getLeftY(), 0.2));
-            } else {
-                // Arm control mode
-                arm.overrideHeightPower(MathUtil.applyDeadband(operator.getLeftY(), 0.2) * 0.3);
-                arm.overridePitchPower(MathUtil.applyDeadband(operator.getRightY(), 0.2) * 0.3);
-
-                if(operator.leftBumper().getAsBoolean()) {
-                    arm.overrideWristPower(-0.1);
-                } else if(operator.rightBumper().getAsBoolean()) {
-                    arm.overrideWristPower(0.1);
-                }
-
-                arm.overrideEndEffectorPower(
-                    MathUtil.applyDeadband(operator.getLeftTriggerAxis() - operator.getRightTriggerAxis(), 0.2) * 0.4);
-            }
-        }, arm, intake, climber).alongWith(controllerRumbleWhileRunning(false, true, RumbleType.kLeftRumble));
     }
 
     private double operatorOverrideRumbleLeft = 0.0;

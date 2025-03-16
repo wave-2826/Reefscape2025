@@ -14,14 +14,14 @@ import frc.robot.util.PIDConstants;
 public class IntakeConstants {
     public static final int intakePitchMotorId = 44;
     public static final LoggedTunableSparkPID pitchPID = new LoggedTunableSparkPID("Intake/Pitch") // Position
-        .addRealRobotGains(new PIDConstants(0.4, 0, 0)).addSimGains(new PIDConstants(10.0, 0, 0));
+        .addRealRobotGains(new PIDConstants(0.5, 0, 0.4)).addSimGains(new PIDConstants(10.0, 0, 0));
 
     public static final DCMotor intakePitchMotor = DCMotor.getNeo550(1);
 
-    public static final boolean pitchMotorInverted = false;
+    public static final boolean pitchMotorInverted = true;
     public static final boolean pitchEncoderInverted = false;
 
-    public static final int pitchMotorCurrentLimit = 30;
+    public static final int pitchMotorCurrentLimit = 35;
 
     public static final double pitchAbsolutePositionFactor = 2 * Math.PI;
     public static final double pitchAbsoluteVelocityFactor = pitchAbsolutePositionFactor / 60.;

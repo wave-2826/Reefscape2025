@@ -1,6 +1,7 @@
 package frc.robot.subsystems.pieceVision;
 
 import edu.wpi.first.wpilibj.Alert;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
@@ -14,17 +15,22 @@ public class PieceVision extends SubsystemBase {
     private final Alert disconnectedAlert = new Alert("Piece vision camera disconnected!", Alert.AlertType.kError);
     private final PieceVisionIO io;
     private final PieceVisionIOInputsAutoLogged inputs = new PieceVisionIOInputsAutoLogged();
+    private boolean wasDisabled = false;
 
     public PieceVision(PieceVisionIO io) {
         this.io = io;
 
         io.setEnabled(false);
-        RobotModeTriggers.disabled().onFalse(Commands.runOnce(() -> io.setEnabled(false)))
-            .onTrue(Commands.runOnce(() -> io.setEnabled(true)));
     }
 
     @Override
     public void periodic() {
+        boolean isDisabled = DriverStation.isDisabled();
+        if(isDisabled != wasDisabled) {
+            io.setEnabled(!isDisabled);
+            wasDisabled = isDisabled;
+        }
+
         io.updateInputs(inputs);
 
         disconnectedAlert.set(!inputs.connected);
