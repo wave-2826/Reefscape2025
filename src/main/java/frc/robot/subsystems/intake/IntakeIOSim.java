@@ -120,12 +120,15 @@ public class IntakeIOSim extends IntakeIOReal {
         transportDIOSim
             .setValue(simulatedCoralPosition != null && simulatedCoralPosition > 0.6 && simulatedCoralPosition < 0.9);
 
-        double transportLength = Units.inchesToMeters(25);
-        simulatedCoralPosition += powerSim.getAngularVelocityRadPerSec() * Units.inchesToMeters(3.) * 0.9
-            / transportLength;
-        if(simulatedCoralPosition > 1) {
-            simulatedCoralPosition = 1.;
+        if(simulatedCoralPosition != null) {
+            double transportLength = Units.inchesToMeters(25);
+            simulatedCoralPosition += powerSim.getAngularVelocityRadPerSec() * Units.inchesToMeters(3.) * 0.9
+                / transportLength;
+            if(simulatedCoralPosition > 1) {
+                simulatedCoralPosition = 1.;
+            }
         }
+        // TODO: Visualize simulated coral position
 
         if(intakeSimulation.obtainGamePieceFromIntake()) {
             simulatedCoralPosition = 0.;

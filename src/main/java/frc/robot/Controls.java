@@ -6,6 +6,7 @@ import static edu.wpi.first.units.Units.Meters;
 import org.ironmaple.simulation.drivesims.SwerveDriveSimulation;
 
 import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.filter.Debouncer.DebounceType;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.Alert;
@@ -34,6 +35,8 @@ import frc.robot.util.Container;
 import frc.robot.util.LoggedTunableNumber;
 
 public class Controls {
+    private static final double debounceTime = Constants.currentMode == Constants.Mode.SIM ? 0.15 : 0;
+
     private final Alert driverDisconnectedAlert = new Alert("Driver controller disconnected (port 0)",
         AlertType.kWarning);
     private final Alert operatorDisconnectedAlert = new Alert("Operator controller disconnected (port 1)",
@@ -74,8 +77,8 @@ public class Controls {
         // Switch to X pattern when X button is pressed
         driver.x().onTrue(Commands.runOnce(drive::stopWithX, drive));
 
-        driver.b().whileTrue(AutoScoreCommands.autoScoreStartCommand(drive, vision, arm, driver.rightBumper(),
-            driver::getLeftX, driver::getLeftY));
+        driver.b().debounce(Controls.debounceTime, DebounceType.kFalling).whileTrue(AutoScoreCommands
+            .autoScoreStartCommand(drive, vision, arm, driver.rightBumper(), driver::getLeftX, driver::getLeftY));
 
         // Reset gyro or odometry if in simulation
         final Runnable resetGyro = Constants.currentMode == Constants.Mode.SIM
