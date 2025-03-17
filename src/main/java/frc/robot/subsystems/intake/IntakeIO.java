@@ -7,8 +7,12 @@ import edu.wpi.first.math.geometry.Rotation2d;
 public interface IntakeIO {
     @AutoLog
     public static class IntakeIOInputs {
-        boolean intakeSensorTriggered = false;
-        boolean transortSensorTriggered = false;
+        public boolean intakeSensorTriggered = false;
+        public boolean transortSensorTriggered = false;
+        /** The pitch of the intake. 0 degrees is straight outward. */
+        public Rotation2d intakePitch = Rotation2d.kZero;
+        /** The speed of the intake wheels, in radians per second. */
+        public double intakeWheelSpeed = 0;
     }
 
     public default void updateInputs(IntakeIOInputs inputs) {
@@ -17,6 +21,12 @@ public interface IntakeIO {
     public default void setIntakePitch(Rotation2d pitch) {
     }
 
-    public default void runIntakeOpenLoop(double power) {
+    public default void setIntakeCoast() {
+    }
+
+    public default void runVelocity(double intakePower, double transportPower) {
+    }
+
+    public default void overridePitchPower(double power) {
     }
 }

@@ -19,7 +19,13 @@ import frc.robot.util.GearRatios.UltraPlanetaryRatio;
  */
 public class ArmConstants {
     /** The state that the arm rests in while waiting for a game piece. */
-    public static final ArmState restingState = new ArmState(Rotation2d.fromDegrees(-90), Inches.of(19),
+    public static final ArmState restingState = new ArmState(Rotation2d.fromDegrees(-90), Inches.of(18.5),
+        WristRotation.Horizontal, EndEffectorState.hold());
+    /** The state the arm is in when getting a piece. */
+    public static final ArmState getPieceState = new ArmState(Rotation2d.fromDegrees(-90), Inches.of(15.0),
+        WristRotation.Horizontal, EndEffectorState.velocity(-5));
+    /** The state used during intaking to make sure the passive stage clears the transport. */
+    public static final ArmState intakeClearanceState = new ArmState(Rotation2d.fromDegrees(-90), Inches.of(30.0),
         WristRotation.Horizontal, EndEffectorState.hold());
 
     public class ElevatorConstants {
@@ -29,11 +35,12 @@ public class ArmConstants {
 
         // PID constants for the elevator position PID
         public static final LoggedTunableSparkPID elevatorPID = new LoggedTunableSparkPID("Arm/Elevator")
-            .addRealRobotGains(new PIDConstants(7.0, 0.0, 7.0)).addSimGains(new PIDConstants(10.0, 0.0, 8.0));
+            .addRealRobotGains(new PIDConstants(7.0, 0.0, 7.0)).addSimGains(new PIDConstants(100.0, 0.0, 0.0));
 
         // Feedforward constants for the elevator
         /** The gravity gain in volts. */
-        public static final double elevatorKg = 0.3;
+        public static final double elevatorKgReal = 0.3;
+        public static final double elevatorKgSim = 0.3;
 
         public static final int elevatorMotorCurrentLimit = 45;
         public static final boolean elevatorMotorInverted = true;
@@ -56,6 +63,10 @@ public class ArmConstants {
          */
         public final static Distance carriageMaxHeight = Inches.of(26.);
         /**
+         * The height of the carriage.
+         */
+        public final static Distance carriageHeight = Inches.of(14.);
+        /**
          * The maximum elevator height.
          */
         public static final Distance maxElevatorHeight = outerStageMaximumHeight.plus(carriageMaxHeight);
@@ -67,7 +78,7 @@ public class ArmConstants {
         /**
          * The margin on the elevator top soft stop.
          */
-        public static final Distance softStopMarginTop = Inches.of(2.5);
+        public static final Distance softStopMarginTop = Inches.of(3.5);
 
         /**
          * The translation from the center of the robot at the floor to the center of the elevator support structure on
@@ -75,15 +86,15 @@ public class ArmConstants {
          */
         public static final Translation3d elevatorOrigin = new Translation3d(Units.inchesToMeters(8), // Forward is +X
             0, // Left is +Y
-            Units.inchesToMeters(0.65) // Upward is +Y
+            Units.inchesToMeters(0.75) // Upward is +Y
         );
         /**
-         * The translation from the elevator origin to the outer stage when the stage is at its minimum height. The
-         * stage origin is the center of the stage at the bottom of the aluminum extrusion.
+         * The translation from the elevator origin to the passive (outer) stage when the stage is at its minimum
+         * height.
          */
-        public static final Translation3d elevatorToOuterStage = new Translation3d(Units.inchesToMeters(0), // Forward is +X
+        public static final Translation3d elevatorToPassiveStage = new Translation3d(Units.inchesToMeters(0), // Forward is +X
             0, // Left is +Y
-            Units.inchesToMeters(1.81) // Upward is +Y
+            Units.inchesToMeters(0.0) // Upward is +Y
         );
         /**
          * The translation from the elevator origin to the carriage when the arm is at its minimum height. The carriage
@@ -91,7 +102,7 @@ public class ArmConstants {
          */
         public static final Translation3d elevatorToCarriage = new Translation3d(Units.inchesToMeters(0), // Forward is +X
             0, // Left is +Y
-            Units.inchesToMeters(1.81) // Upward is +Y
+            Units.inchesToMeters(0.0) // Upward is +Y
         );
     }
 
@@ -110,15 +121,16 @@ public class ArmConstants {
         public static final Rotation2d minimumPitch = Rotation2d.fromDegrees(-35.);
 
         /** The feedforward gravity constant for the arm in volts. */
-        public static final double armPitchKg = 0.50;
+        public static final double armPitchKgReal = 0.50;
+        public static final double armPitchKgSim = 0.50;
 
         public static final LoggedTunableSparkPID armPitchPID = new LoggedTunableSparkPID("Arm/Pitch")
             .addRealRobotGains(new PIDConstants(0.8, 0.001, 0.9).iZone(Units.degreesToRadians(5)))
-            .addSimGains(new PIDConstants(0.5, 0.0, 0.0));
+            .addSimGains(new PIDConstants(25., 0.001, 0.3).iZone(Units.degreesToRadians(5)));
 
-        public static final double elevatorPitchReduction = 5 * (84 / 48);
+        public static final double armPitchReduction = 9 * (36 / 12);
         /** The conversion factor from pitch motor rotations to radians. */
-        public static final double pitchPositionConversionFactor = 1 / elevatorPitchReduction * 2 * Math.PI;
+        public static final double pitchPositionConversionFactor = 1 / armPitchReduction * 2 * Math.PI;
         /** The conversion factor from pitch motor RPM to radians per second. */
         public static final double pitchVelocityConversionFactor = pitchPositionConversionFactor / 60.;
 
@@ -136,7 +148,7 @@ public class ArmConstants {
 
         public static final LoggedTunableSparkPID armWristPID = new LoggedTunableSparkPID("Arm/Wrist")
             .addRealRobotGains(new PIDConstants(0.85, 0.0, 14.0, armWristPositionSlot)) //
-            .addSimGains(new PIDConstants(1.0, 0.0, 0.0, armWristPositionSlot)) //
+            .addSimGains(new PIDConstants(0.05, 0.0, 0.0, armWristPositionSlot)) //
             .addRealRobotGains(new PIDConstants(2.0, 0.0, 1 / 917, armWristVelocitySlot))
             .addSimGains(new PIDConstants(2.0, 0.0, 0.0, 1 / 917, armWristVelocitySlot)); // 917 is the Neo 550 Kf value
 
@@ -155,20 +167,24 @@ public class ArmConstants {
         public static final int wristMotorCurrentLimit = 25;
         public static final boolean wristMotorInverted = false;
 
-        /** The translation from the carriage origin to the pivot. */
-        public static final Translation3d carriageToPivot = new Translation3d(Units.inchesToMeters(3.0), // Forward is +X
-            Units.inchesToMeters(-0.223), // Left is +Y. Yes, it's off-center by design.
-            Units.inchesToMeters(6.0) // Upward is +Y
-        );
-        /** The translation from the pivot to the end effector. This must be rotated by the arm pitch. */
-        public static final Translation3d pivotToEndEffector = new Translation3d(Units.inchesToMeters(16.44), // Forward is +X
+        /** The translation from the carriage origin to the shoulder. */
+        public static final Translation3d carriageToShoulder = new Translation3d(Units.inchesToMeters(4.5), // Forward is +X
             Units.inchesToMeters(0.0), // Left is +Y
-            Units.inchesToMeters(1.11) // Upward is +Y
+            Units.inchesToMeters(7.25) // Upward is +Y
+        );
+        /** The translation from the shoulder to the wrist. */
+        public static final Translation3d shoulderToWrist = new Translation3d(Units.inchesToMeters(0.0), // Forward is +X
+            Units.inchesToMeters(0.0), // Left is +Y
+            Units.inchesToMeters(1.25) // Upward is +Y
+        );
+        /** The translation from the wrist to the end effector. This must be rotated by the arm pitch. */
+        public static final Translation3d wristToEndEffector = new Translation3d(Units.inchesToMeters(16.1), // Forward is +X
+            Units.inchesToMeters(0.0), // Left is +Y
+            Units.inchesToMeters(0.0) // Upward is +Y
         );
 
         /** The arm length. */
-        public static final Distance armLength = Meters.of(Math.sqrt(Math.pow(pivotToEndEffector.getX(), 2)
-            + Math.pow(pivotToEndEffector.getY(), 2) + Math.pow(pivotToEndEffector.getZ(), 2)));
+        public static final Distance armLength = Meters.of(wristToEndEffector.getNorm());
     }
 
     public class EndEffectorConstants {

@@ -3,6 +3,7 @@ package frc.robot.subsystems.climber;
 import static edu.wpi.first.units.Units.Meters;
 
 import edu.wpi.first.math.geometry.Translation3d;
+import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.units.measure.Distance;
 import frc.robot.util.LoggedTunableSparkPID;
@@ -47,6 +48,9 @@ public class ClimberConstants {
     /** The velocity conversion factor from motor encoder RPM to climber radians per second. */
     public static final double climberVelocityConversionFactor = climberPositionConversionFactor / 60.0;
 
-    public static final Translation3d climberOrigin = new Translation3d(0, 0, 0); // TODO: Determine from CAD
-    public static final Distance climberArmLength = Meters.of(0.5); // TODO: Determine from CAD
+    public static final Translation3d climberOrigin = new Translation3d(0, 0.356, 0.196);
+    public static final Distance climberArmLength = Meters.of(0.3);
+
+    // For simulation
+    public static final DCMotor climberMotor = DCMotor.getNEO(1);
 }

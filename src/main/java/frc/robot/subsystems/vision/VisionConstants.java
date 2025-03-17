@@ -19,7 +19,7 @@ public class VisionConstants {
      * If we should enable vision simulation. Turning off vision sim can dramatically improve loop times, but it's
      * obviously far less representative of real robot odometry.
      */
-    public static boolean enableVisionSimulation = true;
+    public static boolean enableVisionSimulation = false;
 
     /**
      * Enable raw streams for simulated cameras. This can increase loop times slightly.
@@ -35,8 +35,8 @@ public class VisionConstants {
         .loadField(AprilTagFields.k2025ReefscapeWelded);
 
     // Camera names; must match names configured in PhotonVision
-    public static String camera0Name = "2826_OV9281_Abe"; // Front left
-    public static String camera1Name = "2826_OV9281_Ben"; // Front right
+    public static String camera0Name = "2826_OV9281_Ben"; // Front left
+    public static String camera1Name = "2826_OV9281_Abe"; // Front right
     public static String camera2Name = "2826_OV9281_Cal"; // Back left
     public static String camera3Name = "2826_OV9281_Dan"; // Back right
 

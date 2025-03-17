@@ -10,8 +10,10 @@ import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.wpilibj.Alert;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.Constants;
 import frc.robot.subsystems.vision.VisionIO.SingleApriltagResult;
 import frc.robot.util.LoggedTracer;
 
@@ -26,7 +28,7 @@ public class Vision extends SubsystemBase {
     private final VisionIOInputsAutoLogged[] inputs;
     private final Alert[] disconnectedAlerts;
 
-    private static record RobotToTag(Transform3d robotToTag, double ambiguity) {
+    private static record RobotToTag(Transform3d robotToTag, double ambiguity, double timestamp) {
     }
 
     /**
@@ -71,6 +73,8 @@ public class Vision extends SubsystemBase {
 
     @Override
     public void periodic() {
+        if(Constants.currentMode == Constants.Mode.SIM && !VisionConstants.enableVisionSimulation) { return; }
+
         for(int i = 0; i < io.length; i++) {
             io[i].updateInputs(inputs[i]);
             Logger.processInputs("Vision/Camera" + Integer.toString(i), inputs[i]);
@@ -82,7 +86,7 @@ public class Vision extends SubsystemBase {
         List<Pose3d> allRobotPosesAccepted = new LinkedList<>();
         List<Pose3d> allRobotPosesRejected = new LinkedList<>();
 
-        robotToIndividualTags.clear();
+        HashMap<Integer, RobotToTag> currentIndividualTags = new HashMap<>();
 
         // Loop over cameras
         for(int cameraIndex = 0; cameraIndex < io.length; cameraIndex++) {
@@ -96,26 +100,30 @@ public class Vision extends SubsystemBase {
             List<Pose3d> robotPosesRejected = new LinkedList<>();
 
             // Add tag poses
-            for(SingleApriltagResult result : inputs[cameraIndex].individualTags) {
-                int id = result.fiducialId();
+            if(inputs[cameraIndex].individualTags != null) {
+                for(SingleApriltagResult result : inputs[cameraIndex].individualTags) {
+                    int id = result.fiducialId();
 
-                var tagPose = aprilTagLayout.getTagPose(id);
-                if(tagPose.isPresent()) tagPoses.add(tagPose.get());
+                    var tagPose = aprilTagLayout.getTagPose(id);
+                    if(tagPose.isPresent()) tagPoses.add(tagPose.get());
 
-                // Add to robotToIndividualTags map if it isn't obviously wrong
-                Transform3d transform = result.robotToTarget();
-                boolean rejectPose = result.ambiguity() > maxAmbiguity // Cannot be high ambiguity
-                    || Math.abs(transform.getZ()) > maxZError // Must have realistic Z coordinate
-                    // Must be within the field boundaries
-                    || transform.getX() < 0.0 || transform.getX() > aprilTagLayout.getFieldLength()
-                    || transform.getY() < 0.0 || transform.getY() > aprilTagLayout.getFieldWidth();
+                    // Add to robotToIndividualTags map if it isn't obviously wrong
+                    Transform3d transform = result.robotToTarget();
+                    boolean rejectPose = result.ambiguity() > maxAmbiguity // Cannot be high ambiguity
+                        || Math.abs(transform.getZ()) > maxZError // Must have realistic Z coordinate
+                        // Must be within the field boundaries
+                        || transform.getX() < 0.0 || transform.getX() > aprilTagLayout.getFieldLength()
+                        || transform.getY() < 0.0 || transform.getY() > aprilTagLayout.getFieldWidth();
 
-                if(rejectPose) continue;
+                    if(rejectPose) continue;
 
-                Transform3d robotToTag = result.robotToTarget();
-                if(!robotToIndividualTags.containsKey(id)
-                    || result.ambiguity() < robotToIndividualTags.get(id).ambiguity()) {
-                    robotToIndividualTags.put(id, new RobotToTag(robotToTag, result.ambiguity()));
+                    if(!currentIndividualTags.containsKey(id)
+                        || result.ambiguity() < currentIndividualTags.get(id).ambiguity()) {
+                        Logger.recordOutput("Vision/Camera" + Integer.toString(cameraIndex) + "/RobotToTag" + id,
+                            transform);
+                        currentIndividualTags.put(id,
+                            new RobotToTag(transform, result.ambiguity(), Timer.getTimestamp()));
+                    }
                 }
             }
 
@@ -168,6 +176,12 @@ public class Vision extends SubsystemBase {
             allRobotPosesAccepted.addAll(robotPosesAccepted);
             allRobotPosesRejected.addAll(robotPosesRejected);
         }
+
+        // Update robotToIndividualTags
+        // If any single tag hasn't been updated for a quarter of a second, clear it.
+        double currentTime = Timer.getTimestamp();
+        robotToIndividualTags.entrySet().removeIf(entry -> currentTime - entry.getValue().timestamp > 0.25);
+        robotToIndividualTags.putAll(currentIndividualTags);
 
         // Log summary data
         Logger.recordOutput("Vision/Summary/TagPoses", allTagPoses.toArray(new Pose3d[allTagPoses.size()]));

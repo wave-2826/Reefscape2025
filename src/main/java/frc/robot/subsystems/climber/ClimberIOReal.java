@@ -22,10 +22,10 @@ import frc.robot.Constants;
 import frc.robot.util.SparkUtil;
 
 public class ClimberIOReal implements ClimberIO {
-    private SparkMax climberMotor;
-    private RelativeEncoder climberEncoder;
-    private AbsoluteEncoder climberAbsoluteEncoder;
-    private SparkClosedLoopController climberMotorController;
+    protected final SparkMax climberMotor;
+    protected final RelativeEncoder climberEncoder;
+    protected final AbsoluteEncoder climberAbsoluteEncoder;
+    protected final SparkClosedLoopController climberMotorController;
 
     private Debouncer climberConnectedDebouncer = new Debouncer(0.25);
 
@@ -41,7 +41,8 @@ public class ClimberIOReal implements ClimberIO {
             .feedbackSensor(FeedbackSensor.kPrimaryEncoder);
         config.absoluteEncoder.positionConversionFactor(ClimberConstants.climberAbsolutePositionFactor)
             .velocityConversionFactor(ClimberConstants.climberAbsoluteVelocityFactor)
-            .zeroOffset(ClimberConstants.climberZeroAngle).zeroCentered(true);
+            .zeroOffset(Constants.currentMode == Constants.Mode.SIM ? 0 : ClimberConstants.climberZeroAngle)
+            .zeroCentered(true);
         config.encoder.positionConversionFactor(ClimberConstants.climberPositionConversionFactor)
             .velocityConversionFactor(ClimberConstants.climberVelocityConversionFactor);
         config.idleMode(IdleMode.kBrake).smartCurrentLimit(ClimberConstants.climberMotorCurrentLimit)

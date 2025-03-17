@@ -1,18 +1,13 @@
 package frc.robot;
 
-import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.Inches;
 import static edu.wpi.first.units.Units.Meters;
-import static edu.wpi.first.units.Units.MetersPerSecond;
 
-import org.ironmaple.simulation.SimulatedArena;
 import org.ironmaple.simulation.drivesims.SwerveDriveSimulation;
-import org.ironmaple.simulation.seasonspecific.reefscape2025.ReefscapeCoralOnFly;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj.DriverStation;
@@ -50,6 +45,10 @@ public class Controls {
     private final LoggedTunableNumber endgameAlert1Time = new LoggedTunableNumber("Controls/EndgameAlert1Time", 30.0);
     private final LoggedTunableNumber endgameAlert2Time = new LoggedTunableNumber("Controls/EndgameAlert2Time", 15.0);
 
+    private final Trigger normalOperator;
+    private final Trigger operatorOverride;
+    private boolean isInOverrideMode = false;
+
     private static final Controls instance = new Controls();
 
     public static Controls getInstance() {
@@ -58,6 +57,8 @@ public class Controls {
 
     private Controls() {
         // This is a singleton
+        normalOperator = new Trigger(() -> !isInOverrideMode);
+        operatorOverride = new Trigger(() -> isInOverrideMode);
     }
 
     /** Configures the controls. */
@@ -67,15 +68,13 @@ public class Controls {
         drive.setDefaultCommand(DriveCommands.joystickDrive(drive, () -> -driver.getLeftY(), () -> -driver.getLeftX(),
             () -> -driver.getRightX()));
 
-        // Lock to 0° when A button is held
         driver.a().whileTrue(DriveCommands.joystickDriveAtAngle(drive, () -> -driver.getLeftY(),
             () -> -driver.getLeftX(), () -> Rotation2d.fromRadians(Math.atan2(driver.getRightY(), driver.getLeftY()))));
 
         // Switch to X pattern when X button is pressed
         driver.x().onTrue(Commands.runOnce(drive::stopWithX, drive));
 
-        // driver.b().whileTrue(AutoScoreCommands.au
-        driver.b().toggleOnTrue(AutoScoreCommands.autoScoreStartCommand(drive, vision, arm, driver.rightBumper(),
+        driver.b().whileTrue(AutoScoreCommands.autoScoreStartCommand(drive, vision, arm, driver.rightBumper(),
             driver::getLeftX, driver::getLeftY));
 
         // Reset gyro or odometry if in simulation
@@ -85,14 +84,15 @@ public class Controls {
 
         driver.start().onTrue(Commands.runOnce(resetGyro, drive).ignoringDisable(true));
 
-        RobotModeTriggers.teleop().onTrue(ClimbCommands.resetClimbPosition());
-        operator.start().whileTrue(ClimbCommands.climbCommand(climber, operator::getRightY));
+        // Normal operator controls
+        operator.start().and(normalOperator).whileTrue(ClimbCommands.climbCommand(climber, operator::getRightY));
 
+        // Temporary manual override mode
         Container<Double> height = new Container<Double>(0.525);
         Container<Double> pitch = new Container<Double>(0.0);
         Container<Boolean> horizontal = new Container<Boolean>(false);
-        operator.povLeft().onTrue(Commands.runOnce(() -> horizontal.value = !horizontal.value));
-        operator.a().toggleOnTrue(arm.setTargetStateCommand(() -> {
+        operator.povLeft().and(normalOperator).onTrue(Commands.runOnce(() -> horizontal.value = !horizontal.value));
+        operator.a().and(normalOperator).toggleOnTrue(arm.setTargetStateCommand(() -> {
             boolean controllingHeight = operator.leftBumper().getAsBoolean();
             double eeSpeed = MathUtil.applyDeadband(controllingHeight ? 0. : operator.getLeftY(), 0.15) * -200.; // Rad/sec
             EndEffectorState endEffectorState = eeSpeed == 0.0 ? EndEffectorState.hold()
@@ -105,38 +105,59 @@ public class Controls {
                 horizontal.value ? WristRotation.Horizontal : WristRotation.Vertical, endEffectorState);
         }));
 
-        operator.x().whileTrue(IntakeCommands.intakeCommand(intake, operator::getLeftY, operator::getRightY));
+        operator.rightBumper().and(normalOperator).whileTrue(IntakeCommands.intakeCommand(intake, arm));
 
-        operator.b().onTrue(arm.goToStateCommand(ArmConstants.restingState));
+        operator.b().and(normalOperator).onTrue(arm.goToStateCommand(ArmConstants.restingState));
 
-        operator.rightBumper()
+        operator.leftBumper().and(normalOperator)
             .onTrue(arm.goToStateCommand(new ArmState(Rotation2d.fromDegrees(30), Inches.of(20),
                 WristRotation.Horizontal, EndEffectorState.velocity(-6))))
             .onFalse(arm.goToStateCommand(ArmConstants.restingState));
 
-        // operator.back().or(DriverStation::isTest).whileTrue(overrideControlsCommand(arm));
-        operator.back().onTrue(Commands.runOnce(arm::resetToAbsolute));
+        operator.back().and(normalOperator).onTrue(Commands.runOnce(arm::resetToAbsolute));
 
-        // Example Coral Placement Code
-        // TODO: Implement this for our actual robot logic
+        // Override mode enable
+        operator.back().and(operator.start()).toggleOnTrue(Commands.startEnd(() -> {
+            isInOverrideMode = true;
+        }, () -> {
+            isInOverrideMode = false;
+        }).alongWith(controllerRumbleWhileRunning(false, true, RumbleType.kLeftRumble)));
+
+        // Override operator controls
+        var intakeOverride = operator.b().and(operatorOverride);
+        var climberOverride = operator.y().and(operatorOverride);
+        intakeOverride.whileTrue(Commands.run(() -> {
+            intake.overridePitchPower(MathUtil.applyDeadband(operator.getRightY(), 0.2));
+            intake.runIntakeOpenLoop(MathUtil.applyDeadband(operator.getLeftY(), 0.2) * 0.4);
+        }, intake));
+        climberOverride.whileTrue(Commands.run(() -> {
+            climber.runClimberOpenLoop(MathUtil.applyDeadband(operator.getLeftY(), 0.2));
+        }, climber));
+
+        normalOperator.or(intakeOverride).or(climberOverride).whileFalse(Commands.run(() -> {
+            // Arm control mode
+            arm.overrideHeightPower(-MathUtil.applyDeadband(operator.getLeftY(), 0.2) * 0.3);
+            arm.overridePitchPower(-MathUtil.applyDeadband(operator.getRightY(), 0.2) * 0.3);
+
+            if(operator.leftBumper().getAsBoolean()) {
+                arm.overrideWristPower(-0.1);
+            } else if(operator.rightBumper().getAsBoolean()) {
+                arm.overrideWristPower(0.1);
+            } else {
+                arm.overrideWristPower(0.0);
+            }
+
+            arm.overrideEndEffectorPower(
+                MathUtil.applyDeadband(operator.getLeftTriggerAxis() - operator.getRightTriggerAxis(), 0.2) * 0.4);
+        }, arm));
+
+        // Simulation-specific controls
         if(Constants.currentMode == Constants.Mode.SIM) {
-            // L4 placement
-            operator.y()
-                .onTrue(Commands.runOnce(() -> SimulatedArena.getInstance()
-                    .addGamePieceProjectile(new ReefscapeCoralOnFly(
-                        driveSimulation.getSimulatedDriveTrainPose().getTranslation(), new Translation2d(0.4, 0),
-                        driveSimulation.getDriveTrainSimulatedChassisSpeedsFieldRelative(),
-                        driveSimulation.getSimulatedDriveTrainPose().getRotation(), Meters.of(2),
-                        MetersPerSecond.of(1.5), Degrees.of(-80)))));
-            // L3 placement
-            operator.b()
-                .onTrue(Commands.runOnce(() -> SimulatedArena.getInstance()
-                    .addGamePieceProjectile(new ReefscapeCoralOnFly(
-                        driveSimulation.getSimulatedDriveTrainPose().getTranslation(), new Translation2d(0.4, 0),
-                        driveSimulation.getDriveTrainSimulatedChassisSpeedsFieldRelative(),
-                        driveSimulation.getSimulatedDriveTrainPose().getRotation(), Meters.of(1.35),
-                        MetersPerSecond.of(1.5), Degrees.of(-60)))));
+            // TODO
         }
+
+        // Automatic mode actions
+        RobotModeTriggers.teleop().onTrue(ClimbCommands.resetClimbPosition());
 
         // Endgame Alerts
         Trigger endgameAlert1Trigger = new Trigger(() -> DriverStation.isTeleopEnabled()
@@ -147,12 +168,6 @@ public class Controls {
         endgameAlert1Trigger.onTrue(controllerRumbleWhileRunning(true, false, RumbleType.kLeftRumble).withTimeout(0.5));
         endgameAlert2Trigger.onTrue(controllerRumbleWhileRunning(true, false, RumbleType.kLeftRumble).withTimeout(0.2)
             .andThen(Commands.waitSeconds(0.1)).repeatedly().withTimeout(0.9)); // Rumble three times
-    }
-
-    private Command overrideControlsCommand(Arm arm) {
-        return Commands.run(() -> {
-            // TODO
-        }, arm);
     }
 
     private double operatorOverrideRumbleLeft = 0.0;

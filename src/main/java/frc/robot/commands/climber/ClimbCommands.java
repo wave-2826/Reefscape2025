@@ -27,7 +27,7 @@ public class ClimbCommands {
             //     .plus(Rotation2d.fromDegrees(climbSpeed * CLIMB_SPEED_DEGREES * 0.02));
 
             // climber.runClimber(climberRotation.value);
-            climber.runClimberOpenLoop(climbSpeed);
+            climber.runClimberOpenLoop(-climbSpeed);
         });
     }
 }

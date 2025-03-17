@@ -83,7 +83,7 @@ public class ScoringSequenceCommands {
     public static Command prepForScoring(ReefLevel level, Arm arm) {
         if(level == ReefLevel.L1) { return arm.goToStateCommand(getL1StartingState()); }
         return arm.goToStateCommand(new ArmState(Rotation2d.fromDegrees(prepPitch.get()),
-            Inches.of(preScoreElevatorHeight.get()), WristRotation.Horizontal, EndEffectorState.hold()));
+            Inches.of(preScoreElevatorHeight.get()), WristRotation.HorizontalFlipped, EndEffectorState.hold()));
     }
 
     public static Command scoreAtLevel(ReefLevel level, Arm arm, Drive drive) {

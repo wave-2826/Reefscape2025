@@ -1,5 +1,7 @@
 package frc.robot.subsystems.intake;
 
+import com.revrobotics.AbsoluteEncoder;
+import com.revrobotics.RelativeEncoder;
 import com.revrobotics.spark.SparkClosedLoopController;
 import com.revrobotics.spark.SparkFlex;
 import com.revrobotics.spark.SparkMax;
@@ -20,16 +22,19 @@ import frc.robot.Constants;
 import frc.robot.util.SparkUtil;
 
 public class IntakeIOReal implements IntakeIO {
-    private final SparkMax pitchMotor;
-    private final SparkMax transportMotor;
-    private final SparkFlex powerMotor;
+    protected final SparkMax pitchMotor;
+    protected final SparkMax transportMotor;
+    protected final SparkFlex powerMotor;
 
-    private final DigitalInput transportSensor;
-    private final DigitalInput intakeSensor;
+    protected final DigitalInput transportSensor;
+    protected final DigitalInput intakeSensor;
 
-    private final SparkClosedLoopController pitchController;
-    private final SparkClosedLoopController powerController;
-    private final SparkClosedLoopController transportController;
+    protected final SparkClosedLoopController pitchController;
+    protected final SparkClosedLoopController powerController;
+    protected final SparkClosedLoopController transportController;
+
+    protected final AbsoluteEncoder absolutePitchSensor;
+    protected final RelativeEncoder powerEncoder;
 
     public IntakeIOReal() {
         pitchMotor = new SparkMax(IntakeConstants.intakePitchMotorId, MotorType.kBrushless);
@@ -41,13 +46,14 @@ public class IntakeIOReal implements IntakeIO {
             .feedbackSensor(FeedbackSensor.kAbsoluteEncoder);
         pitchConfig.absoluteEncoder.positionConversionFactor(IntakeConstants.pitchAbsolutePositionFactor)
             .velocityConversionFactor(IntakeConstants.pitchAbsoluteVelocityFactor)
-            .zeroOffset(IntakeConstants.intakeZeroAngle).zeroCentered(true)
-            .inverted(IntakeConstants.pitchEncoderInverted);
-        pitchConfig.idleMode(IdleMode.kBrake).smartCurrentLimit(IntakeConstants.pitchMotorCurrentLimit)
+            .zeroOffset(Constants.currentMode == Constants.Mode.SIM ? 0 : IntakeConstants.intakeZeroAngle)
+            .zeroCentered(true).inverted(IntakeConstants.pitchEncoderInverted);
+        pitchConfig.idleMode(IdleMode.kCoast).smartCurrentLimit(IntakeConstants.pitchMotorCurrentLimit)
             .voltageCompensation(Constants.voltageCompensation).inverted(IntakeConstants.pitchMotorInverted);
         pitchConfig.signals.apply(SparkUtil.defaultSignals) //
             .primaryEncoderPositionAlwaysOn(false).primaryEncoderVelocityAlwaysOn(false)
             .absoluteEncoderPositionAlwaysOn(true).absoluteEncoderPositionPeriodMs(20);
+        pitchConfig.closedLoopRampRate(0.2);
 
         tryUntilOk(pitchMotor, 5,
             () -> pitchMotor.configure(pitchConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters));
@@ -88,24 +94,39 @@ public class IntakeIOReal implements IntakeIO {
         powerController = powerMotor.getClosedLoopController();
         transportController = transportMotor.getClosedLoopController();
 
+        absolutePitchSensor = pitchMotor.getAbsoluteEncoder();
+        powerEncoder = powerMotor.getEncoder();
+
         intakeSensor = new DigitalInput(IntakeConstants.intakeSensorDIOPort);
         transportSensor = new DigitalInput(IntakeConstants.transportSensorDIOPort);
     }
 
     @Override
-    public void runIntakeOpenLoop(double power) {
-        powerController.setReference(power * 1000., ControlType.kVelocity);
-        transportController.setReference(power * 5000., ControlType.kVelocity);
+    public void runVelocity(double intakePower, double transportPower) {
+        powerController.setReference(intakePower * 1000., ControlType.kVelocity);
+        transportController.setReference(transportPower * 5000., ControlType.kVelocity);
     }
 
     @Override
     public void setIntakePitch(Rotation2d pitch) {
-        // pitchController.setReference(pitch.getRadians(), ControlType.kPosition);
+        pitchController.setReference(pitch.getRadians(), ControlType.kPosition);
+    }
+
+    @Override
+    public void setIntakeCoast() {
+        pitchMotor.stopMotor();
+    }
+
+    @Override
+    public void overridePitchPower(double power) {
+        pitchMotor.set(power);
     }
 
     @Override
     public void updateInputs(IntakeIOInputs inputs) {
-        inputs.intakeSensorTriggered = intakeSensor.get();
-        inputs.transortSensorTriggered = transportSensor.get();
+        inputs.intakeSensorTriggered = !intakeSensor.get();
+        inputs.transortSensorTriggered = !transportSensor.get();
+        inputs.intakePitch = Rotation2d.fromRadians(absolutePitchSensor.getPosition());
+        inputs.intakeWheelSpeed = powerEncoder.getVelocity();
     }
 }

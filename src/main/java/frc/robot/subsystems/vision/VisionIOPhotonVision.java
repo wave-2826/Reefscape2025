@@ -104,16 +104,16 @@ public class VisionIOPhotonVision implements VisionIO {
                 inputs.individualTags = new SingleApriltagResult[latestResult.targets.size()];
                 for(int i = 0; i < latestResult.targets.size(); i++) {
                     var target = latestResult.targets.get(i);
-                    Transform3d robotToTarget = target.bestCameraToTarget.plus(robotToCamera.inverse());
+                    Transform3d robotToTarget = target.bestCameraToTarget.plus(robotToCamera);
 
                     inputs.individualTags[i] = new SingleApriltagResult(target.fiducialId, robotToTarget,
                         target.poseAmbiguity);
                 }
             } else {
-                inputs.individualTags = new SingleApriltagResult[0];
+                inputs.individualTags = null;
             }
         } else {
-            inputs.individualTags = new SingleApriltagResult[0];
+            inputs.individualTags = null;
         }
 
         // Save pose observations to inputs object

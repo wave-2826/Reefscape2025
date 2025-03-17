@@ -140,11 +140,11 @@ public class Pn532 implements AutoCloseable {
             return false;
         }
 
-        boolean replyCorrect = reply[0] == reverseByte(PN532_SPI_READY);
+        boolean replyCorrect = (reverseByte(reply[0]) & 1) == 1;
 
         if(!replyCorrect) {
-            DriverStation.reportError("Error reading NFC: Got response, but it was invalid (" + reply[0] + ", expected "
-                + reverseByte(PN532_SPI_READY) + ").", false);
+            DriverStation.reportError("Error reading NFC: Got response, but it was invalid (" + reverseByte(reply[0])
+                + ", expected " + PN532_SPI_READY + ").", false);
             return false;
         }
 

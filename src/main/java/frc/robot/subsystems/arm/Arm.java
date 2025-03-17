@@ -14,7 +14,10 @@ import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.Constants;
 import frc.robot.subsystems.arm.ArmState.WristRotation;
+import frc.robot.subsystems.intake.Intake;
+import frc.robot.subsystems.intake.IntakeConstants;
 import frc.robot.util.LoggedTracer;
 import frc.robot.util.LoggedTunableNumber;
 
@@ -45,8 +48,12 @@ public class Arm extends SubsystemBase {
     private static final LoggedTunableNumber armPitchKg = new LoggedTunableNumber("Arm/pitchKg");
 
     static {
-        elevatorKg.initDefault(ArmConstants.ElevatorConstants.elevatorKg);
-        armPitchKg.initDefault(ArmConstants.ShoulderConstants.armPitchKg);
+        elevatorKg
+            .initDefault(Constants.currentMode == Constants.Mode.SIM ? ArmConstants.ElevatorConstants.elevatorKgSim
+                : ArmConstants.ElevatorConstants.elevatorKgReal);
+        armPitchKg
+            .initDefault(Constants.currentMode == Constants.Mode.SIM ? ArmConstants.ShoulderConstants.armPitchKgSim
+                : ArmConstants.ShoulderConstants.armPitchKgReal);
     }
 
     public Arm(ArmIO io) {
@@ -57,6 +64,7 @@ public class Arm extends SubsystemBase {
     public Command goToStateCommand(ArmState state) {
         return Commands.run(() -> {
             targetState = state;
+            adjustedTarget = getAdjustedTarget();
         }, this).until(this::isAtTarget).handleInterrupt(() -> {
             // If we are interrupted, set the target state to the current state
             targetState = new ArmState(inputs.armPitchPosition, Meters.of(inputs.elevatorHeightMeters),
@@ -104,6 +112,26 @@ public class Arm extends SubsystemBase {
 
     public void resetToAbsolute() {
         io.resetToAbsolute();
+    }
+
+    public void overrideHeightPower(double power) {
+        targetState = null;
+        io.overrideHeightPower(power, elevatorKg.get());
+    }
+
+    public void overridePitchPower(double power) {
+        targetState = null;
+        io.overridePitchPower(power);
+    }
+
+    public void overrideWristPower(double power) {
+        targetState = null;
+        io.overrideWristPower(power);
+    }
+
+    public void overrideEndEffectorPower(double power) {
+        targetState = null;
+        io.overrideEndEffectorPower(power);
     }
 
     private ArmState getAdjustedTarget() {
@@ -159,7 +187,7 @@ public class Arm extends SubsystemBase {
             Logger.recordOutput("Arm/ElevatorResetting", false);
         }
 
-        visualizer.update(inputs.elevatorHeightMeters, inputs.armPitchPosition, inputs.armWristPosition,
+        visualizer.update(inputs.absoluteHeightMeters, inputs.armPitchPosition, inputs.armWristPosition,
             inputs.gamePiecePresent);
 
         // Update alerts

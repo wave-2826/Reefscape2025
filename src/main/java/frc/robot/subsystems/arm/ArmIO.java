@@ -20,7 +20,7 @@ public interface ArmIO {
         /** The recorded arm wrist velocity in radians per second. */
         public double armWristVelocity = 0.0;
 
-        /** The end effector velocity in radians per second. */
+        /** The end effector velocity in radians per second. Positive velocity is outward. */
         public double endEffectorVelocity = 0.0;
 
         /** The relative height of the elevator in meters. */
@@ -56,6 +56,18 @@ public interface ArmIO {
     }
 
     public default void setEndEffectorState(EndEffectorState mode) {
+    }
+
+    public default void overrideHeightPower(double power, double feedforward) {
+    }
+
+    public default void overridePitchPower(double power) {
+    }
+
+    public default void overrideWristPower(double power) {
+    }
+
+    public default void overrideEndEffectorPower(double power) {
     }
 
     public default void updateInputs(ArmIOInputs inputs) {
