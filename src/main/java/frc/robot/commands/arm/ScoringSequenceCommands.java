@@ -96,8 +96,10 @@ public class ScoringSequenceCommands {
             WristRotation.HorizontalFlipped, EndEffectorState.velocity(gamePieceEjectVelocity.get()));
         return Commands.sequence(arm.goToStateCommand(startState),
             Commands.parallel(arm.goToStateCommand(pitchDownState),
-                DriveCommands.driveStraightCommand(drive, Units.feetToMeters(-2.0), 0.75)),
-            arm.goToStateCommand(ArmConstants.restingState));
+                DriveCommands.driveStraightCommand(drive, Units.feetToMeters(-2.0), 0.5)),
+            arm.goToStateCommand(ArmConstants.restingState)).finallyDo(() -> {
+                arm.goToStateCommand(ArmConstants.restingState).schedule();
+            });
     }
 
     private static Command troughScoringSequence(Arm arm) {

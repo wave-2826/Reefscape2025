@@ -3,9 +3,13 @@ package frc.robot;
 import static edu.wpi.first.units.Units.Inches;
 import static edu.wpi.first.units.Units.Meters;
 
+import java.util.Optional;
+
 import org.ironmaple.simulation.drivesims.SwerveDriveSimulation;
+import org.littletonrobotics.junction.Logger;
 
 import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.filter.Debouncer.DebounceType;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.Alert;
@@ -34,6 +38,8 @@ import frc.robot.util.Container;
 import frc.robot.util.LoggedTunableNumber;
 
 public class Controls {
+    private static final double debounceTime = Constants.currentMode == Constants.Mode.SIM ? 0.15 : 0;
+
     private final Alert driverDisconnectedAlert = new Alert("Driver controller disconnected (port 0)",
         AlertType.kWarning);
     private final Alert operatorDisconnectedAlert = new Alert("Operator controller disconnected (port 1)",
@@ -74,8 +80,13 @@ public class Controls {
         // Switch to X pattern when X button is pressed
         driver.x().onTrue(Commands.runOnce(drive::stopWithX, drive));
 
-        driver.b().whileTrue(AutoScoreCommands.autoScoreStartCommand(drive, vision, arm, driver.rightBumper(),
-            driver::getLeftX, driver::getLeftY));
+        driver.b().debounce(Controls.debounceTime, DebounceType.kFalling)
+            .whileTrue(AutoScoreCommands.autoScoreCommand(drive, vision, arm, Optional.of(driver.rightBumper()),
+                driver::getLeftX, driver::getLeftY, (aligned) -> {
+                    setDriverOverrideRumble(aligned ? 1.0 : 0.0, 0.0);
+                }).finallyDo(() -> {
+                    setDriverOverrideRumble(0.0, 0.0);
+                }));
 
         // Reset gyro or odometry if in simulation
         final Runnable resetGyro = Constants.currentMode == Constants.Mode.SIM
@@ -218,5 +229,12 @@ public class Controls {
             .set(!DriverStation.isJoystickConnected(driverPort) || !DriverStation.getJoystickIsXbox(driverPort));
         operatorDisconnectedAlert
             .set(!DriverStation.isJoystickConnected(operatorPort) || !DriverStation.getJoystickIsXbox(operatorPort));
+
+        if(Constants.currentMode == Constants.Mode.SIM) {
+            Logger.recordOutput("Controllers/DriverOverrideRumbleLeft", driverOverrideRumbleLeft);
+            Logger.recordOutput("Controllers/DriverOverrideRumbleRight", driverOverrideRumbleRight);
+            Logger.recordOutput("Controllers/OperatorOverrideRumbleLeft", operatorOverrideRumbleLeft);
+            Logger.recordOutput("Controllers/OperatorOverrideRumbleRight", operatorOverrideRumbleRight);
+        }
     }
 }

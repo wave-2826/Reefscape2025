@@ -5,6 +5,11 @@
         "header": {
           "open": true
         }
+      },
+      "SPARK MAX [44]": {
+        "header": {
+          "open": true
+        }
       }
     },
     "RoboRIO": {
@@ -24,6 +29,7 @@
       "/AdvantageKit/RealOutputs/Alerts": "Alerts",
       "/AdvantageKit/RealOutputs/Mechanism2d/arm": "Mechanism2d",
       "/AdvantageKit/RealOutputs/Mechanism2d/climber": "Mechanism2d",
+      "/AdvantageKit/RealOutputs/Mechanism2d/intake": "Mechanism2d",
       "/AdvantageKit/RealOutputs/PathPlanner": "Alerts",
       "/FMSInfo": "FMSInfo",
       "/SmartDashboard/Alerts": "Alerts",

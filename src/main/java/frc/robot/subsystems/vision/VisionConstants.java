@@ -10,35 +10,35 @@ import edu.wpi.first.math.util.Units;
 public class VisionConstants {
     /****** Simulation ******/
     /**
-     * Enable drawing a wireframe visualization of the field to the camera streams in simulation mode. This is extremely
-     * resource-intensive!
-     */
-    public static boolean enableWireframeDrawing = false;
-
-    /**
      * If we should enable vision simulation. Turning off vision sim can dramatically improve loop times, but it's
      * obviously far less representative of real robot odometry.
      */
-    public static boolean enableVisionSimulation = false;
+    public static final boolean enableVisionSimulation = true;
+
+    /**
+     * Enable drawing a wireframe visualization of the field to the camera streams in simulation mode. This is extremely
+     * resource-intensive!
+     */
+    public static final boolean enableWireframeDrawing = false;
 
     /**
      * Enable raw streams for simulated cameras. This can increase loop times slightly.
      */
-    public static boolean enableRawStreams = false;
+    public static final boolean enableRawStreams = true;
     /************************/
 
     /**
      * The set of AprilTags used. This needs to be configurable because there are two different sets of AprilTags in
      * 2025... See team update 12: https://firstfrc.blob.core.windows.net/frc2025/Manual/TeamUpdates/TeamUpdate12.pdf
      */
-    public static AprilTagFieldLayout aprilTagLayout = AprilTagFieldLayout
+    public static final AprilTagFieldLayout aprilTagLayout = AprilTagFieldLayout
         .loadField(AprilTagFields.k2025ReefscapeWelded);
 
     // Camera names; must match names configured in PhotonVision
-    public static String camera0Name = "2826_OV9281_Ben"; // Front left
-    public static String camera1Name = "2826_OV9281_Abe"; // Front right
-    public static String camera2Name = "2826_OV9281_Cal"; // Back left
-    public static String camera3Name = "2826_OV9281_Dan"; // Back right
+    public static final String camera0Name = "2826_OV9281_Ben"; // Front left
+    public static final String camera1Name = "2826_OV9281_Abe"; // Front right
+    public static final String camera2Name = "2826_OV9281_Cal"; // Back left
+    public static final String camera3Name = "2826_OV9281_Dan"; // Back right
 
     private static Transform3d reflectCameraPosition(Transform3d pos) {
         Translation3d translation = pos.getTranslation();
@@ -50,28 +50,28 @@ public class VisionConstants {
 
     // Robot to camera transforms
     // Front right camera
-    public static Transform3d robotToCamera0 = new Transform3d(
+    public static final Transform3d robotToCamera0 = new Transform3d(
         new Translation3d(0.26525768557776486, 0.26320120237709405, 0.3043617686719239),
         new Rotation3d(0.007378789833927616, 0.2800075151914144, -0.5520122181237939));
     // Front left camera
-    public static Transform3d robotToCamera1 = new Transform3d(
+    public static final Transform3d robotToCamera1 = new Transform3d(
         new Translation3d(0.2725368549785328, -0.26320120237709405, 0.30627972254109814),
         new Rotation3d(0.013917894786869571, 0.2646770752290893, 0.5746210307152744));
     // Back left camera
-    public static Transform3d robotToCamera2 = new Transform3d(new Translation3d(Units.inchesToMeters(4.006715),
+    public static final Transform3d robotToCamera2 = new Transform3d(new Translation3d(Units.inchesToMeters(4.006715),
         Units.inchesToMeters(7.487012), Units.inchesToMeters(25.736304)),
         new Rotation3d(0.0, 0.0, -0.523598 - Math.PI));
     // Back right camera
-    public static Transform3d robotToCamera3 = reflectCameraPosition(robotToCamera2);
+    public static final Transform3d robotToCamera3 = reflectCameraPosition(robotToCamera2);
 
     // Basic filtering thresholds
-    public static double maxAmbiguity = 0.3;
-    public static double maxZError = 0.75;
+    public static final double maxAmbiguity = 0.3;
+    public static final double maxZError = 0.75;
 
     // Standard deviation baselines, for 1 meter distance and 1 tag
     // (Adjusted automatically based on distance and # of tags)
-    public static double linearStdDevBaseline = 0.015; // Meters
-    public static double angularStdDevBaseline = 1000.; // Radians
+    public static final double linearStdDevBaseline = 0.015; // Meters
+    public static final double angularStdDevBaseline = 1000.; // Radians
 
     // Standard deviation multipliers for each camera
     // (Adjust to trust some cameras more than others)

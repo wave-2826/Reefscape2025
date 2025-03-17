@@ -60,6 +60,6 @@ public class IntakeConstants {
     public static final int transportSensorDIOPort = 1;
 
     // For simulation
-    public static final Distance intakeLength = Inches.of(20);
+    public static final Distance intakeLength = Inches.of(17);
     public static final Translation3d intakeOrigin = new Translation3d(-0.229, 0.002, 0.196);
 }

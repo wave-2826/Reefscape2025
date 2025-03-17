@@ -7,7 +7,6 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.pieceVision.PieceVisionIO.PieceLocation;
 import frc.robot.subsystems.pieceVision.PieceVisionIO.PieceLocations;
