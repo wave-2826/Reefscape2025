@@ -1,5 +1,7 @@
 package frc.robot.commands.drive;
 
+import java.util.Optional;
+import java.util.function.BooleanSupplier;
 import java.util.function.Supplier;
 
 import org.littletonrobotics.junction.Logger;
@@ -8,12 +10,12 @@ import com.pathplanner.lib.auto.AutoBuilder;
 
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.util.function.BooleanConsumer;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.vision.Vision;
@@ -30,6 +32,9 @@ public class CloseLineupCommand extends Command {
 
     private final PIDController xController, yController;
     private final PIDController thetaController;
+
+    private final Optional<BooleanSupplier> finishSequence;
+    private final BooleanConsumer lineupFeedback;
 
     private final static LoggedTunableNumber translationKp = new LoggedTunableNumber("CloseLineup/translationKp");
     private final static LoggedTunableNumber translationKi = new LoggedTunableNumber("CloseLineup/translationKi");
@@ -74,9 +79,14 @@ public class CloseLineupCommand extends Command {
      * @param tagToTrack
      * @param tagRelativeOffset The offset relative to the tag being tracked.
      * @param fieldRelativeOffset The offset relative to the field. This is flipped to be alliance-relative.
+     * @param finishSequence If present, the close lineup waits for this to be true before finishing. If not present,
+     *            the close lineup finishes when the target is fully aligned.
+     * @param lineupFeedback A callback that is called every loop which can be used to provide feedback to the driver in
+     *            teleop for when the robot is properly aligned. Can be null.
      */
     public CloseLineupCommand(Drive drive, Vision vision, int tagToTrack, Transform2d tagRelativeOffset,
-        Supplier<Transform2d> fieldRelativeOffset) {
+        Supplier<Transform2d> fieldRelativeOffset, Optional<BooleanSupplier> finishSequence,
+        BooleanConsumer lineupFeedback) {
         this.drive = drive;
         this.vision = vision;
         this.tagToTrack = tagToTrack;
@@ -93,6 +103,9 @@ public class CloseLineupCommand extends Command {
         yController.setTolerance(yTranslationTolerance.get());
         thetaController.setTolerance(thetaRotationTolerance.get());
 
+        this.finishSequence = finishSequence;
+        this.lineupFeedback = lineupFeedback;
+
         addRequirements(drive);
     }
 
@@ -103,7 +116,11 @@ public class CloseLineupCommand extends Command {
         thetaController.reset();
     }
 
-    Transform2d flipFieldTransform(Transform2d transform) {
+    private boolean atSetpoint() {
+        return xController.atSetpoint() && yController.atSetpoint() && thetaController.atSetpoint();
+    }
+
+    private Transform2d flipFieldTransform(Transform2d transform) {
         return new Transform2d(new Translation2d(-transform.getX(), transform.getY()),
             transform.getRotation().unaryMinus());
     }
@@ -158,6 +175,10 @@ public class CloseLineupCommand extends Command {
         if(xController.atSetpoint()) xSpeed = 0.;
         if(yController.atSetpoint()) ySpeed = 0.;
 
+        if(lineupFeedback != null) {
+            lineupFeedback.accept(atSetpoint());
+        }
+
         ChassisSpeeds wheelSpeeds = ChassisSpeeds.fromFieldRelativeSpeeds(xSpeed, ySpeed, thetaSpeed,
             correctedCurrentPose.getRotation());
 
@@ -166,6 +187,11 @@ public class CloseLineupCommand extends Command {
 
     @Override
     public boolean isFinished() {
+        if(finishSequence.isEmpty()) {
+            if(atSetpoint()) return true;
+        } else {
+            if(finishSequence.get().getAsBoolean()) return true;
+        }
         return false;
     }
 

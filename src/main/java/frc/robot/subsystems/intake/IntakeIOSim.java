@@ -5,6 +5,7 @@ import static edu.wpi.first.units.Units.Meters;
 
 import org.ironmaple.simulation.IntakeSimulation;
 import org.ironmaple.simulation.drivesims.SwerveDriveSimulation;
+import org.littletonrobotics.junction.Logger;
 
 import com.revrobotics.sim.SparkAbsoluteEncoderSim;
 import com.revrobotics.sim.SparkFlexSim;
@@ -70,9 +71,12 @@ public class IntakeIOSim extends IntakeIOReal {
 
         pitchEncoderSim = pitchSparkSim.getAbsoluteEncoderSim();
 
+        // TODO: This doesn't work for some reason now? I can't figure it out for now.
         pitchSim = new SingleJointedArmSim(IntakeConstants.intakePitchMotor, intakePitchGearing, intakeMOI,
-            IntakeConstants.intakeLength.in(Meters), intakeMinAngle.getRadians(), intakeMaxAngle.getRadians(), true,
-            intakeMinAngle.getRadians());
+            IntakeConstants.intakeLength.in(Meters) / 5., intakeMinAngle.getRadians(), intakeMaxAngle.getRadians(),
+            true, intakeMaxAngle.getRadians());
+
+        pitchEncoderSim.setPosition(pitchSim.getAngleRads());
 
         intakeDIOSim = new DIOSim(intakeSensor);
         transportDIOSim = new DIOSim(transportSensor);
@@ -115,10 +119,10 @@ public class IntakeIOSim extends IntakeIOReal {
         }
 
         // TODO: Track coral path and activate sensors
-        intakeDIOSim
-            .setValue(simulatedCoralPosition != null && simulatedCoralPosition > 0.1 && simulatedCoralPosition < 0.5);
-        transportDIOSim
-            .setValue(simulatedCoralPosition != null && simulatedCoralPosition > 0.6 && simulatedCoralPosition < 0.9);
+        intakeDIOSim.setValue(
+            !(simulatedCoralPosition != null && simulatedCoralPosition > 0.1 && simulatedCoralPosition < 0.5));
+        transportDIOSim.setValue(
+            !(simulatedCoralPosition != null && simulatedCoralPosition > 0.6 && simulatedCoralPosition < 0.9));
 
         if(simulatedCoralPosition != null) {
             double transportLength = Units.inchesToMeters(25);
@@ -133,6 +137,9 @@ public class IntakeIOSim extends IntakeIOReal {
         if(intakeSimulation.obtainGamePieceFromIntake()) {
             simulatedCoralPosition = 0.;
         }
+
+        Logger.recordOutput("Intake/SimulatedCoralPosition",
+            simulatedCoralPosition == null ? -1 : simulatedCoralPosition);
 
         super.updateInputs(inputs);
 

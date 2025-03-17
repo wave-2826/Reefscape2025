@@ -82,10 +82,13 @@ public class Vision extends SubsystemBase {
 
         // Initialize logging values
         List<Pose3d> allTagPoses = new LinkedList<>();
-        List<Pose3d> allIndividualTagRobotPoses = new LinkedList<>();
         List<Pose3d> allRobotPoses = new LinkedList<>();
         List<Pose3d> allRobotPosesAccepted = new LinkedList<>();
         List<Pose3d> allRobotPosesRejected = new LinkedList<>();
+
+        List<Pose3d> allIndividualTagRobotPoses = new LinkedList<>();
+        List<Pose3d> allIndividualTagRobotPosesAccepted = new LinkedList<>();
+        List<Pose3d> allIndividualTagRobotPosesRejected = new LinkedList<>();
 
         HashMap<Integer, RobotToTag> currentIndividualTags = new HashMap<>();
         int individualTagsRejected = 0;
@@ -97,10 +100,13 @@ public class Vision extends SubsystemBase {
 
             // Initialize logging values
             List<Pose3d> tagPoses = new LinkedList<>();
-            List<Pose3d> individualTagRobotPoses = new LinkedList<>();
             List<Pose3d> robotPoses = new LinkedList<>();
             List<Pose3d> robotPosesAccepted = new LinkedList<>();
             List<Pose3d> robotPosesRejected = new LinkedList<>();
+
+            List<Pose3d> individualTagRobotPoses = new LinkedList<>();
+            List<Pose3d> individualTagRobotPosesAccepted = new LinkedList<>();
+            List<Pose3d> individualTagRobotPosesRejected = new LinkedList<>();
 
             // Add tag poses
             if(inputs[cameraIndex].individualTags != null) {
@@ -123,22 +129,13 @@ public class Vision extends SubsystemBase {
                         || robotTransform.getX() < 0.0 || robotTransform.getX() > aprilTagLayout.getFieldLength()
                         || robotTransform.getY() < 0.0 || robotTransform.getY() > aprilTagLayout.getFieldWidth();
 
-                    // if(result.ambiguity() < maxAmbiguity) {
-                    //     if(Math.abs(robotTransform.getZ()) > maxZError) {
-                    //         System.out.println("Rejected due to Z coordinate (" + robotTransform.getZ() + ")");
-                    //     }
-                    //     if(robotTransform.getX() < 0.0 || robotTransform.getX() > aprilTagLayout.getFieldLength()) {
-                    //         System.out.println("Rejected due to X coordinate (" + robotTransform.getX() + ")");
-                    //     }
-                    //     if(robotTransform.getY() < 0.0 || robotTransform.getY() > aprilTagLayout.getFieldWidth()) {
-                    //         System.out.println("Rejected due to Y coordinate (" + robotTransform.getY() + ")");
-                    //     }
-                    // }
-
                     if(rejectPose) {
                         individualTagsRejected++;
+                        individualTagRobotPosesRejected.add(robotTransform);
                         continue;
                     }
+
+                    individualTagRobotPosesAccepted.add(robotTransform);
 
                     if(!currentIndividualTags.containsKey(id)
                         || result.ambiguity() < currentIndividualTags.get(id).ambiguity()) {
@@ -187,8 +184,6 @@ public class Vision extends SubsystemBase {
             // Log camera datadata
             Logger.recordOutput("Vision/Camera" + Integer.toString(cameraIndex) + "/TagPoses",
                 tagPoses.toArray(new Pose3d[tagPoses.size()]));
-            Logger.recordOutput("Vision/Camera" + Integer.toString(cameraIndex) + "/IndividualTagRobotPoses",
-                individualTagRobotPoses.toArray(new Pose3d[individualTagRobotPoses.size()]));
             Logger.recordOutput("Vision/Camera" + Integer.toString(cameraIndex) + "/RobotPoses",
                 robotPoses.toArray(new Pose3d[robotPoses.size()]));
             Logger.recordOutput("Vision/Camera" + Integer.toString(cameraIndex) + "/RobotPosesAccepted",
@@ -196,11 +191,21 @@ public class Vision extends SubsystemBase {
             Logger.recordOutput("Vision/Camera" + Integer.toString(cameraIndex) + "/RobotPosesRejected",
                 robotPosesRejected.toArray(new Pose3d[robotPosesRejected.size()]));
 
+            Logger.recordOutput("Vision/Camera" + Integer.toString(cameraIndex) + "/IndividualTagRobotPoses",
+                individualTagRobotPoses.toArray(new Pose3d[individualTagRobotPoses.size()]));
+            Logger.recordOutput("Vision/Camera" + Integer.toString(cameraIndex) + "/IndividualTagRobotPosesAccepted",
+                individualTagRobotPosesAccepted.toArray(new Pose3d[individualTagRobotPosesAccepted.size()]));
+            Logger.recordOutput("Vision/Camera" + Integer.toString(cameraIndex) + "/IndividualTagRobotPosesRejected",
+                individualTagRobotPosesRejected.toArray(new Pose3d[individualTagRobotPosesRejected.size()]));
+
             allTagPoses.addAll(tagPoses);
-            allIndividualTagRobotPoses.addAll(individualTagRobotPoses);
             allRobotPoses.addAll(robotPoses);
             allRobotPosesAccepted.addAll(robotPosesAccepted);
             allRobotPosesRejected.addAll(robotPosesRejected);
+
+            allIndividualTagRobotPoses.addAll(individualTagRobotPoses);
+            allIndividualTagRobotPosesAccepted.addAll(individualTagRobotPosesAccepted);
+            allIndividualTagRobotPosesRejected.addAll(individualTagRobotPosesRejected);
         }
 
         // Update robotToIndividualTags
@@ -213,13 +218,18 @@ public class Vision extends SubsystemBase {
 
         // Log summary data
         Logger.recordOutput("Vision/Summary/TagPoses", allTagPoses.toArray(new Pose3d[allTagPoses.size()]));
-        Logger.recordOutput("Vision/Summary/IndividualTagRobotPoses",
-            allIndividualTagRobotPoses.toArray(new Pose3d[allIndividualTagRobotPoses.size()]));
         Logger.recordOutput("Vision/Summary/RobotPoses", allRobotPoses.toArray(new Pose3d[allRobotPoses.size()]));
         Logger.recordOutput("Vision/Summary/RobotPosesAccepted",
             allRobotPosesAccepted.toArray(new Pose3d[allRobotPosesAccepted.size()]));
         Logger.recordOutput("Vision/Summary/RobotPosesRejected",
             allRobotPosesRejected.toArray(new Pose3d[allRobotPosesRejected.size()]));
+
+        Logger.recordOutput("Vision/Summary/IndividualTagRobotPoses",
+            allIndividualTagRobotPoses.toArray(new Pose3d[allIndividualTagRobotPoses.size()]));
+        Logger.recordOutput("Vision/Summary/IndividualTagRobotPosesRejected",
+            allIndividualTagRobotPosesRejected.toArray(new Pose3d[allIndividualTagRobotPosesRejected.size()]));
+        Logger.recordOutput("Vision/Summary/IndividualTagRobotPosesAccepted",
+            allIndividualTagRobotPosesAccepted.toArray(new Pose3d[allIndividualTagRobotPosesAccepted.size()]));
 
         LoggedTracer.record("Vision");
     }

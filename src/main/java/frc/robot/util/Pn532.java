@@ -140,7 +140,9 @@ public class Pn532 implements AutoCloseable {
             return false;
         }
 
-        boolean replyCorrect = (reverseByte(reply[0]) & 1) == 1;
+        // boolean replyCorrect = (reverseByte(reply[0]) & 1) == 1;
+        // This is just for testing... the code will probably break.
+        boolean replyCorrect = true;
 
         if(!replyCorrect) {
             DriverStation.reportError("Error reading NFC: Got response, but it was invalid (" + reverseByte(reply[0])
@@ -178,16 +180,6 @@ public class Pn532 implements AutoCloseable {
             reverseByte(PN532_SPI_DATA_READ), 0x00, 0x00, 0x00, 0x00, 0x00
         };
         byte[] buffer = new byte[6];
-
-        // if(connection.write(command, 1) == -1) {
-        //     DriverStation.reportError("Error reading NFC: writing data read for acknowledgement failed.", false);
-        //     return false;
-        // }
-
-        // if(connection.read(false, buffer, 6) == -1) {
-        //     DriverStation.reportError("Error reading NFC: reading acknowledgement failed.", false);
-        //     return false;
-        // }
 
         if(connection.transaction(command, buffer, 6) == -1) {
             DriverStation.reportError("Error reading NFC: reading acknowledgement failed.", false);

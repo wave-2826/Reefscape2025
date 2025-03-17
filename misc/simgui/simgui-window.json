@@ -6,13 +6,13 @@
     "GLOBAL": {
       "font": "Droid Sans",
       "fps": "0",
-      "height": "594",
+      "height": "0",
       "maximized": "0",
       "style": "1",
       "userScale": "2",
-      "width": "484",
-      "xpos": "2678",
-      "ypos": "347"
+      "width": "0",
+      "xpos": "-32000",
+      "ypos": "-32000"
     }
   },
   "Table": {
@@ -42,17 +42,17 @@
     "###/SmartDashboard/Auto Choices": {
       "Collapsed": "0",
       "Pos": "293,138",
-      "Size": "260,54"
+      "Size": "225,32"
     },
     "###FMS": {
       "Collapsed": "0",
       "Pos": "26,170",
-      "Size": "142,184"
+      "Size": "68,32"
     },
     "###Joysticks": {
       "Collapsed": "0",
       "Pos": "6,349",
-      "Size": "478,189"
+      "Size": "90,32"
     },
     "###Keyboard 0 Settings": {
       "Collapsed": "1",
@@ -71,7 +71,7 @@
     },
     "###Other Devices": {
       "Collapsed": "0",
-      "Pos": "465,89",
+      "Pos": "830,110",
       "Size": "250,695"
     },
     "###Plot <0>": {
@@ -87,17 +87,17 @@
     "###RoboRIO": {
       "Collapsed": "0",
       "Pos": "286,218",
-      "Size": "179,284"
+      "Size": "109,32"
     },
     "###System Joysticks": {
       "Collapsed": "0",
       "Pos": "465,257",
-      "Size": "154,218"
+      "Size": "129,32"
     },
     "###Timing": {
       "Collapsed": "0",
       "Pos": "19,311",
-      "Size": "168,173"
+      "Size": "81,32"
     },
     "Debug##Default": {
       "Collapsed": "0",
@@ -107,7 +107,7 @@
     "Robot State": {
       "Collapsed": "0",
       "Pos": "41,39",
-      "Size": "88,116"
+      "Size": "88,32"
     }
   }
 }

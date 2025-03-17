@@ -54,7 +54,7 @@ public class Robot extends LoggedRobot {
         Logger.recordMetadata("GitSHA", BuildConstants.GIT_SHA);
         Logger.recordMetadata("GitDate", BuildConstants.GIT_DATE);
         Logger.recordMetadata("GitBranch", BuildConstants.GIT_BRANCH);
-        
+
         switch(BuildConstants.DIRTY) {
             case 0:
                 Logger.recordMetadata("GitDirty", "All changes committed");
@@ -253,7 +253,12 @@ public class Robot extends LoggedRobot {
 
     @Override
     public void disabledPeriodic() {
-        // Stop the default "override me alert"
+        // Stop the default "override me" alert
+    }
+
+    @Override
+    public void autonomousPeriodic() {
+        // Stop the default "override me" alert
     }
 
     /** This function is called periodically whilst in simulation. */
