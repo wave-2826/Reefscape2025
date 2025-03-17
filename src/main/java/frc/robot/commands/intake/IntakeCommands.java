@@ -13,12 +13,12 @@ public class IntakeCommands {
     public static Command intakeCommand(Intake intake, Arm arm) {
         // @formatter:off
         return Commands.sequence(
-            intake.runIntakeOpenLoop(1.0),
-            intake.setIntakePitch(Rotation2d.kZero),
+            intake.runIntakeOpenLoopCommand(1.0),
+            intake.setIntakePitchCommand(Rotation2d.kZero),
             intake.setIntakeCoast(),
 
             Commands.waitUntil(intake::intakeSensorTriggered),   
-            intake.setTransportOverrideSpeed(1.0),     
+            intake.setTransportOverrideSpeedCommand(1.0),     
 
             Commands.runOnce(() -> {
                 // This is kind of sketchy 
@@ -27,7 +27,7 @@ public class IntakeCommands {
                     
                     Commands.waitUntil(intake::transportSensorTriggered),
                     Commands.waitSeconds(0.1),
-                    intake.setTransportOverrideSpeed(0.0),
+                    intake.setTransportOverrideSpeedCommand(0.0),
 
                     arm.goToStateCommand(ArmConstants.getPieceState),
                     Commands.waitSeconds(0.4),
@@ -40,10 +40,8 @@ public class IntakeCommands {
                 .andThen(Commands.waitSeconds(0.05))
                 .repeatedly().withTimeout(0.4)
         ).finallyDo(() -> {
-            Commands.sequence(
-                intake.runIntakeOpenLoop(0.0),
-                intake.setIntakePitch(Rotation2d.fromDegrees(45))
-            ).schedule();
+            intake.runIntakeOpenLoop(0.0);
+            intake.setIntakePitch(Rotation2d.fromDegrees(45));
         });
         // @formatter:on
     }

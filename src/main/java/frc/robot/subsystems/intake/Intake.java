@@ -26,11 +26,15 @@ public class Intake extends SubsystemBase {
         this.io = io;
     }
 
-    public Command setIntakePitch(Rotation2d pitch) {
+    public Command setIntakePitchCommand(Rotation2d pitch) {
         return Commands.run(() -> {
-            Logger.recordOutput("Intake/TargetPitch", pitch.getRadians());
-            io.setIntakePitch(pitch);
+            setIntakePitchCommand(pitch);
         }, this).until(this::atPitchSetpoint);
+    }
+
+    public void setIntakePitch(Rotation2d pitch) {
+        Logger.recordOutput("Intake/TargetPitch", pitch.getRadians());
+        io.setIntakePitch(pitch);
     }
 
     private boolean atPitchSetpoint() {
@@ -45,16 +49,24 @@ public class Intake extends SubsystemBase {
         }, this);
     }
 
-    public Command runIntakeOpenLoop(double power) {
+    public Command runIntakeOpenLoopCommand(double power) {
         return Commands.runOnce(() -> {
-            intakeSpeed = power;
+            runIntakeOpenLoop(power);
         }, this);
     }
 
-    public Command setTransportOverrideSpeed(double power) {
+    public void runIntakeOpenLoop(double power) {
+        intakeSpeed = power;
+    }
+
+    public Command setTransportOverrideSpeedCommand(double power) {
         return Commands.runOnce(() -> {
-            transportSpeed = power;
+            setTransportOverrideSpeed(power);
         }, this);
+    }
+
+    public void setTransportOverrideSpeed(double power) {
+        transportSpeed = power;
     }
 
     public void overridePitchPower(double power) {
