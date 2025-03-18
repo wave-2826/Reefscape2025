@@ -8,6 +8,7 @@ import java.util.function.Supplier;
 import org.littletonrobotics.junction.Logger;
 
 import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
@@ -54,8 +55,12 @@ public class Arm extends SubsystemBase {
                 : ArmConstants.ShoulderConstants.armPitchKgReal);
     }
 
-    public Arm(ArmIO io) {
+    // Slightly hacky
+    private final Supplier<Pose2d> robotPose;
+
+    public Arm(ArmIO io, Supplier<Pose2d> robotPose) {
         this.io = io;
+        this.robotPose = robotPose;
         this.inputs = new ArmIOInputsAutoLogged();
     }
 
@@ -182,7 +187,7 @@ public class Arm extends SubsystemBase {
         }
 
         visualizer.update(inputs.absoluteHeightMeters, inputs.armPitchPosition, inputs.armWristPosition,
-            inputs.gamePiecePresent);
+            inputs.gamePiecePresent, robotPose.get());
 
         // Update alerts
         elevatorMotorDisconnectedAlert.set(!inputs.elevatorMotorsConnected);

@@ -67,9 +67,10 @@ public class Robot extends LoggedRobot {
                 break;
         }
 
-        String batteryID = getBatteryID();
-        Logger.recordMetadata("BatteryID", batteryID);
-        System.out.println("Detected battery " + batteryID + "!");
+        // We unfortunately couldn't get this working for competition, so it's disabled for now.
+        // String batteryID = getBatteryID();
+        // Logger.recordMetadata("BatteryID", batteryID);
+        // System.out.println("Detected battery " + batteryID + "!");
 
         // Adjust the loop overrun warning timeout; taken from 6328's code.
         // This is obviously a bit hacky, but we log our loop times and consistently watch them,

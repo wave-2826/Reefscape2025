@@ -62,7 +62,7 @@ public class PieceVision extends SubsystemBase {
      */
     private static final double PIECE_TRACKING_ANGLE_THRESHOLD = 25;
 
-    private static record TargetPath(Translation2d origin, Rotation2d direction) {
+    public static record TargetPath(Translation2d origin, Rotation2d direction) {
         /**
          * Gets a list of two poses on the target path line for AdvantageScope visualization.
          * @return
@@ -72,6 +72,11 @@ public class PieceVision extends SubsystemBase {
                 new Pose2d(origin, direction),
                 new Pose2d(origin, direction).transformBy(new Transform2d(new Translation2d(5.0, 0), Rotation2d.kZero)),
             };
+        }
+
+        public Pose2d getPoseAtDistance(double distance) {
+            return new Pose2d(origin, direction)
+                .transformBy(new Transform2d(new Translation2d(distance, 0), Rotation2d.kZero));
         }
     }
 

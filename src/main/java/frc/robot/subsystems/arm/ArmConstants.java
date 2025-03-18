@@ -1,11 +1,12 @@
 package frc.robot.subsystems.arm;
 
 import static edu.wpi.first.units.Units.Inches;
-import static edu.wpi.first.units.Units.Meters;
 
 import com.revrobotics.spark.ClosedLoopSlot;
 
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Rotation3d;
+import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.units.measure.Distance;
@@ -38,14 +39,16 @@ public class ArmConstants {
 
         // PID constants for the elevator position PID
         public static final LoggedTunableSparkPID elevatorPID = new LoggedTunableSparkPID("Arm/Elevator")
-            .addRealRobotGains(new PIDConstants(7.0, 0.0, 7.0)).addSimGains(new PIDConstants(100.0, 0.0, 0.0));
+            // .addRealRobotGains(new PIDConstants(7.0, 0.0, 7.0)) //
+            .addRealRobotGains(new PIDConstants(5.0, 0.0, 5.0)) //
+            .addSimGains(new PIDConstants(40.0, 0.0, 0.0));
 
         // Feedforward constants for the elevator
         /** The gravity gain in volts. */
         public static final double elevatorKgReal = 0.3;
         public static final double elevatorKgSim = 0.3;
 
-        public static final int elevatorMotorCurrentLimit = 45;
+        public static final int elevatorMotorCurrentLimit = 35;
         public static final boolean elevatorMotorInverted = true;
 
         public static final double elevatorReduction = 5.;
@@ -128,7 +131,8 @@ public class ArmConstants {
         public static final double armPitchKgSim = 0.50;
 
         public static final LoggedTunableSparkPID armPitchPID = new LoggedTunableSparkPID("Arm/Pitch")
-            .addRealRobotGains(new PIDConstants(0.8, 0.001, 0.9).iZone(Units.degreesToRadians(5)))
+            // .addRealRobotGains(new PIDConstants(0.8, 0.001, 0.9).iZone(Units.degreesToRadians(5)))
+            .addRealRobotGains(new PIDConstants(0.6, 0.001, 0.7).iZone(Units.degreesToRadians(5)))
             .addSimGains(new PIDConstants(25., 0.001, 0.3).iZone(Units.degreesToRadians(5)));
 
         public static final double armPitchReduction = 9 * (36 / 12);
@@ -150,7 +154,8 @@ public class ArmConstants {
         public static final ClosedLoopSlot armWristVelocitySlot = ClosedLoopSlot.kSlot1;
 
         public static final LoggedTunableSparkPID armWristPID = new LoggedTunableSparkPID("Arm/Wrist")
-            .addRealRobotGains(new PIDConstants(0.85, 0.0, 14.0, armWristPositionSlot)) //
+            // .addRealRobotGains(new PIDConstants(0.85, 0.0, 14.0, armWristPositionSlot)) //
+            .addRealRobotGains(new PIDConstants(0.6, 0.0, 10.0, armWristPositionSlot)) //
             .addSimGains(new PIDConstants(0.05, 0.0, 0.0, armWristPositionSlot)) //
             .addRealRobotGains(new PIDConstants(2.0, 0.0, 1 / 917, armWristVelocitySlot))
             .addSimGains(new PIDConstants(2.0, 0.0, 0.0, 1 / 917, armWristVelocitySlot)); // 917 is the Neo 550 Kf value
@@ -180,14 +185,17 @@ public class ArmConstants {
             Units.inchesToMeters(0.0), // Left is +Y
             Units.inchesToMeters(1.25) // Upward is +Y
         );
-        /** The translation from the wrist to the end effector. This must be rotated by the arm pitch. */
-        public static final Translation3d wristToEndEffector = new Translation3d(Units.inchesToMeters(16.1), // Forward is +X
+        /** The transform from the wrist to the coral in the end effector. */
+        public static final Transform3d wristToCoral = new Transform3d(new Translation3d(Units.inchesToMeters(4.5), // Forward is +X
             Units.inchesToMeters(0.0), // Left is +Y
-            Units.inchesToMeters(0.0) // Upward is +Y
-        );
+            Units.inchesToMeters(16.1) // Upward is +Y
+        ), new Rotation3d(Units.degreesToRadians(0.0), // Roll
+            Units.degreesToRadians(0.0), // Pitch
+            Units.degreesToRadians(0.0) // Yaw
+        ));
 
         /** The arm length. */
-        public static final Distance armLength = Meters.of(wristToEndEffector.getNorm());
+        public static final Distance armLength = Inches.of(16.1);
     }
 
     public class EndEffectorConstants {
@@ -218,7 +226,7 @@ public class ArmConstants {
         public static final double endEffectorPositionConversionFactor = 2 * Math.PI / endEffectorReduction;
         /** The conversion factor from wrist motor RPM to radians per second. */
         public static final double endEffectorVelocityConversionFactor = endEffectorPositionConversionFactor / 60.;
-        public static final int endEffectorMotorCurrentLimit = 50;
+        public static final int endEffectorMotorCurrentLimit = 35;
         public static final boolean endEffectorMotorInverted = true;
     }
 }

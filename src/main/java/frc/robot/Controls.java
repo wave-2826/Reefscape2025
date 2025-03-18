@@ -81,7 +81,7 @@ public class Controls {
         driver.x().onTrue(Commands.runOnce(drive::stopWithX, drive));
 
         driver.b().debounce(Controls.debounceTime, DebounceType.kFalling)
-            .whileTrue(AutoScoreCommands.autoScoreCommand(drive, vision, arm, Optional.of(driver.rightBumper()),
+            .whileTrue(AutoScoreCommands.autoScoreTeleopCommand(drive, vision, arm, driver.rightBumper(),
                 driver::getLeftX, driver::getLeftY, (aligned) -> {
                     setDriverOverrideRumble(aligned ? 1.0 : 0.0, 0.0);
                 }).finallyDo(() -> {
@@ -102,7 +102,7 @@ public class Controls {
         Container<Double> height = new Container<Double>(0.525);
         Container<Double> pitch = new Container<Double>(0.0);
         Container<Boolean> horizontal = new Container<Boolean>(false);
-        operator.povLeft().and(normalOperator).onTrue(Commands.runOnce(() -> horizontal.value = !horizontal.value));
+        operator.povRight().and(normalOperator).onTrue(Commands.runOnce(() -> horizontal.value = !horizontal.value));
         operator.a().and(normalOperator).toggleOnTrue(arm.setTargetStateCommand(() -> {
             boolean controllingHeight = operator.leftBumper().getAsBoolean();
             double eeSpeed = MathUtil.applyDeadband(controllingHeight ? 0. : operator.getLeftY(), 0.15) * -200.; // Rad/sec
@@ -158,9 +158,9 @@ public class Controls {
             arm.overridePitchPower(-MathUtil.applyDeadband(operator.getRightY(), 0.2) * 0.3);
 
             if(operator.leftBumper().getAsBoolean()) {
-                arm.overrideWristPower(-0.1);
+                arm.overrideWristPower(-0.25);
             } else if(operator.rightBumper().getAsBoolean()) {
-                arm.overrideWristPower(0.1);
+                arm.overrideWristPower(0.25);
             } else {
                 arm.overrideWristPower(0.0);
             }

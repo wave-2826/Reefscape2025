@@ -13,7 +13,6 @@ import edu.wpi.first.wpilibj.simulation.DCMotorSim;
 import edu.wpi.first.wpilibj.simulation.ElevatorSim;
 import edu.wpi.first.wpilibj.simulation.RoboRioSim;
 import edu.wpi.first.wpilibj.simulation.SingleJointedArmSim;
-import frc.robot.subsystems.intake.IntakeIOSim;
 import frc.robot.util.sim.LaserCanSim;
 
 public class ArmIOSim extends ArmIOReal {
@@ -42,7 +41,7 @@ public class ArmIOSim extends ArmIOReal {
     /** The arm moment of inertia around its pitch axis in kg m^2. */
     private static final double armMOI = 0.162;
     private static final Rotation2d armMinAngle = Rotation2d.fromDegrees(-90.);
-    private static final Rotation2d armMaxAngle = Rotation2d.fromDegrees(90.);
+    private static final Rotation2d armMaxAngle = Rotation2d.fromDegrees(100.);
 
     /** The arm moment of inertia around its roll axis in kg m^2 */
     private static final double armWristMOI = 0.0051;
@@ -130,28 +129,31 @@ public class ArmIOSim extends ArmIOReal {
             needsToReset = false;
         }
 
-        if(inputs.absoluteHeightMeters < Units.inchesToMeters(25) && inputs.armPitchPosition.getDegrees() < -80
-            && inputs.endEffectorVelocity < -0.1 && IntakeIOSim.takeCoral()) {
-            gamePieceInEndEffector = true;
-        } else if(inputs.endEffectorVelocity > 0.1) {
-            gamePieceInEndEffector = false;
-            // TODO
-            // SimulatedArena.getInstance().addGamePieceProjectile(new ReefscapeCoralOnFly(
-            //     // Obtain robot position from drive simulation
-            //     driveSimulation.getSimulatedDriveTrainPose().getTranslation(),
-            //     // The scoring mechanism is installed at (0.46, 0) (meters) on the robot
-            //     new Translation2d(0.35, 0),
-            //     // Obtain robot speed from drive simulation
-            //     driveSimulation.getDriveTrainSimulatedChassisSpeedsFieldRelative(),
-            //     // Obtain robot facing from drive simulation
-            //     driveSimulation.getSimulatedDriveTrainPose().getRotation(),
-            //     // The height at which the coral is ejected
-            //     Meters.of(1.28),
-            //     // The initial speed of the coral
-            //     MetersPerSecond.of(2),
-            //     // The coral is ejected at a 35-degree slope
-            //     Degrees.of(-35)));
-        }
+        // if(inputs.absoluteHeightMeters < Units.inchesToMeters(25) && inputs.armPitchPosition.getDegrees() < -80
+        //     && inputs.endEffectorVelocity < -0.1 && IntakeIOSim.takeCoral()) {
+        //     gamePieceInEndEffector = true;
+        // } else if(inputs.endEffectorVelocity > 0.1) {
+        //     gamePieceInEndEffector = false;
+        //     // TODO
+        //     // SimulatedArena.getInstance().addGamePieceProjectile(new ReefscapeCoralOnFly(
+        //     //     // Obtain robot position from drive simulation
+        //     //     driveSimulation.getSimulatedDriveTrainPose().getTranslation(),
+        //     //     // The scoring mechanism is installed at (0.46, 0) (meters) on the robot
+        //     //     new Translation2d(0.35, 0),
+        //     //     // Obtain robot speed from drive simulation
+        //     //     driveSimulation.getDriveTrainSimulatedChassisSpeedsFieldRelative(),
+        //     //     // Obtain robot facing from drive simulation
+        //     //     driveSimulation.getSimulatedDriveTrainPose().getRotation(),
+        //     //     // The height at which the coral is ejected
+        //     //     Meters.of(1.28),
+        //     //     // The initial speed of the coral
+        //     //     MetersPerSecond.of(2),
+        //     //     // The coral is ejected at a 35-degree slope
+        //     //     Degrees.of(-35)));
+        // }
+
+        // TEMPORARY
+        gamePieceInEndEffector = true;
 
         inputs.gamePiecePresent = gamePieceInEndEffector;
     }

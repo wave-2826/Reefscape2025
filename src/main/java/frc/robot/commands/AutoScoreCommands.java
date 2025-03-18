@@ -50,7 +50,13 @@ public class AutoScoreCommands {
      * The distance from the reef branch to the center of the robot when lining up to score L2-L4 in meters.
      */
     private static final LoggedTunableNumber robotReefLineupBranchDistance = new LoggedTunableNumber(
-        "AutoScore/BranchReefLineupDistance", 1.0);
+        "AutoScore/BranchReefLineupDistance", 0.65);
+
+    /**
+     * The distance from the reef branch to the center of the robot when lining up to score L4 in meters.
+     */
+    private static final LoggedTunableNumber robotReefLineupL4Distance = new LoggedTunableNumber(
+        "AutoScore/L4ReefLineupDistance", 0.55);
 
     /**
      * The amount the driver can tweak the auto lineup position, in inches.
@@ -89,8 +95,15 @@ public class AutoScoreCommands {
         Pose2d currentPose = drive.getPose();
 
         boolean isLeft = target.branch().isLeft;
-        double distanceAway = target.level() == ReefLevel.L1 ? robotReefLineupL1Distance.get()
-            : robotReefLineupBranchDistance.get();
+
+        double distanceAway;
+        if(target.level() == ReefLevel.L1) {
+            distanceAway = robotReefLineupL1Distance.get();
+        } else if(target.level() == ReefLevel.L4) {
+            distanceAway = robotReefLineupL4Distance.get();
+        } else {
+            distanceAway = robotReefLineupBranchDistance.get();
+        }
 
         Transform2d tagRelativeOffset = new Transform2d(
             new Translation2d(distanceAway, isLeft ? -FieldConstants.reefBranchSeparation.in(Meters) / 2.
@@ -156,7 +169,8 @@ public class AutoScoreCommands {
     }
 
     /**
-     * Gets a command that scores at the given level. This command will automatically align to the target and score.
+     * Gets a command that automatically scores at the selected level on the driver station interface. This is the
+     * version of our automatic scoring mechanism intended for use in teleop.
      * @param drive The drive subsystem
      * @param vision The vision subsystem
      * @param arm The arm subsystem
@@ -168,32 +182,42 @@ public class AutoScoreCommands {
      *            null.
      * @return
      */
-    public static Command autoScoreCommand(Drive drive, Vision vision, Arm arm,
+    public static Command autoScoreCommand(Drive drive, Vision vision, Arm arm, ReefTarget target,
         Optional<BooleanSupplier> finishSequence, DoubleSupplier tweakX, DoubleSupplier tweakY,
         BooleanConsumer lineupFeedback) {
+        Command autoAlign = autoAlignSequence(drive, vision, target,
+            // During coarse lineup
+            ScoringSequenceCommands.prepForScoring(target.level(), arm),
+            // During close lineup
+            ScoringSequenceCommands.middleArmMovement(target.level(), arm), tweakX, tweakY, finishSequence,
+            lineupFeedback);
+
+        return Commands.sequence(Commands.runOnce(() -> autoScoreRunning = true), autoAlign,
+            // Score
+            ScoringSequenceCommands.scoreAtLevel(target.level(), arm, drive)).finallyDo(() -> autoScoreRunning = false);
+    }
+
+    /**
+     * Gets a command that automatically scores at the selected level on the driver station interface. This is the
+     * version of our automatic scoring mechanism intended for use in teleop.
+     * @param drive The drive subsystem
+     * @param vision The vision subsystem
+     * @param arm The arm subsystem
+     * @param finishSequence The close lineup waits for this to be true before finishing.
+     * @param tweakX The amount to tweak the X position during close lineup
+     * @param tweakY The amount to tweak the Y position during close lineup
+     * @param lineupFeedback A function to call during close lineup with whether the controller is at its target. Can be
+     *            null.
+     * @return
+     */
+    public static Command autoScoreTeleopCommand(Drive drive, Vision vision, Arm arm, BooleanSupplier finishSequence,
+        DoubleSupplier tweakX, DoubleSupplier tweakY, BooleanConsumer lineupFeedback) {
         AutoScoreState state = new AutoScoreState(DriverStationInterface.getInstance().getReefTarget());
         int id = state.hashCode();
 
-        return new RestartWhenCommand( // @formatter:off Our formatter makes this far less readable
-            () -> {
-                Command autoAlign = autoAlignSequence(
-                    drive, vision,
-                    state.target,
-                    // During coarse lineup
-                    ScoringSequenceCommands.prepForScoring(state.target.level(), arm),
-                    // During close lineup
-                    ScoringSequenceCommands.middleArmMovement(state.target.level(), arm),
-                    tweakX, tweakY,
-                    finishSequence, lineupFeedback
-                );
-                
-                return Commands.sequence(
-                    Commands.runOnce(() -> autoScoreRunning = true),
-                    autoAlign,
-                    // Score
-                    ScoringSequenceCommands.scoreAtLevel(state.target.level(), arm, drive)
-                ).finallyDo(() -> autoScoreRunning = false);
-            }, // @formatter:on
+        return new RestartWhenCommand(
+            () -> autoScoreCommand(drive, vision, arm, state.target, Optional.of(finishSequence), tweakX, tweakY,
+                lineupFeedback),
 
             // Restart when our target changes
             () -> {
@@ -201,8 +225,6 @@ public class AutoScoreCommands {
                 if(!newTarget.equals(state.target) || robotReefLineupL1Distance.hasChanged(id)
                     || robotReefLineupBranchDistance.hasChanged(id)) {
                     state.target = newTarget;
-                    // TODO: Test this functionality more extensively
-                    System.out.println("Target changed to " + newTarget);
                     return true;
                 }
                 return false;

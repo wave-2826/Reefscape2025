@@ -1,6 +1,7 @@
 package frc.robot.commands.intake;
 
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.GenericHID.RumbleType;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
@@ -52,6 +53,7 @@ public class IntakeCommands {
                 .withTimeout(0.1)
                 .andThen(Commands.waitSeconds(0.05))
                 .repeatedly().withTimeout(0.4)
+                .onlyIf(DriverStation::isTeleop)
         ).finallyDo(() -> {
             intake.runIntakeOpenLoop(0.0);
             intake.setIntakePitch(Rotation2d.fromDegrees(80));

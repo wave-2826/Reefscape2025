@@ -6,6 +6,7 @@ import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.mechanism.LoggedMechanism2d;
 import org.littletonrobotics.junction.mechanism.LoggedMechanismLigament2d;
 
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
@@ -46,8 +47,8 @@ public class ArmVisualizer {
      * @param wristRotation
      * @param hasGamePiece
      */
-    public void update(double elevatorHeightMeters, Rotation2d armPitch, Rotation2d wristRotation,
-        boolean hasGamePiece) {
+    public void update(double elevatorHeightMeters, Rotation2d armPitch, Rotation2d wristRotation, boolean hasGamePiece,
+        Pose2d robotPose) {
         elevatorHeightLigament.setLength(elevatorHeightMeters);
         armPitchLigament.setAngle(armPitch);
         Logger.recordOutput("Mechanism2d/" + name, armMechanism);
@@ -78,9 +79,15 @@ public class ArmVisualizer {
             armShoulderPose, armWristPose);
 
         if(hasGamePiece) {
-            Logger.recordOutput("Mechanism3d/" + name + "/Coral", new Pose3d()); // TODO
+            Pose3d coralPose = armWristPose.plus(ArmConstants.ShoulderConstants.wristToCoral);
+            Transform3d coralTransform = new Transform3d(coralPose.getTranslation(), coralPose.getRotation());
+            Pose3d robotPose3d = new Pose3d(robotPose.getTranslation().getX(), robotPose.getTranslation().getY(), 0.0,
+                new Rotation3d(0.0, 0.0, robotPose.getRotation().getRadians()));
+            Logger.recordOutput("Mechanism3d/" + name + "/Coral", new Pose3d[] {
+                robotPose3d.plus(coralTransform)
+            });
         } else {
-            Logger.recordOutput("Mechanism3d/" + name + "/Coral", new Translation3d[] {});
+            Logger.recordOutput("Mechanism3d/" + name + "/Coral", new Pose3d[] {});
         }
     }
 }
