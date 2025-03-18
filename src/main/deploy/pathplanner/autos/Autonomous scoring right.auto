@@ -1,0 +1,73 @@
+{
+  "version": "2025.0",
+  "command": {
+    "type": "sequential",
+    "data": {
+      "commands": [
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Auto vision coral right.0"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Score F L4"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Auto vision coral right.1"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Score Until Failure"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Start intake"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Auto vision coral right.2"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Score A L4"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Start intake"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Auto vision coral right.3"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Score L L4"
+          }
+        }
+      ]
+    }
+  },
+  "resetOdom": true,
+  "folder": null,
+  "choreoAuto": true
+}

@@ -170,10 +170,24 @@ public class AutoScoreCommands {
 
     /**
      * Gets a command that automatically scores at the selected level on the driver station interface. This is the
-     * version of our automatic scoring mechanism intended for use in teleop.
+     * version of our automatic scoring mechanism intended for use in autonomous.
      * @param drive The drive subsystem
      * @param vision The vision subsystem
      * @param arm The arm subsystem
+     * @param target The target to score at
+     * @return
+     */
+    public static Command autoScoreCommand(Drive drive, Vision vision, Arm arm, ReefTarget target) {
+        return autoScoreCommand(drive, vision, arm, target, Optional.empty(), () -> 0, () -> 0, null);
+    }
+
+    /**
+     * Gets a command that automatically scores at the selected level on the driver station interface. This is the
+     * version of our automatic scoring mechanism intended for use in autonomous.
+     * @param drive The drive subsystem
+     * @param vision The vision subsystem
+     * @param arm The arm subsystem
+     * @param target The target to score at
      * @param finishSequence If present, the close lineup waits for this to be true before finishing. If not present,
      *            the close lineup finishes when the target is fully aligned.
      * @param tweakX The amount to tweak the X position during close lineup

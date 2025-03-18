@@ -3,11 +3,8 @@ package frc.robot;
 import static edu.wpi.first.units.Units.Inches;
 import static edu.wpi.first.units.Units.Meters;
 
-import java.util.Optional;
-
+import java.util.HashMap;
 import org.ironmaple.simulation.drivesims.SwerveDriveSimulation;
-import org.littletonrobotics.junction.Logger;
-
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.filter.Debouncer.DebounceType;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -53,7 +50,13 @@ public class Controls {
 
     private final Trigger normalOperator;
     private final Trigger operatorOverride;
-    private boolean isInOverrideMode = false;
+    private final Trigger operatorManual;
+
+    private static enum OperatorMode {
+        Normal, Manual, Override
+    };
+
+    private OperatorMode operatorMode = OperatorMode.Normal;
 
     private static final Controls instance = new Controls();
 
@@ -63,8 +66,9 @@ public class Controls {
 
     private Controls() {
         // This is a singleton
-        normalOperator = new Trigger(() -> !isInOverrideMode);
-        operatorOverride = new Trigger(() -> isInOverrideMode);
+        normalOperator = new Trigger(() -> operatorMode == OperatorMode.Normal);
+        operatorOverride = new Trigger(() -> operatorMode == OperatorMode.Override);
+        operatorManual = new Trigger(() -> operatorMode == OperatorMode.Manual);
     }
 
     /** Configures the controls. */
@@ -74,18 +78,16 @@ public class Controls {
         drive.setDefaultCommand(DriveCommands.joystickDrive(drive, () -> -driver.getLeftY(), () -> -driver.getLeftX(),
             () -> -driver.getRightX()));
 
-        driver.a().whileTrue(DriveCommands.joystickDriveAtAngle(drive, () -> -driver.getLeftY(),
-            () -> -driver.getLeftX(), () -> Rotation2d.fromRadians(Math.atan2(driver.getRightY(), driver.getLeftY()))));
-
         // Switch to X pattern when X button is pressed
         driver.x().onTrue(Commands.runOnce(drive::stopWithX, drive));
 
+        // Auto score
         driver.b().debounce(Controls.debounceTime, DebounceType.kFalling)
             .whileTrue(AutoScoreCommands.autoScoreTeleopCommand(drive, vision, arm, driver.rightBumper(),
                 driver::getLeftX, driver::getLeftY, (aligned) -> {
-                    setDriverOverrideRumble(aligned ? 1.0 : 0.0, 0.0);
+                    setDriverRumble(RumbleType.kLeftRumble, aligned ? 1.0 : 0.0, 1);
                 }).finallyDo(() -> {
-                    setDriverOverrideRumble(0.0, 0.0);
+                    setDriverRumble(RumbleType.kLeftRumble, 0.0, 1);
                 }));
 
         // Reset gyro or odometry if in simulation
@@ -96,25 +98,7 @@ public class Controls {
         driver.start().onTrue(Commands.runOnce(resetGyro, drive).ignoringDisable(true));
 
         // Normal operator controls
-        operator.start().and(normalOperator).whileTrue(ClimbCommands.climbCommand(climber, operator::getRightY));
-
-        // Temporary manual override mode
-        Container<Double> height = new Container<Double>(0.525);
-        Container<Double> pitch = new Container<Double>(0.0);
-        Container<Boolean> horizontal = new Container<Boolean>(false);
-        operator.povRight().and(normalOperator).onTrue(Commands.runOnce(() -> horizontal.value = !horizontal.value));
-        operator.a().and(normalOperator).toggleOnTrue(arm.setTargetStateCommand(() -> {
-            boolean controllingHeight = operator.leftBumper().getAsBoolean();
-            double eeSpeed = MathUtil.applyDeadband(controllingHeight ? 0. : operator.getLeftY(), 0.15) * -200.; // Rad/sec
-            EndEffectorState endEffectorState = eeSpeed == 0.0 ? EndEffectorState.hold()
-                : EndEffectorState.velocity(eeSpeed);
-            double speed = 4.0;
-
-            height.value -= controllingHeight ? (MathUtil.applyDeadband(operator.getLeftY(), 0.15) * speed * 0.02) : 0.;
-            pitch.value -= MathUtil.applyDeadband(operator.getRightY(), 0.15) * 0.02 * 400.;
-            return new ArmState(Rotation2d.fromDegrees(pitch.value), Meters.of(height.value),
-                horizontal.value ? WristRotation.Horizontal : WristRotation.Vertical, endEffectorState);
-        }));
+        operator.y().and(normalOperator).whileTrue(ClimbCommands.climbCommand(climber, operator::getRightY));
 
         operator.rightBumper().and(normalOperator).whileTrue(IntakeCommands.intakeCommand(intake, arm));
 
@@ -134,12 +118,48 @@ public class Controls {
 
         operator.back().and(normalOperator).onTrue(Commands.runOnce(arm::resetToAbsolute));
 
-        // Override mode enable
-        operator.back().and(operator.start()).toggleOnTrue(Commands.startEnd(() -> {
-            isInOverrideMode = true;
-        }, () -> {
-            isInOverrideMode = false;
-        }).alongWith(controllerRumbleWhileRunning(false, true, RumbleType.kLeftRumble)));
+        // Override and manual mode enable
+        operator.start().onTrue(Commands.runOnce(() -> {
+            if(operatorMode == OperatorMode.Normal) operatorMode = OperatorMode.Manual;
+            else operatorMode = OperatorMode.Normal;
+        }));
+        operator.back().and(operator.start()).onTrue(Commands.runOnce(() -> {
+            if(operatorMode == OperatorMode.Normal) operatorMode = OperatorMode.Override;
+            else operatorMode = OperatorMode.Normal;
+        }));
+
+        operatorManual.whileTrue(controllerRumbleWhileRunning(false, true, RumbleType.kRightRumble));
+        operatorOverride.whileTrue(controllerRumbleWhileRunning(false, true, RumbleType.kLeftRumble));
+
+        // Manual operator controls
+        Container<Double> height = new Container<Double>(0.525);
+        Container<Double> pitch = new Container<Double>(0.0);
+        Container<WristRotation> wristRotation = new Container<WristRotation>(WristRotation.Horizontal);
+        operator.leftBumper().and(operatorManual).onTrue(Commands.runOnce(() -> {
+            wristRotation.value = wristRotation.value.previous();
+        }));
+        operator.rightBumper().and(operatorManual).onTrue(Commands.runOnce(() -> {
+            wristRotation.value = wristRotation.value.next();
+        }));
+        operatorManual.whileTrue(arm.setTargetStateCommand(() -> {
+            double eeSpeed = MathUtil.applyDeadband(operator.getLeftTriggerAxis() - operator.getRightTriggerAxis(), 0.2)
+                * 100; // Rad/sec
+            EndEffectorState endEffectorState = eeSpeed == 0.0 ? EndEffectorState.hold()
+                : EndEffectorState.velocity(eeSpeed);
+
+            height.value -= MathUtil.applyDeadband(operator.getLeftY(), 0.15) * 3.0 * 0.02;
+            double minHeight = ArmConstants.ElevatorConstants.softStopMarginBottom.in(Meters);
+            double maxHeight = ArmConstants.ElevatorConstants.maxElevatorHeight.in(Meters)
+                - ArmConstants.ElevatorConstants.softStopMarginTop.in(Meters);
+            height.value = MathUtil.clamp(height.value, minHeight, maxHeight);
+
+            pitch.value -= MathUtil.applyDeadband(operator.getRightY(), 0.15) * 0.02 * 400.;
+            pitch.value = MathUtil.clamp(pitch.value, ArmConstants.ShoulderConstants.minimumPitch.getDegrees(),
+                ArmConstants.ShoulderConstants.maximumPitch.getDegrees());
+
+            return new ArmState(Rotation2d.fromDegrees(pitch.value), Meters.of(height.value), wristRotation.value,
+                endEffectorState);
+        }));
 
         // Override operator controls
         var intakeOverride = operator.b().and(operatorOverride);
@@ -152,7 +172,7 @@ public class Controls {
             climber.runClimberOpenLoop(MathUtil.applyDeadband(operator.getLeftY(), 0.2));
         }, climber));
 
-        normalOperator.or(intakeOverride).or(climberOverride).whileFalse(Commands.run(() -> {
+        operatorOverride.and(intakeOverride.negate()).and(climberOverride.negate()).whileTrue(Commands.run(() -> {
             // Arm control mode
             arm.overrideHeightPower(-MathUtil.applyDeadband(operator.getLeftY(), 0.2) * 0.3);
             arm.overridePitchPower(-MathUtil.applyDeadband(operator.getRightY(), 0.2) * 0.3);
@@ -188,42 +208,34 @@ public class Controls {
             .andThen(Commands.waitSeconds(0.1)).repeatedly().withTimeout(0.9)); // Rumble three times
     }
 
-    private double operatorOverrideRumbleLeft = 0.0;
-    private double operatorOverrideRumbleRight = 0.0;
-    private double driverOverrideRumbleLeft = 0.0;
-    private double driverOverrideRumbleRight = 0.0;
+    private HashMap<Integer, Double> driverRumbleCommands = new HashMap<>();
+    private HashMap<Integer, Double> operatorRumbleCommands = new HashMap<>();
 
-    private void setOperatorRumble(RumbleType type, double value) {
-        if(type == RumbleType.kBothRumble || type == RumbleType.kLeftRumble) operator.setRumble(RumbleType.kLeftRumble,
-            Math.max(operatorOverrideRumbleLeft, value));
-        if(type == RumbleType.kBothRumble || type == RumbleType.kRightRumble) operator
-            .setRumble(RumbleType.kRightRumble, Math.max(operatorOverrideRumbleRight, value));
+    public void setDriverRumble(RumbleType type, double value, int hash) {
+        if(value == 0.0) {
+            driverRumbleCommands.remove(hash);
+        } else {
+            driverRumbleCommands.put(hash, value);
+        }
+        driver.setRumble(type, driverRumbleCommands.values().stream().reduce(0.0, Double::max));
     }
 
-    private void setDriverRumble(RumbleType type, double value) {
-        if(type == RumbleType.kBothRumble || type == RumbleType.kLeftRumble) driver.setRumble(RumbleType.kLeftRumble,
-            Math.max(driverOverrideRumbleLeft, value));
-        if(type == RumbleType.kBothRumble || type == RumbleType.kRightRumble) driver.setRumble(RumbleType.kRightRumble,
-            Math.max(driverOverrideRumbleRight, value));
-    }
-
-    public void setOperatorOverrideRumble(double left, double right) {
-        operatorOverrideRumbleLeft = left;
-        operatorOverrideRumbleRight = right;
-    }
-
-    public void setDriverOverrideRumble(double left, double right) {
-        driverOverrideRumbleLeft = left;
-        driverOverrideRumbleRight = right;
+    public void setOperatorRumble(RumbleType type, double value, int hash) {
+        if(value == 0.0) {
+            operatorRumbleCommands.remove(hash);
+        } else {
+            operatorRumbleCommands.put(hash, value);
+        }
+        operator.setRumble(type, operatorRumbleCommands.values().stream().reduce(0.0, Double::max));
     }
 
     public Command controllerRumbleWhileRunning(boolean forDriver, boolean forOperator, RumbleType type) {
         return Commands.startEnd(() -> {
-            if(forDriver) setDriverRumble(type, 1.0);
-            if(forOperator) setOperatorRumble(type, 1.0);
+            if(forDriver) setDriverRumble(type, 1.0, hashCode());
+            if(forOperator) setOperatorRumble(type, 1.0, hashCode());
         }, () -> {
-            if(forDriver) setDriverRumble(type, 0.0);
-            if(forOperator) setOperatorRumble(type, 0.0);
+            if(forDriver) setDriverRumble(type, 0.0, hashCode());
+            if(forOperator) setOperatorRumble(type, 0.0, hashCode());
         });
     }
 
@@ -236,12 +248,5 @@ public class Controls {
             .set(!DriverStation.isJoystickConnected(driverPort) || !DriverStation.getJoystickIsXbox(driverPort));
         operatorDisconnectedAlert
             .set(!DriverStation.isJoystickConnected(operatorPort) || !DriverStation.getJoystickIsXbox(operatorPort));
-
-        if(Constants.currentMode == Constants.Mode.SIM) {
-            Logger.recordOutput("Controllers/DriverOverrideRumbleLeft", driverOverrideRumbleLeft);
-            Logger.recordOutput("Controllers/DriverOverrideRumbleRight", driverOverrideRumbleRight);
-            Logger.recordOutput("Controllers/OperatorOverrideRumbleLeft", operatorOverrideRumbleLeft);
-            Logger.recordOutput("Controllers/OperatorOverrideRumbleRight", operatorOverrideRumbleRight);
-        }
     }
 }
