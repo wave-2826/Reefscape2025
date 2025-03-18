@@ -21,7 +21,7 @@ public class IntakeConstants {
     public static final boolean pitchMotorInverted = true;
     public static final boolean pitchEncoderInverted = false;
 
-    public static final int pitchMotorCurrentLimit = 35;
+    public static final int pitchMotorCurrentLimit = 50;
 
     public static final double pitchAbsolutePositionFactor = 2 * Math.PI;
     public static final double pitchAbsoluteVelocityFactor = pitchAbsolutePositionFactor / 60.;

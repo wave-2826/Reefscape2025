@@ -5,34 +5,47 @@ import edu.wpi.first.wpilibj.GenericHID.RumbleType;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.Controls;
+import frc.robot.commands.AutoScoreCommands;
 import frc.robot.subsystems.arm.Arm;
 import frc.robot.subsystems.arm.ArmConstants;
 import frc.robot.subsystems.intake.Intake;
 
 public class IntakeCommands {
+    public static Command getPieceFromIntake(Intake intake, Arm arm) {
+        // @formatter:off
+        return Commands.sequence(
+            arm.goToStateCommand(ArmConstants.restingState),
+            intake.setTransportOverrideSpeedCommand(1.0),
+
+            Commands.waitUntil(intake::transportSensorTriggered),
+            Commands.waitSeconds(0.1),
+            intake.setTransportOverrideSpeedCommand(0.0),
+
+            arm.goToStateCommand(ArmConstants.getPieceState).withTimeout(0.25),
+            Commands.waitSeconds(0.1),
+            arm.goToStateCommand(ArmConstants.getPieceState2).withTimeout(0.25),
+            Commands.waitSeconds(0.1),
+            arm.goToStateCommand(ArmConstants.restingState).withTimeout(0.25)
+        )
+        // HACK
+        .unless(() -> AutoScoreCommands.autoScoreRunning).until(() -> AutoScoreCommands.autoScoreRunning);
+        // @formatter:on
+    }
+
     public static Command intakeCommand(Intake intake, Arm arm) {
         // @formatter:off
         return Commands.sequence(
-            intake.runIntakeOpenLoopCommand(1.0),
-            intake.setIntakePitchCommand(Rotation2d.kZero),
-            intake.setIntakeCoast(),
+            Commands.sequence(
+                intake.runIntakeOpenLoopCommand(1.0),
+                intake.setIntakePitchCommand(Rotation2d.kZero),
+                intake.setIntakeCoast(),
 
-            Commands.waitUntil(intake::intakeSensorTriggered),   
-            intake.setTransportOverrideSpeedCommand(1.0),     
+                Commands.waitUntil(intake::intakeSensorTriggered)
+            ).onlyIf(() -> !intake.intakeSensorTriggered()),
 
             Commands.runOnce(() -> {
-                // This is kind of sketchy 
-                Commands.sequence(
-                    arm.goToStateCommand(ArmConstants.intakeClearanceState),
-                    
-                    Commands.waitUntil(intake::transportSensorTriggered),
-                    Commands.waitSeconds(0.1),
-                    intake.setTransportOverrideSpeedCommand(0.0),
-
-                    arm.goToStateCommand(ArmConstants.getPieceState),
-                    Commands.waitSeconds(0.4),
-                    arm.goToStateCommand(ArmConstants.restingState)
-                ).schedule();
+                // This is kind of sketchy
+                getPieceFromIntake(intake, arm).schedule();
             }),
 
             Controls.getInstance().controllerRumbleWhileRunning(true, true, RumbleType.kBothRumble)
@@ -41,8 +54,10 @@ public class IntakeCommands {
                 .repeatedly().withTimeout(0.4)
         ).finallyDo(() -> {
             intake.runIntakeOpenLoop(0.0);
-            intake.setIntakePitch(Rotation2d.fromDegrees(45));
-        });
+            intake.setIntakePitch(Rotation2d.fromDegrees(80));
+        })
+        // HACK
+        .unless(() -> AutoScoreCommands.autoScoreRunning).until(() -> AutoScoreCommands.autoScoreRunning);
         // @formatter:on
     }
 }

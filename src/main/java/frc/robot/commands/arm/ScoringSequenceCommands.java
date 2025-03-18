@@ -37,23 +37,32 @@ public class ScoringSequenceCommands {
     static {
         elevatorPitchDownHeightReduction.initDefault(5);
         pitchDownPitchReduction.initDefault(10);
-        gamePieceEjectVelocity.initDefault(2);
+        gamePieceEjectVelocity.initDefault(5);
         driveForwardTime.initDefault(0.5);
         branchScorePitch.initDefault(55.);
-        L4ScoreHeightFromTop.initDefault(6);
-        L3ScoreHeight.initDefault(26.5);
+        L4ScoreHeightFromTop.initDefault(10);
+        L3ScoreHeight.initDefault(25.5);
         L2ScoreHeight.initDefault(10.);
         L1ScoreHeight.initDefault(15.);
-        preScoreElevatorHeight.initDefault(12.5);
+        preScoreElevatorHeight.initDefault(15.5);
         prepPitch.initDefault(80);
     }
 
+    /**
+     * Gets the starting state for scoring at level 1.
+     * @return
+     */
     private static ArmState getL1StartingState() {
         return new ArmState(Rotation2d.fromDegrees(0), Inches.of(L1ScoreHeight.get()), WristRotation.Vertical,
             EndEffectorState.hold());
     }
 
-    public static ArmState getStartingState(ReefLevel level) {
+    /**
+     * Gets the starting state for scoring at a given level.
+     * @param level
+     * @return
+     */
+    private static ArmState getStartingState(ReefLevel level) {
         Rotation2d pitch = Rotation2d.fromDegrees(branchScorePitch.get());
         Distance height;
         switch(level) {
@@ -73,19 +82,36 @@ public class ScoringSequenceCommands {
         return new ArmState(pitch, height, WristRotation.HorizontalFlipped, EndEffectorState.hold());
     }
 
-    public static Command middleArmMovement(ReefLevel level, Arm arm) {
-        ArmState startingState = getStartingState(level);
-        return Commands.sequence( //
-            arm.goToStateCommand(startingState.withPitch(Rotation2d.fromDegrees(prepPitch.get()))),
-            arm.goToStateCommand(startingState));
-    }
-
+    /**
+     * Goes to an arm state that prepares to score by holding the piece upward. Should be run during coarse alignment.
+     * @return
+     */
     public static Command prepForScoring(ReefLevel level, Arm arm) {
         if(level == ReefLevel.L1) { return arm.goToStateCommand(getL1StartingState()); }
         return arm.goToStateCommand(new ArmState(Rotation2d.fromDegrees(prepPitch.get()),
-            Inches.of(preScoreElevatorHeight.get()), WristRotation.HorizontalFlipped, EndEffectorState.hold()));
+            Inches.of(preScoreElevatorHeight.get()), WristRotation.Horizontal, EndEffectorState.hold()));
     }
 
+    /**
+     * The middle movement as part of the scoring sequence. Should be run during close alignment after prepForScoring.
+     * This is the "main" arm position as part of the scoring sequence; the arm will be lined up with the branch post.
+     * @return
+     */
+    public static Command middleArmMovement(ReefLevel level, Arm arm) {
+        ArmState startingState = getStartingState(level);
+        return Commands.sequence( //
+            arm.goToStateCommand(startingState.withPitch(Rotation2d.fromDegrees(prepPitch.get()))).withTimeout(0.75),
+            arm.goToStateCommand(startingState).withTimeout(0.75));
+    }
+
+    /**
+     * A full scoring sequence that scores at the given level. The arm should have been prepped for scoring and executed
+     * the middle arm movement before this command is run.
+     * @param level
+     * @param arm
+     * @param drive
+     * @return
+     */
     public static Command scoreAtLevel(ReefLevel level, Arm arm, Drive drive) {
         if(level == ReefLevel.L1) return troughScoringSequence(arm);
 
@@ -94,14 +120,17 @@ public class ScoringSequenceCommands {
             startState.pitch().minus(Rotation2d.fromDegrees(pitchDownPitchReduction.get())),
             startState.height().minus(Inches.of(elevatorPitchDownHeightReduction.get())),
             WristRotation.HorizontalFlipped, EndEffectorState.velocity(gamePieceEjectVelocity.get()));
-        return Commands.sequence(arm.goToStateCommand(startState),
+
+        return Commands.sequence(arm.goToStateCommand(startState).withTimeout(0.75),
             Commands.parallel(arm.goToStateCommand(pitchDownState),
-                DriveCommands.driveStraightCommand(drive, Units.feetToMeters(-2.0), 0.5)),
-            arm.goToStateCommand(ArmConstants.restingState)).finallyDo(() -> {
-                arm.goToStateCommand(ArmConstants.restingState).schedule();
-            });
+                DriveCommands.driveStraightCommand(drive, Units.feetToMeters(-2.0), 0.5)).withTimeout(0.75));
     }
 
+    /**
+     * The trough scoring sequence.
+     * @param arm
+     * @return
+     */
     private static Command troughScoringSequence(Arm arm) {
         return Commands.sequence(arm.goToStateCommand(new ArmState(Rotation2d.fromDegrees(0),
             Inches.of(L1ScoreHeight.get()), WristRotation.Vertical, EndEffectorState.velocity(10.))));

@@ -9,13 +9,19 @@ public record ArmState(Rotation2d pitch, Distance height, WristRotation wristRot
     public enum WristRotation {
         /** Vertical wrist rotation / horizontal coral rotation. */
         Vertical(Rotation2d.fromDegrees(90)),
-        /** Horizontal wrist rotation / vertical coal rotation. */
+        /**
+         * Horizontal wrist rotation / vertical coal rotation. This is the state used for picking up from the transport.
+         */
         Horizontal(Rotation2d.fromDegrees(0)),
 
         /** Vertical wrist rotation / horizontal coral rotation, 180 degrees offset. */
         VerticalFlipped(Rotation2d.fromDegrees(270)),
-        /** Horizontal wrist rotation / vertical coal rotation, 180 degrees offset. */
+        /**
+         * Horizontal wrist rotation / vertical coal rotation, 180 degrees offset. This is the state used for scoring
+         * L2-L4.
+         */
         HorizontalFlipped(Rotation2d.fromDegrees(180));
+
         // TODO: Showing off mode, as per B-G's recommendation
 
         Rotation2d rotation;

@@ -91,7 +91,8 @@ public class RobotContainer {
                     new VisionIOPhotonVision(VisionConstants.camera1Name, VisionConstants.robotToCamera1),
                     new VisionIOPhotonVision(VisionConstants.camera2Name, VisionConstants.robotToCamera2),
                     new VisionIOPhotonVision(VisionConstants.camera3Name, VisionConstants.robotToCamera3));
-                pieceVision = new PieceVision(new PieceVisionIOLimelight("limelight"));
+                pieceVision = new PieceVision(new PieceVisionIOLimelight("limelight"), drive::getChassisSpeeds,
+                    drive::getPose);
                 arm = new Arm(new ArmIOReal());
                 climber = new Climber(new ClimberIOReal());
                 intake = new Intake(new IntakeIOReal());
@@ -122,7 +123,7 @@ public class RobotContainer {
                         driveSimulation::getSimulatedDriveTrainPose),
                     new VisionIOPhotonVisionSim(VisionConstants.camera3Name, VisionConstants.robotToCamera3,
                         driveSimulation::getSimulatedDriveTrainPose));
-                pieceVision = new PieceVision(new PieceVisionIOSim());
+                pieceVision = new PieceVision(new PieceVisionIOSim(), drive::getChassisSpeeds, drive::getPose);
                 arm = new Arm(new ArmIOSim());
                 climber = new Climber(new ClimberIOSim());
                 intake = new Intake(new IntakeIOSim(driveSimulation));
@@ -155,7 +156,7 @@ public class RobotContainer {
                 });
                 pieceVision = new PieceVision(new PieceVisionIO() {
                     /** Replayed robot doesn't have IO */
-                });
+                }, drive::getChassisSpeeds, drive::getPose);
                 arm = new Arm(new ArmIO() {
                     /** Replayed robot doesn't have IO */
                 });

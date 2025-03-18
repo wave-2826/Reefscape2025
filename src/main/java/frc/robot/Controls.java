@@ -118,9 +118,16 @@ public class Controls {
 
         operator.rightBumper().and(normalOperator).whileTrue(IntakeCommands.intakeCommand(intake, arm));
 
+        // Backup to stop the transport if the piece gets stuck somehow
+        operator.povLeft().and(normalOperator).whileTrue(Commands.sequence(intake.setTransportOverrideSpeedCommand(0.0),
+            arm.setTargetStateCommand(() -> ArmConstants.restingState)));
+
+        // Backup for if the arm misses the piece somehow
+        operator.leftBumper().and(normalOperator).onTrue(IntakeCommands.getPieceFromIntake(intake, arm));
+
         operator.b().and(normalOperator).onTrue(arm.goToStateCommand(ArmConstants.restingState));
 
-        operator.leftBumper().and(normalOperator)
+        operator.povUp().and(normalOperator)
             .onTrue(arm.goToStateCommand(new ArmState(Rotation2d.fromDegrees(30), Inches.of(20),
                 WristRotation.Horizontal, EndEffectorState.velocity(-6))))
             .onFalse(arm.goToStateCommand(ArmConstants.restingState));

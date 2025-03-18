@@ -24,7 +24,8 @@ public class Climber extends SubsystemBase {
     public Climber(ClimberIO io) {
         this.io = io;
 
-        RobotModeTriggers.disabled().onTrue(Commands.runOnce(io::resetToAbsolute, this));
+        RobotModeTriggers.disabled().onFalse(Commands.runOnce(io::resetToAbsolute, this))
+            .onTrue(Commands.runOnce(() -> runClimberOpenLoop(0.0)));
     }
 
     public void runClimber(Rotation2d position) {
@@ -39,6 +40,7 @@ public class Climber extends SubsystemBase {
     public void disableClimber() {
         // TODO: Call this??
         io.setClimberBrakeMode(false);
+        io.runClimberOpenLoop(0);
     }
 
     @Override

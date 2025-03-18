@@ -72,6 +72,7 @@ public class Vision extends SubsystemBase {
     }
 
     @Override
+    @SuppressWarnings("unused")
     public void periodic() {
         if(Constants.currentMode == Constants.Mode.SIM && !VisionConstants.enableVisionSimulation) { return; }
 

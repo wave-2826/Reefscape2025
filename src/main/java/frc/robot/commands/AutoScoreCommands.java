@@ -37,23 +37,26 @@ import frc.robot.util.LoggedTunableNumber;
 import frc.robot.util.ReefTarget;
 
 public class AutoScoreCommands {
+    // HACK
+    public static boolean autoScoreRunning = false;
+
     /**
      * The distance from the reef branch to the center of the robot when lining up to score L1 in meters.
      */
     private static final LoggedTunableNumber robotReefLineupL1Distance = new LoggedTunableNumber(
-        "AutoScore/L1ReefLineupDistance", 0.8);
+        "AutoScore/L1ReefLineupDistance", 0.83);
 
     /**
      * The distance from the reef branch to the center of the robot when lining up to score L2-L4 in meters.
      */
     private static final LoggedTunableNumber robotReefLineupBranchDistance = new LoggedTunableNumber(
-        "AutoScore/BranchReefLineupDistance", 0.65);
+        "AutoScore/BranchReefLineupDistance", 1.0);
 
     /**
      * The amount the driver can tweak the auto lineup position, in inches.
      */
     private static final LoggedTunableNumber autoAlignTweakAmount = new LoggedTunableNumber(
-        "AutoScore/AutoAlignTweakInches", 5.0);
+        "AutoScore/AutoAlignTweakInches", 4.0);
 
     /**
      * Gets a command that pathfinds to the target pose and precisely aligns to it. Because PathPlanner's default
@@ -111,6 +114,9 @@ public class AutoScoreCommands {
                 -tweakX.getAsDouble() * Units.inchesToMeters(autoAlignTweakAmount.get())),
             Rotation2d.kZero);
 
+        // HACK ..?
+        BooleanSupplier finishEarly = finishSequence.isEmpty() ? () -> false : finishSequence.get();
+
         // Since AutoBuilder is configured, we can use it to build pathfinding commands
         // @formatter:off
         return Commands.sequence(
@@ -119,16 +125,19 @@ public class AutoScoreCommands {
             }), 
 
             // Move slightly outward first if we're near the reef
-            AutoBuilder.pathfindToPoseFlipped(safeReefPose, constraints, MetersPerSecond.of(0.0)).onlyIf(() -> {
+            AutoBuilder.pathfindToPoseFlipped(safeReefPose, constraints, MetersPerSecond.of(0.0)).until(finishEarly).onlyIf(() -> {
                 return currentPose.getTranslation().getDistance(FieldConstants.reefCenter) < Units.inchesToMeters(40);
             }),
             Commands.parallel(
                 AutoBuilder.pathfindToPoseFlipped(initialLineupPosition, constraints, MetersPerSecond.of(0.0)), // Move to the target pose
                 coarseLineupCommand.withTimeout(3)
-            ),
+            ).until(finishEarly).onlyIf(() -> {
+                return currentPose.getTranslation().getDistance(initialLineupPosition.getTranslation()) > Units.inchesToMeters(15);
+            }),
+            Commands.waitUntil(() -> !finishEarly.getAsBoolean()),
             Commands.runOnce(() -> Logger.recordOutput("AutoScore/RunningCloseLineup", true)),
             Commands.parallel(
-                closeLineupCommand, // Run during final adjustment
+                closeLineupCommand.withTimeout(0.75), // Run during final adjustment
                 // TODO: Fully line up before finishing if the finish sequence button is held
                 new CloseLineupCommand(drive, vision, reefFace.getAprilTagID(), tagRelativeOffset, getFieldRelativeOffset, finishSequence, lineupFeedback) // Final adjustment
             )
@@ -179,10 +188,11 @@ public class AutoScoreCommands {
                 );
                 
                 return Commands.sequence(
+                    Commands.runOnce(() -> autoScoreRunning = true),
                     autoAlign,
                     // Score
                     ScoringSequenceCommands.scoreAtLevel(state.target.level(), arm, drive)
-                );
+                ).finallyDo(() -> autoScoreRunning = false);
             }, // @formatter:on
 
             // Restart when our target changes

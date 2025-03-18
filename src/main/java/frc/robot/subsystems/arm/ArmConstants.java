@@ -22,8 +22,11 @@ public class ArmConstants {
     public static final ArmState restingState = new ArmState(Rotation2d.fromDegrees(-90), Inches.of(18.5),
         WristRotation.Horizontal, EndEffectorState.hold());
     /** The state the arm is in when getting a piece. */
-    public static final ArmState getPieceState = new ArmState(Rotation2d.fromDegrees(-90), Inches.of(15.0),
-        WristRotation.Horizontal, EndEffectorState.velocity(-5));
+    public static final ArmState getPieceState = new ArmState(Rotation2d.fromDegrees(-97), Inches.of(14.75),
+        WristRotation.Horizontal, EndEffectorState.velocity(-15));
+    /** The second state the arm is in when getting a piece. */
+    public static final ArmState getPieceState2 = new ArmState(Rotation2d.fromDegrees(-97), Inches.of(14.25),
+        WristRotation.Horizontal, EndEffectorState.velocity(-15));
     /** The state used during intaking to make sure the passive stage clears the transport. */
     public static final ArmState intakeClearanceState = new ArmState(Rotation2d.fromDegrees(-90), Inches.of(30.0),
         WristRotation.Horizontal, EndEffectorState.hold());
@@ -139,7 +142,7 @@ public class ArmConstants {
         /** The conversion factor from pitch absolute encoder RPM to radians per second. */
         public static final double pitchAbsoluteVelocityFactor = pitchAbsolutePositionFactor / 60.;
 
-        public static final int pitchMotorCurrentLimit = 70;
+        public static final int pitchMotorCurrentLimit = 35;
         public static final boolean pitchMotorInverted = true;
         public static final boolean pitchEncoderInverted = true;
 
@@ -164,7 +167,7 @@ public class ArmConstants {
         /** The conversion factor from wrist absolute encoder RPM to radians per second. */
         public static final double wristAbsoluteVelocityFactor = wristPositionConversionFactor / 60.;
 
-        public static final int wristMotorCurrentLimit = 25;
+        public static final int wristMotorCurrentLimit = 20;
         public static final boolean wristMotorInverted = false;
 
         /** The translation from the carriage origin to the shoulder. */

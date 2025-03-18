@@ -88,7 +88,7 @@ public class Intake extends SubsystemBase {
             transportSpeed = 0;
         }
 
-        io.runVelocity(intakeSpeed, Math.max(intakeSpeed, transportSpeed));
+        io.runVelocity(intakeSpeed, transportSpeed == 0 ? intakeSpeed : transportSpeed);
 
         visualizer.update(inputs.intakePitch);
     }

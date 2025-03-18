@@ -18,6 +18,10 @@ public interface PieceVisionIO {
         public PieceLocations locations = null;
     }
 
+    /**
+     * A set of piece locations. This is used to represent the locations of pieces in the field of view of the camera.
+     * The timestamp is the time the image was taken in seconds, and should be matched with our local time base.
+     */
     public static record PieceLocations(double timestampSeconds, PieceLocation[] locations) {
     }
 
