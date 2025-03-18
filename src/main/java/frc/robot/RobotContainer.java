@@ -34,6 +34,7 @@ import frc.robot.subsystems.leds.LEDIORio;
 import frc.robot.subsystems.leds.LEDIOSim;
 import frc.robot.subsystems.leds.LEDs;
 import frc.robot.subsystems.pieceVision.PieceVision;
+import frc.robot.subsystems.pieceVision.PieceVisionConstants;
 import frc.robot.subsystems.pieceVision.PieceVisionIO;
 import frc.robot.subsystems.pieceVision.PieceVisionIOLimelight;
 import frc.robot.subsystems.pieceVision.PieceVisionIOSim;
@@ -84,8 +85,8 @@ public class RobotContainer {
                     new VisionIOPhotonVision(VisionConstants.camera1Name, VisionConstants.robotToCamera1),
                     new VisionIOPhotonVision(VisionConstants.camera2Name, VisionConstants.robotToCamera2),
                     new VisionIOPhotonVision(VisionConstants.camera3Name, VisionConstants.robotToCamera3));
-                pieceVision = new PieceVision(new PieceVisionIOLimelight("limelight"), drive::getChassisSpeeds,
-                    drive::getPose);
+                pieceVision = new PieceVision(new PieceVisionIOLimelight(PieceVisionConstants.cameraHostname),
+                    drive::getChassisSpeeds, drive::getPose);
                 arm = new Arm(new ArmIOReal(), drive::getPose);
                 climber = new Climber(new ClimberIOReal());
                 intake = new Intake(new IntakeIOReal());
@@ -116,7 +117,8 @@ public class RobotContainer {
                         driveSimulation::getSimulatedDriveTrainPose),
                     new VisionIOPhotonVisionSim(VisionConstants.camera3Name, VisionConstants.robotToCamera3,
                         driveSimulation::getSimulatedDriveTrainPose));
-                pieceVision = new PieceVision(new PieceVisionIOSim(), drive::getChassisSpeeds, drive::getPose);
+                pieceVision = new PieceVision(new PieceVisionIOSim(driveSimulation::getSimulatedDriveTrainPose),
+                    drive::getChassisSpeeds, drive::getPose);
                 arm = new Arm(new ArmIOSim(), driveSimulation::getSimulatedDriveTrainPose);
                 climber = new Climber(new ClimberIOSim());
                 intake = new Intake(new IntakeIOSim(driveSimulation));

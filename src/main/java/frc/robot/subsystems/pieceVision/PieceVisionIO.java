@@ -11,18 +11,16 @@ public interface PieceVisionIO {
 
         public double framerate = 0;
         public double cpuTemp = 0;
+        /**
+         * The latest set of piece locations. Can be null. This is used to represent the locations of pieces in the
+         * field of view of the camera.
+         */
+        public PieceLocation[] locations = null;
 
         /**
-         * The latest piece location observations. Can be null. Only set on frames that we receive a new observation.
+         * The timestamp is the time the image was taken in seconds, and should be matched with our local time base.
          */
-        public PieceLocations locations = null;
-    }
-
-    /**
-     * A set of piece locations. This is used to represent the locations of pieces in the field of view of the camera.
-     * The timestamp is the time the image was taken in seconds, and should be matched with our local time base.
-     */
-    public static record PieceLocations(double timestampSeconds, PieceLocation[] locations) {
+        public double timestamp = 0;
     }
 
     public static record PieceLocation(Rotation2d theta, Rotation2d pitch, double area) {

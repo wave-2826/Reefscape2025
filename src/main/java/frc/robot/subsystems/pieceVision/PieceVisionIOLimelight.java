@@ -113,6 +113,8 @@ public class PieceVisionIOLimelight implements PieceVisionIO {
         var latency = captureLatencySubscriber.get() + pipelineLatencySubscriber.get();
         // Convert server timestamp from microseconds to seconds and adjust for latency
         double adjustedTimestampSeconds = (timestamp / 1000000.0) - (latency / 1000.0);
-        inputs.locations = new PieceLocations(adjustedTimestampSeconds, locations);
+
+        inputs.locations = locations;
+        inputs.timestamp = adjustedTimestampSeconds;
     }
 }
