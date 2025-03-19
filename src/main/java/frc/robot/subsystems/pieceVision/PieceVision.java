@@ -248,11 +248,10 @@ public class PieceVision extends SubsystemBase {
 
             List<Pose3d> estimatedFieldLocations = new ArrayList<>();
             for(int i = 0; i < inputs.locations.length; i++) {
-
                 // Project the pitch and yaw of the observation onto the field plane (plus half a coral height) to estimate the location of the piece.
                 var location = inputs.locations[i];
-                var pose = cameraOnRobot.plus(new Transform3d(new Translation3d(),
-                    new Rotation3d(0.0, location.pitch().getRadians(), location.theta().getRadians())));
+                var pose = cameraOnRobot.transformBy(new Transform3d(new Translation3d(),
+                    new Rotation3d(0, -location.pitch().getRadians(), location.theta().getRadians())));
 
                 // Positive pitch is downward
                 if(pose.getRotation().getY() < Units.degreesToRadians(3)) {
@@ -261,7 +260,8 @@ public class PieceVision extends SubsystemBase {
                 }
 
                 // Solve for the X and Y position of the piece
-                var coralCenterHeight = Units.inchesToMeters(4.5 / 2.); // The Z position we're projecting to
+                // The Z position we're projecting to. This is only correct for horizontal coral, but it's probably true almost all of the time.
+                var coralCenterHeight = Units.inchesToMeters(4.5 / 2.);
                 var distanceToFloorLocation = (PieceVisionConstants.cameraTransform.getZ() - coralCenterHeight)
                     / Math.sin(pose.getRotation().getY());
                 var pieceLocation = pose.transformBy(

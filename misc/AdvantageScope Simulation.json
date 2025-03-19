@@ -1,13 +1,13 @@
 {
   "hubs": [
     {
-      "x": -1544,
-      "y": -8,
-      "width": 1552,
-      "height": 840,
+      "x": 2580,
+      "y": 229,
+      "width": 1560,
+      "height": 820,
       "state": {
         "sidebar": {
-          "width": 344,
+          "width": 350,
           "expanded": [
             "NT:/AdvantageKit/SmartDashboard/Field",
             "NT:/AdvantageKit/SmartDashboard/field",
@@ -51,14 +51,21 @@
             "/AdvantageKit",
             "/AdvantageKit/RealOutputs/Mechanism3d/climber",
             "/AdvantageKit/RealOutputs/Mechanism3d/arm",
-            "/AdvantageKit/RealOutputs/Mechanism3d/arm/Arm",
             "/AdvantageKit/RealOutputs/Mechanism3d/intake",
             "/AdvantageKit/RealOutputs",
             "/AdvantageKit/RealOutputs/Elevator",
-            "/AdvantageKit/RealOutputs/Arm",
-            "/AdvantageKit/Arm",
             "/AdvantageKit/RealOutputs/AutoScore",
-            "/AdvantageKit/RealOutputs/FieldSimulation"
+            "/AdvantageKit/RealOutputs/CloseLineup",
+            "/AdvantageKit/RealOutputs/Vision/Summary",
+            "/AdvantageKit/Intake",
+            "/AdvantageKit/RealOutputs/Intake",
+            "/AdvantageKit/Intake/IntakePitch",
+            "/AdvantageKit/RealOutputs/PieceVision",
+            "/AdvantageKit/PieceVision",
+            "/AdvantageKit/PieceVision/Locations/0",
+            "/AdvantageKit/PieceVision/Locations/0/pitch",
+            "/AdvantageKit/PieceVision/Locations/0/theta",
+            "/AdvantageKit/RealOutputs/Odometry"
           ]
         },
         "tabs": {
@@ -81,7 +88,7 @@
                     "type": "ghost",
                     "logKey": "NT:/AdvantageKit/RealOutputs/Odometry/Robot",
                     "logType": "Pose2d",
-                    "visible": true,
+                    "visible": false,
                     "options": {
                       "model": "Wave2025",
                       "color": "#00ff00"
@@ -159,10 +166,20 @@
                     "options": {}
                   },
                   {
+                    "type": "vision",
+                    "logKey": "NT:/AdvantageKit/RealOutputs/PieceVision/EstimatedFieldLocations",
+                    "logType": "Pose3d[]",
+                    "visible": false,
+                    "options": {
+                      "color": "#00ff00",
+                      "size": "normal"
+                    }
+                  },
+                  {
                     "type": "ghost",
                     "logKey": "NT:/AdvantageKit/RealOutputs/AutoScore/InitialLineupPose",
                     "logType": "Pose2d",
-                    "visible": true,
+                    "visible": false,
                     "options": {
                       "model": "Wave2025",
                       "color": "#0000ff"
@@ -185,6 +202,32 @@
                     "options": {
                       "variant": "Coral"
                     }
+                  },
+                  {
+                    "type": "gamePiece",
+                    "logKey": "NT:/AdvantageKit/RealOutputs/Mechanism3d/arm/Coral",
+                    "logType": "Pose3d[]",
+                    "visible": true,
+                    "options": {
+                      "variant": "Coral"
+                    }
+                  },
+                  {
+                    "type": "axes",
+                    "logKey": "NT:/AdvantageKit/RealOutputs/PieceVision/Camera",
+                    "logType": "Pose3d",
+                    "visible": true,
+                    "options": {}
+                  },
+                  {
+                    "type": "trajectory",
+                    "logKey": "NT:/AdvantageKit/RealOutputs/PieceVision/Piece1Line",
+                    "logType": "Pose3d[]",
+                    "visible": true,
+                    "options": {
+                      "color": "#00ff00",
+                      "size": "normal"
+                    }
                   }
                 ],
                 "game": "2025 Field (Welded)",
@@ -195,16 +238,102 @@
                 "cameraIndex": -1,
                 "orbitFov": 50,
                 "cameraPosition": [
-                  7.424661173287336,
-                  4.820752558182416,
-                  -5.900970768194372
+                  6.8301190451187646,
+                  2.5464442767623243,
+                  -3.3176452662840243
                 ],
                 "cameraTarget": [
-                  4.1305409841806995,
-                  -1.6345598227864424,
-                  0.5256838137722653
+                  5.134599394120227,
+                  -0.15119714099065634,
+                  2.5323686667938907
                 ]
               },
+              "controlsHeight": 226
+            },
+            {
+              "type": 2,
+              "title": "Odometry",
+              "controller": {
+                "sources": [
+                  {
+                    "type": "ghost",
+                    "logKey": "NT:/AdvantageKit/RealOutputs/Odometry/Robot",
+                    "logType": "Pose2d",
+                    "visible": true,
+                    "options": {
+                      "color": "#00ff00"
+                    }
+                  },
+                  {
+                    "type": "robot",
+                    "logKey": "NT:/AdvantageKit/RealOutputs/FieldSimulation/RobotPosition",
+                    "logType": "Pose2d",
+                    "visible": true,
+                    "options": {}
+                  },
+                  {
+                    "type": "ghost",
+                    "logKey": "NT:/AdvantageKit/RealOutputs/CloseLineup/TargetPose",
+                    "logType": "Pose2d",
+                    "visible": true,
+                    "options": {
+                      "color": "#ff8c00"
+                    }
+                  },
+                  {
+                    "type": "arrow",
+                    "logKey": "NT:/AdvantageKit/RealOutputs/Vision/Summary/TagPoses",
+                    "logType": "Pose3d[]",
+                    "visible": false,
+                    "options": {
+                      "position": "center"
+                    }
+                  },
+                  {
+                    "type": "ghost",
+                    "logKey": "NT:/AdvantageKit/RealOutputs/Vision/Summary/IndividualTagRobotPoses",
+                    "logType": "Pose3d[]",
+                    "visible": false,
+                    "options": {
+                      "color": "#ff0000"
+                    }
+                  },
+                  {
+                    "type": "ghost",
+                    "logKey": "NT:/AdvantageKit/RealOutputs/Vision/Summary/IndividualTagRobotPosesAccepted",
+                    "logType": "Pose3d[]",
+                    "visible": false,
+                    "options": {
+                      "color": "#ff0000"
+                    }
+                  },
+                  {
+                    "type": "ghost",
+                    "logKey": "NT:/AdvantageKit/RealOutputs/Vision/Summary/IndividualTagRobotPosesRejected",
+                    "logType": "Pose3d[]",
+                    "visible": false,
+                    "options": {
+                      "color": "#ff0000"
+                    }
+                  },
+                  {
+                    "type": "ghost",
+                    "logKey": "NT:/AdvantageKit/RealOutputs/AutoScore/InitialLineupPose",
+                    "logType": "Pose2d",
+                    "visible": true,
+                    "options": {
+                      "color": "#00ffff"
+                    }
+                  }
+                ],
+                "game": "2025 Field (Welded)",
+                "bumpers": "auto",
+                "origin": "blue",
+                "orientation": 0,
+                "size": 30
+              },
+              "controllerUUID": "qjx9o95r1gnq6rnpi1dpuoed6llw8uzw",
+              "renderer": null,
               "controlsHeight": 200
             },
             {
@@ -289,7 +418,7 @@
               "title": "Joysticks",
               "controller": [
                 "Xbox Controller (White)",
-                "None",
+                "Xbox Controller (Blue)",
                 "None",
                 "None",
                 "None",
@@ -305,5 +434,5 @@
     }
   ],
   "satellites": [],
-  "version": "4.1.2"
+  "version": "4.1.1"
 }

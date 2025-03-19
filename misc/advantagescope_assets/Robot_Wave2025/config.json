@@ -107,6 +107,29 @@
                 800
             ],
             "fov": 70
+        },
+        {
+            "name": "Piece Vision limelight",
+            "rotations": [
+                {
+                    "axis": "z",
+                    "degrees": 180
+                },
+                {
+                    "axis": "y",
+                    "degrees": -20
+                }
+            ],
+            "position": [
+                0.02,
+                0.0,
+                0.8509
+            ],
+            "resolution": [
+                720,
+                480
+            ],
+            "fov": 63.3
         }
     ],
     "components": [

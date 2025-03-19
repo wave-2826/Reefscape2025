@@ -51,9 +51,10 @@
     ],
     "editor.detectIndentation": false,
     "editor.tabSize": 4,
-    "files.autoSave": "afterDelay",
+    "files.autoSave": "onFocusChange",
     "editor.formatOnSave": true,
     "editor.defaultFormatter": null,
     "wpilib.selectDefaultSimulateExtension": true,
-    "java.jdt.ls.vmargs": "-XX:+UseParallelGC -XX:GCTimeRatio=4 -XX:AdaptiveSizePolicyWeight=90 -Dsun.zip.disableMemoryMapping=true -Xmx64G -Xms100m -Xlog:disable"
+    "java.jdt.ls.vmargs": "-XX:+UseParallelGC -XX:GCTimeRatio=4 -XX:AdaptiveSizePolicyWeight=90 -Dsun.zip.disableMemoryMapping=true -Xmx64G -Xms100m -Xlog:disable",
+    "java.debug.settings.hotCodeReplace": "auto"
 }
