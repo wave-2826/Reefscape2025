@@ -39,7 +39,15 @@ public record ArmState(Rotation2d pitch, Distance height, WristRotation wristRot
         }
     }
 
+    public ArmState withHeight(Distance newHeight) {
+        return new ArmState(pitch, newHeight, wristRotation, endEffectorState);
+    }
+
     public ArmState withPitch(Rotation2d newPitch) {
         return new ArmState(newPitch, height, wristRotation, endEffectorState);
+    }
+
+    public ArmState withEndEffector(EndEffectorState newEndEffectorState) {
+        return new ArmState(pitch, height, wristRotation, newEndEffectorState);
     }
 }

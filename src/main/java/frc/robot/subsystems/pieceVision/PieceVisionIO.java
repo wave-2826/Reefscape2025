@@ -12,8 +12,8 @@ public interface PieceVisionIO {
         public double framerate = 0;
         public double cpuTemp = 0;
         /**
-         * The latest set of piece locations. Can be null. This is used to represent the locations of pieces in the
-         * field of view of the camera.
+         * The latest set of piece locations. Will be null if there's no new update. This is used to represent the
+         * locations of pieces in the field of view of the camera.
          */
         public PieceLocation[] locations = null;
 

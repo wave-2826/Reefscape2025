@@ -26,6 +26,7 @@ public class ScoringSequenceCommands {
     private static LoggedTunableNumber gamePieceEjectVelocity = new LoggedTunableNumber(
         "AutoScore/GamePieceEjectVelocity");
     private static LoggedTunableNumber branchScorePitch = new LoggedTunableNumber("AutoScore/BranchScorePitch");
+    private static LoggedTunableNumber L4ScorePitch = new LoggedTunableNumber("AutoScore/L4ScorePitch");
     private static LoggedTunableNumber L4ScoreHeightFromTop = new LoggedTunableNumber("AutoScore/L4ScoreHeightFromTop");
     private static LoggedTunableNumber L3ScoreHeight = new LoggedTunableNumber("AutoScore/L3ScoreHeight");
     private static LoggedTunableNumber L2ScoreHeight = new LoggedTunableNumber("AutoScore/L2ScoreHeight");
@@ -36,11 +37,15 @@ public class ScoringSequenceCommands {
     static {
         elevatorScoreHeightReduction.initDefault(6);
         gamePieceEjectVelocity.initDefault(12);
+
         branchScorePitch.initDefault(65.);
-        L4ScoreHeightFromTop.initDefault(10);
-        L3ScoreHeight.initDefault(28);
-        L2ScoreHeight.initDefault(12);
-        L1ScoreHeight.initDefault(15);
+        L4ScorePitch.initDefault(55.);
+
+        L1ScoreHeight.initDefault(13);
+        L2ScoreHeight.initDefault(10);
+        L3ScoreHeight.initDefault(26);
+        L4ScoreHeightFromTop.initDefault(11);
+
         preScoreElevatorHeight.initDefault(15.5);
     }
 
@@ -54,17 +59,18 @@ public class ScoringSequenceCommands {
     }
 
     /**
-     * Gets the starting state for scoring at a given level. Does not support L1.
+     * Gets the starting state for scoring at a given level.
      * @param level
      * @return
      */
-    private static ArmState getStartingState(ReefLevel level) {
+    public static ArmState getStartingState(ReefLevel level) {
         Rotation2d pitch = Rotation2d.fromDegrees(branchScorePitch.get());
         Distance height;
-        boolean flipped = false;
+        boolean flipped = true;
         switch(level) {
             case L4:
                 height = ArmConstants.ElevatorConstants.maxElevatorHeight.minus(Inches.of(L4ScoreHeightFromTop.get()));
+                pitch = Rotation2d.fromDegrees(L4ScorePitch.get());
                 flipped = true;
                 break;
             case L3:
@@ -74,7 +80,7 @@ public class ScoringSequenceCommands {
                 height = Inches.of(L2ScoreHeight.get());
                 break;
             default:
-                return null;
+                return getL1StartingState();
         }
 
         return new ArmState(pitch, height, flipped ? WristRotation.HorizontalFlipped : WristRotation.Horizontal,
@@ -87,6 +93,7 @@ public class ScoringSequenceCommands {
      */
     public static Command prepForScoring(ReefLevel level, Arm arm) {
         if(level == ReefLevel.L1) { return arm.goToStateCommand(getL1StartingState()); }
+
         return arm.goToStateCommand(new ArmState(Rotation2d.fromDegrees(80), Inches.of(preScoreElevatorHeight.get()),
             WristRotation.Horizontal, EndEffectorState.hold()));
     }
@@ -100,6 +107,13 @@ public class ScoringSequenceCommands {
         if(level == ReefLevel.L1) { return arm.goToStateCommand(getL1StartingState()); }
 
         ArmState startingState = getStartingState(level);
+        if(level == ReefLevel.L2) {
+            return Commands.sequence(arm
+                .goToStateCommand(
+                    startingState.withHeight(Inches.of(L3ScoreHeight.get())).withPitch(Rotation2d.fromDegrees(-70)))
+                .withTimeout(0.75), arm.goToStateCommand(startingState).withTimeout(0.75));
+        }
+
         return arm.goToStateCommand(startingState).withTimeout(0.75);
     }
 

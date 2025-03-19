@@ -12,21 +12,23 @@ import frc.robot.subsystems.arm.ArmConstants;
 import frc.robot.subsystems.intake.Intake;
 
 public class IntakeCommands {
+    public static Command getPiece(Arm arm) {
+        return Commands.sequence(arm.goToStateCommand(ArmConstants.getPieceState).withTimeout(0.25),
+            Commands.waitSeconds(0.05), arm.goToStateCommand(ArmConstants.getPieceState2).withTimeout(0.25),
+            Commands.waitSeconds(0.2), arm.goToStateCommand(ArmConstants.restingState).withTimeout(0.25));
+    }
+
     public static Command getPieceFromIntake(Intake intake, Arm arm) {
         // @formatter:off
         return Commands.sequence(
-            arm.goToStateCommand(ArmConstants.restingState),
+            arm.goToStateCommand(ArmConstants.restingState).withTimeout(0.5),
             intake.setTransportOverrideSpeedCommand(1.0),
 
             Commands.waitUntil(intake::transportSensorTriggered),
-            Commands.waitSeconds(0.1),
+            Commands.waitSeconds(0.15),
             intake.setTransportOverrideSpeedCommand(0.0),
 
-            arm.goToStateCommand(ArmConstants.getPieceState).withTimeout(0.25),
-            Commands.waitSeconds(0.1),
-            arm.goToStateCommand(ArmConstants.getPieceState2).withTimeout(0.25),
-            Commands.waitSeconds(0.1),
-            arm.goToStateCommand(ArmConstants.restingState).withTimeout(0.25)
+            getPiece(arm)
         )
         // HACK
         .unless(() -> AutoScoreCommands.autoScoreRunning).until(() -> AutoScoreCommands.autoScoreRunning);

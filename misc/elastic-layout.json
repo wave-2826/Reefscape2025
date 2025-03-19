@@ -58,48 +58,6 @@
               "data_type": "string",
               "show_submit_button": false
             }
-          },
-          {
-            "title": "pitchKg",
-            "x": 460.0,
-            "y": 345.0,
-            "width": 230.0,
-            "height": 230.0,
-            "type": "Text Display",
-            "properties": {
-              "topic": "/Tuning/Arm/pitchKg",
-              "period": 0.06,
-              "data_type": "double",
-              "show_submit_button": true
-            }
-          },
-          {
-            "title": "PitchkSlot0P",
-            "x": 0.0,
-            "y": 345.0,
-            "width": 230.0,
-            "height": 230.0,
-            "type": "Text Display",
-            "properties": {
-              "topic": "/Tuning/Arm/PitchkSlot0P",
-              "period": 0.06,
-              "data_type": "double",
-              "show_submit_button": false
-            }
-          },
-          {
-            "title": "PitchkSlot0D",
-            "x": 230.0,
-            "y": 345.0,
-            "width": 230.0,
-            "height": 230.0,
-            "type": "Text Display",
-            "properties": {
-              "topic": "/Tuning/Arm/PitchkSlot0D",
-              "period": 0.06,
-              "data_type": "double",
-              "show_submit_button": false
-            }
           }
         ]
       }
@@ -357,7 +315,7 @@
             "x": 575.0,
             "y": 345.0,
             "width": 230.0,
-            "height": 230.0,
+            "height": 115.0,
             "type": "Text Display",
             "properties": {
               "topic": "/Tuning/Arm/EndEffectorkSlot1P",
@@ -371,7 +329,7 @@
             "x": 805.0,
             "y": 345.0,
             "width": 230.0,
-            "height": 230.0,
+            "height": 115.0,
             "type": "Text Display",
             "properties": {
               "topic": "/Tuning/Arm/EndEffectorkSlot1I",
@@ -385,7 +343,7 @@
             "x": 1035.0,
             "y": 345.0,
             "width": 230.0,
-            "height": 230.0,
+            "height": 115.0,
             "type": "Text Display",
             "properties": {
               "topic": "/Tuning/Arm/EndEffectorkSlot1D",
@@ -399,7 +357,7 @@
             "x": 1265.0,
             "y": 345.0,
             "width": 230.0,
-            "height": 230.0,
+            "height": 115.0,
             "type": "Text Display",
             "properties": {
               "topic": "/Tuning/Arm/EndEffectorkSlot1F",
@@ -409,14 +367,246 @@
             }
           },
           {
-            "title": "BranchReefLineupDistance",
-            "x": 230.0,
+            "title": "translationKp",
+            "x": 575.0,
             "y": 575.0,
             "width": 230.0,
             "height": 115.0,
             "type": "Text Display",
             "properties": {
+              "topic": "/Tuning/CloseLineup/translationKp",
+              "period": 0.06,
+              "data_type": "double",
+              "show_submit_button": false
+            }
+          },
+          {
+            "title": "translationKd",
+            "x": 805.0,
+            "y": 575.0,
+            "width": 230.0,
+            "height": 115.0,
+            "type": "Text Display",
+            "properties": {
+              "topic": "/Tuning/CloseLineup/translationKd",
+              "period": 0.06,
+              "data_type": "double",
+              "show_submit_button": false
+            }
+          },
+          {
+            "title": "thetaRotationKp",
+            "x": 1035.0,
+            "y": 575.0,
+            "width": 230.0,
+            "height": 115.0,
+            "type": "Text Display",
+            "properties": {
+              "topic": "/Tuning/CloseLineup/thetaRotationKp",
+              "period": 0.06,
+              "data_type": "double",
+              "show_submit_button": false
+            }
+          },
+          {
+            "title": "thetaRotationKd",
+            "x": 1265.0,
+            "y": 575.0,
+            "width": 230.0,
+            "height": 115.0,
+            "type": "Text Display",
+            "properties": {
+              "topic": "/Tuning/CloseLineup/thetaRotationKd",
+              "period": 0.06,
+              "data_type": "double",
+              "show_submit_button": false
+            }
+          },
+          {
+            "title": "WristkSlot0P",
+            "x": 575.0,
+            "y": 460.0,
+            "width": 230.0,
+            "height": 115.0,
+            "type": "Text Display",
+            "properties": {
+              "topic": "/Tuning/Arm/WristkSlot0P",
+              "period": 0.06,
+              "data_type": "double",
+              "show_submit_button": false
+            }
+          },
+          {
+            "title": "WristkSlot0D",
+            "x": 1035.0,
+            "y": 460.0,
+            "width": 230.0,
+            "height": 115.0,
+            "type": "Text Display",
+            "properties": {
+              "topic": "/Tuning/Arm/WristkSlot0D",
+              "period": 0.06,
+              "data_type": "double",
+              "show_submit_button": false
+            }
+          },
+          {
+            "title": "WristkSlot0I",
+            "x": 805.0,
+            "y": 460.0,
+            "width": 230.0,
+            "height": 115.0,
+            "type": "Text Display",
+            "properties": {
+              "topic": "/Tuning/Arm/WristkSlot0I",
+              "period": 0.06,
+              "data_type": "double",
+              "show_submit_button": false
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "Tuning 2",
+      "grid_layout": {
+        "layouts": [],
+        "containers": [
+          {
+            "title": "PitchkSlot0D",
+            "x": 1265.0,
+            "y": 0.0,
+            "width": 230.0,
+            "height": 115.0,
+            "type": "Text Display",
+            "properties": {
+              "topic": "/Tuning/Intake/PitchkSlot0D",
+              "period": 0.06,
+              "data_type": "double",
+              "show_submit_button": false
+            }
+          },
+          {
+            "title": "PitchkSlot0I",
+            "x": 1035.0,
+            "y": 0.0,
+            "width": 230.0,
+            "height": 115.0,
+            "type": "Text Display",
+            "properties": {
+              "topic": "/Tuning/Intake/PitchkSlot0I",
+              "period": 0.06,
+              "data_type": "double",
+              "show_submit_button": false
+            }
+          },
+          {
+            "title": "PitchkSlot0P",
+            "x": 805.0,
+            "y": 0.0,
+            "width": 230.0,
+            "height": 115.0,
+            "type": "Text Display",
+            "properties": {
+              "topic": "/Tuning/Intake/PitchkSlot0P",
+              "period": 0.06,
+              "data_type": "double",
+              "show_submit_button": false
+            }
+          },
+          {
+            "title": "BranchReefLineupDistance",
+            "x": 230.0,
+            "y": 0.0,
+            "width": 230.0,
+            "height": 115.0,
+            "type": "Text Display",
+            "properties": {
               "topic": "/Tuning/AutoScore/BranchReefLineupDistance",
+              "period": 0.06,
+              "data_type": "double",
+              "show_submit_button": false
+            }
+          },
+          {
+            "title": "L1ReefLineupDistance",
+            "x": 0.0,
+            "y": 0.0,
+            "width": 230.0,
+            "height": 115.0,
+            "type": "Text Display",
+            "properties": {
+              "topic": "/Tuning/AutoScore/L1ReefLineupDistance",
+              "period": 0.06,
+              "data_type": "double",
+              "show_submit_button": false
+            }
+          },
+          {
+            "title": "L1ScoreHeight",
+            "x": 0.0,
+            "y": 230.0,
+            "width": 230.0,
+            "height": 115.0,
+            "type": "Text Display",
+            "properties": {
+              "topic": "/Tuning/AutoScore/L1ScoreHeight",
+              "period": 0.06,
+              "data_type": "double",
+              "show_submit_button": false
+            }
+          },
+          {
+            "title": "L2ScoreHeight",
+            "x": 230.0,
+            "y": 230.0,
+            "width": 230.0,
+            "height": 115.0,
+            "type": "Text Display",
+            "properties": {
+              "topic": "/Tuning/AutoScore/L2ScoreHeight",
+              "period": 0.06,
+              "data_type": "double",
+              "show_submit_button": false
+            }
+          },
+          {
+            "title": "L3ScoreHeight",
+            "x": 0.0,
+            "y": 345.0,
+            "width": 230.0,
+            "height": 115.0,
+            "type": "Text Display",
+            "properties": {
+              "topic": "/Tuning/AutoScore/L3ScoreHeight",
+              "period": 0.06,
+              "data_type": "double",
+              "show_submit_button": false
+            }
+          },
+          {
+            "title": "L4ScoreHeightFromTop",
+            "x": 230.0,
+            "y": 345.0,
+            "width": 230.0,
+            "height": 115.0,
+            "type": "Text Display",
+            "properties": {
+              "topic": "/Tuning/AutoScore/L4ScoreHeightFromTop",
+              "period": 0.06,
+              "data_type": "double",
+              "show_submit_button": false
+            }
+          },
+          {
+            "title": "L4ReefLineupDistance",
+            "x": 460.0,
+            "y": 575.0,
+            "width": 230.0,
+            "height": 115.0,
+            "type": "Text Display",
+            "properties": {
+              "topic": "/Tuning/AutoScore/L4ReefLineupDistance",
               "period": 0.06,
               "data_type": "double",
               "show_submit_button": false
@@ -431,6 +621,20 @@
             "type": "Text Display",
             "properties": {
               "topic": "/Tuning/AutoScore/L1ReefLineupDistance",
+              "period": 0.06,
+              "data_type": "double",
+              "show_submit_button": false
+            }
+          },
+          {
+            "title": "BranchReefLineupDistance",
+            "x": 230.0,
+            "y": 575.0,
+            "width": 230.0,
+            "height": 115.0,
+            "type": "Text Display",
+            "properties": {
+              "topic": "/Tuning/AutoScore/BranchReefLineupDistance",
               "period": 0.06,
               "data_type": "double",
               "show_submit_button": false

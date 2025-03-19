@@ -64,7 +64,7 @@ public class PieceVisionIOSim implements PieceVisionIO {
 
         for(var pieceLocation : gamePieceLocations) {
             Pose3d robotToPiece = pieceLocation.relativeTo(robotPose3d);
-            double pieceDistance = robotToPiece.getTranslation().getX();
+            double pieceDistance = -robotToPiece.getTranslation().getX();
 
             if(pieceDistance < MIN_DISTANCE) {
                 continue;

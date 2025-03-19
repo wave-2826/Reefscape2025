@@ -1,6 +1,5 @@
 package frc.robot;
 
-import static edu.wpi.first.units.Units.Inches;
 import static edu.wpi.first.units.Units.Meters;
 
 import java.util.HashMap;
@@ -19,6 +18,7 @@ import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.commands.AutoScoreCommands;
+import frc.robot.commands.arm.ScoringSequenceCommands;
 import frc.robot.commands.climber.ClimbCommands;
 import frc.robot.commands.drive.DriveCommands;
 import frc.robot.commands.intake.IntakeCommands;
@@ -32,6 +32,7 @@ import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.intake.Intake;
 import frc.robot.subsystems.vision.Vision;
 import frc.robot.util.Container;
+import frc.robot.util.DriverStationInterface;
 import frc.robot.util.LoggedTunableNumber;
 
 public class Controls {
@@ -111,12 +112,16 @@ public class Controls {
 
         operator.b().and(normalOperator).onTrue(arm.goToStateCommand(ArmConstants.restingState));
 
-        operator.povUp().and(normalOperator)
-            .onTrue(arm.goToStateCommand(new ArmState(Rotation2d.fromDegrees(30), Inches.of(20),
-                WristRotation.Horizontal, EndEffectorState.velocity(-6))))
-            .onFalse(arm.goToStateCommand(ArmConstants.restingState));
+        operator.povUp().and(normalOperator).onTrue(arm.goToStateCommand(ArmConstants.sourceIntakeState))
+            .onFalse(arm.goToStateCommand(ArmConstants.sourceIntakeState.withEndEffector(EndEffectorState.hold())));
 
         operator.back().and(normalOperator).onTrue(Commands.runOnce(arm::resetToAbsolute));
+
+        // Go to active scoring position
+        operator.a().and(normalOperator).whileTrue(arm.goToStateCommand(() -> {
+            return ScoringSequenceCommands
+                .getStartingState(DriverStationInterface.getInstance().getReefTarget().level());
+        }));
 
         // Override and manual mode enable
         operator.start().onTrue(Commands.runOnce(() -> {
@@ -141,7 +146,15 @@ public class Controls {
         operator.rightBumper().and(operatorManual).onTrue(Commands.runOnce(() -> {
             wristRotation.value = wristRotation.value.next();
         }));
-        operatorManual.whileTrue(arm.setTargetStateCommand(() -> {
+
+        var intakeManualOverride = operator.b().and(operatorManual);
+        intakeManualOverride.whileTrue(Commands.run(() -> {
+            // TODO: SEVEN RIVERS - Change to closed loop control here
+            intake.overridePitchPower(MathUtil.applyDeadband(operator.getRightY(), 0.2));
+            intake.runIntakeOpenLoop(MathUtil.applyDeadband(operator.getLeftY(), 0.2) * 0.4);
+        }, intake));
+
+        operatorManual.and(intakeManualOverride.negate()).whileTrue(arm.setTargetStateCommand(() -> {
             double eeSpeed = MathUtil.applyDeadband(operator.getLeftTriggerAxis() - operator.getRightTriggerAxis(), 0.2)
                 * 100; // Rad/sec
             EndEffectorState endEffectorState = eeSpeed == 0.0 ? EndEffectorState.hold()

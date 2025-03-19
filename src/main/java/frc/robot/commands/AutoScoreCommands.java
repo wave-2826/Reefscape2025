@@ -1,7 +1,6 @@
 package frc.robot.commands;
 
 import static edu.wpi.first.units.Units.Meters;
-import static edu.wpi.first.units.Units.MetersPerSecond;
 
 import java.util.Optional;
 import java.util.Set;
@@ -10,9 +9,6 @@ import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
 
 import org.littletonrobotics.junction.Logger;
-
-import com.pathplanner.lib.auto.AutoBuilder;
-import com.pathplanner.lib.path.PathConstraints;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -30,7 +26,6 @@ import frc.robot.commands.drive.CloseLineupCommand;
 import frc.robot.commands.util.RestartWhenCommand;
 import frc.robot.subsystems.arm.Arm;
 import frc.robot.subsystems.drive.Drive;
-import frc.robot.subsystems.drive.DriveConstants;
 import frc.robot.subsystems.vision.Vision;
 import frc.robot.util.DriverStationInterface;
 import frc.robot.util.LoggedTunableNumber;
@@ -50,13 +45,13 @@ public class AutoScoreCommands {
      * The distance from the reef branch to the center of the robot when lining up to score L2-L4 in meters.
      */
     private static final LoggedTunableNumber robotReefLineupBranchDistance = new LoggedTunableNumber(
-        "AutoScore/BranchReefLineupDistance", 0.65);
+        "AutoScore/BranchReefLineupDistance", 0.62);
 
     /**
      * The distance from the reef branch to the center of the robot when lining up to score L4 in meters.
      */
     private static final LoggedTunableNumber robotReefLineupL4Distance = new LoggedTunableNumber(
-        "AutoScore/L4ReefLineupDistance", 0.55);
+        "AutoScore/L4ReefLineupDistance", 0.58);
 
     /**
      * The amount the driver can tweak the auto lineup position, in inches.
@@ -89,10 +84,10 @@ public class AutoScoreCommands {
         Command closeLineupCommand, DoubleSupplier tweakX, DoubleSupplier tweakY,
         Optional<BooleanSupplier> finishSequence, BooleanConsumer lineupFeedback) {
         // Create the constraints to use while pathfinding
-        PathConstraints constraints = new PathConstraints(DriveConstants.maxSpeedMetersPerSec, 5.0,
-            Units.degreesToRadians(540), Units.degreesToRadians(720));
+        // PathConstraints constraints = new PathConstraints(DriveConstants.maxSpeedMetersPerSec, 5.0,
+        //     Units.degreesToRadians(540), Units.degreesToRadians(720));
 
-        Pose2d currentPose = drive.getPose();
+        // Pose2d currentPose = drive.getPose();
 
         boolean isLeft = target.branch().isLeft;
 
@@ -116,11 +111,11 @@ public class AutoScoreCommands {
             .plus(new Transform2d(new Translation2d(Units.inchesToMeters(-5.), 0.), Rotation2d.kZero));
 
         // A pose to initially pathfind to if we're near the reef
-        Pose2d safeReefPose = new Pose2d(
-            currentPose.getTranslation()
-                .plus(new Translation2d(Units.inchesToMeters(15), 0.0)
-                    .rotateBy(currentPose.getTranslation().minus(FieldConstants.reefCenter).getAngle())),
-            currentPose.getRotation());
+        // Pose2d safeReefPose = new Pose2d(
+        //     currentPose.getTranslation()
+        //         .plus(new Translation2d(Units.inchesToMeters(15), 0.0)
+        //             .rotateBy(currentPose.getTranslation().minus(FieldConstants.reefCenter).getAngle())),
+        //     currentPose.getRotation());
 
         Supplier<Transform2d> getFieldRelativeOffset = () -> new Transform2d(
             new Translation2d(-tweakY.getAsDouble() * Units.inchesToMeters(autoAlignTweakAmount.get()),
@@ -128,7 +123,7 @@ public class AutoScoreCommands {
             Rotation2d.kZero);
 
         // HACK ..?
-        BooleanSupplier finishEarly = finishSequence.isEmpty() ? () -> false : finishSequence.get();
+        // BooleanSupplier finishEarly = finishSequence.isEmpty() ? () -> false : finishSequence.get();
 
         // Since AutoBuilder is configured, we can use it to build pathfinding commands
         // @formatter:off
@@ -138,16 +133,16 @@ public class AutoScoreCommands {
             }), 
 
             // Move slightly outward first if we're near the reef
-            AutoBuilder.pathfindToPoseFlipped(safeReefPose, constraints, MetersPerSecond.of(0.0)).until(finishEarly).onlyIf(() -> {
-                return currentPose.getTranslation().getDistance(FieldConstants.reefCenter) < Units.inchesToMeters(40);
-            }),
-            Commands.parallel(
-                AutoBuilder.pathfindToPoseFlipped(initialLineupPosition, constraints, MetersPerSecond.of(0.0)), // Move to the target pose
-                coarseLineupCommand.withTimeout(3)
-            ).until(finishEarly).onlyIf(() -> {
-                return currentPose.getTranslation().getDistance(initialLineupPosition.getTranslation()) > Units.inchesToMeters(15);
-            }),
-            Commands.waitUntil(() -> !finishEarly.getAsBoolean()),
+            // AutoBuilder.pathfindToPoseFlipped(safeReefPose, constraints, MetersPerSecond.of(0.0)).until(finishEarly).onlyIf(() -> {
+            //     return currentPose.getTranslation().getDistance(FieldConstants.reefCenter) < Units.inchesToMeters(40);
+            // }),
+            // Commands.parallel(
+            //     AutoBuilder.pathfindToPoseFlipped(initialLineupPosition, constraints, MetersPerSecond.of(0.0)), // Move to the target pose
+            //     coarseLineupCommand.withTimeout(3)
+            // ).until(finishEarly).onlyIf(() -> {
+            //     return currentPose.getTranslation().getDistance(initialLineupPosition.getTranslation()) > Units.inchesToMeters(15);
+            // }),
+            // Commands.waitUntil(() -> !finishEarly.getAsBoolean()),
             Commands.runOnce(() -> Logger.recordOutput("AutoScore/RunningCloseLineup", true)),
             Commands.parallel(
                 closeLineupCommand.withTimeout(0.75), // Run during final adjustment

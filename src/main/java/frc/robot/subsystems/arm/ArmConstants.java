@@ -20,17 +20,20 @@ import frc.robot.util.GearRatios.UltraPlanetaryRatio;
  */
 public class ArmConstants {
     /** The state that the arm rests in while waiting for a game piece. */
-    public static final ArmState restingState = new ArmState(Rotation2d.fromDegrees(-90), Inches.of(18.5),
+    public static final ArmState restingState = new ArmState(Rotation2d.fromDegrees(-55), Inches.of(19.5),
         WristRotation.Horizontal, EndEffectorState.hold());
     /** The state the arm is in when getting a piece. */
-    public static final ArmState getPieceState = new ArmState(Rotation2d.fromDegrees(-97), Inches.of(14.75),
-        WristRotation.Horizontal, EndEffectorState.velocity(-15));
+    public static final ArmState getPieceState = new ArmState(Rotation2d.fromDegrees(-100), Inches.of(14.75),
+        WristRotation.Horizontal, EndEffectorState.velocity(-5));
     /** The second state the arm is in when getting a piece. */
-    public static final ArmState getPieceState2 = new ArmState(Rotation2d.fromDegrees(-97), Inches.of(14.25),
+    public static final ArmState getPieceState2 = new ArmState(Rotation2d.fromDegrees(-100), Inches.of(14.25),
         WristRotation.Horizontal, EndEffectorState.velocity(-15));
     /** The state used during intaking to make sure the passive stage clears the transport. */
     public static final ArmState intakeClearanceState = new ArmState(Rotation2d.fromDegrees(-90), Inches.of(30.0),
         WristRotation.Horizontal, EndEffectorState.hold());
+    /** The state used for source intaking. */
+    public static final ArmState sourceIntakeState = new ArmState(Rotation2d.fromDegrees(80), Inches.of(5),
+        WristRotation.Vertical, EndEffectorState.velocity(-18));
 
     public class ElevatorConstants {
         public static final int elevatorHeightMotor1Id = /* TODO */ 50;
@@ -40,7 +43,7 @@ public class ArmConstants {
         // PID constants for the elevator position PID
         public static final LoggedTunableSparkPID elevatorPID = new LoggedTunableSparkPID("Arm/Elevator")
             // .addRealRobotGains(new PIDConstants(7.0, 0.0, 7.0)) //
-            .addRealRobotGains(new PIDConstants(5.0, 0.0, 5.0)) //
+            .addRealRobotGains(new PIDConstants(5.0, 0.005, 5.0).iZone(Units.inchesToMeters(1.5))) //
             .addSimGains(new PIDConstants(40.0, 0.0, 0.0));
 
         // Feedforward constants for the elevator
@@ -84,7 +87,7 @@ public class ArmConstants {
         /**
          * The margin on the elevator top soft stop.
          */
-        public static final Distance softStopMarginTop = Inches.of(3.5);
+        public static final Distance softStopMarginTop = Inches.of(5.5);
 
         /**
          * The translation from the center of the robot at the floor to the center of the elevator support structure on
@@ -117,7 +120,7 @@ public class ArmConstants {
         public static final int armWristMotorId = /* TODO */ 53;
 
         /** The wrist absolute encoder zero offset, in radians. */
-        public static final double wristZeroOffset = 0.7794577;
+        public static final double wristZeroOffset = 0.7912476;
         /** The pitch absolute encoder zero offset, in radians. */
         public static final double pitchZeroOffset = 0.3618647;
 

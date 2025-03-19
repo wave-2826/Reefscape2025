@@ -252,7 +252,7 @@ public class PieceVision extends SubsystemBase {
                 // Project the pitch and yaw of the observation onto the field plane (plus half a coral height) to estimate the location of the piece.
                 var location = inputs.locations[i];
                 var pose = cameraOnRobot.plus(new Transform3d(new Translation3d(),
-                    new Rotation3d(0.0, -location.pitch().getRadians(), location.theta().getRadians())));
+                    new Rotation3d(0.0, location.pitch().getRadians(), location.theta().getRadians())));
 
                 // Positive pitch is downward
                 if(pose.getRotation().getY() < Units.degreesToRadians(3)) {
@@ -272,8 +272,6 @@ public class PieceVision extends SubsystemBase {
 
             var estimatedFieldLocationsArray = estimatedFieldLocations.toArray(new Pose3d[0]);
             Logger.recordOutput("PieceVision/EstimatedFieldLocations", estimatedFieldLocationsArray);
-        } else {
-            Logger.recordOutput("PieceVision/EstimatedFieldLocations", new Pose3d[0]);
         }
 
         LoggedTracer.record("PieceVision");

@@ -16,4 +16,6 @@ public class PieceVisionConstants {
 
     /** The hostname of the camera. */
     public static final String cameraHostname = "limelight";
+
+    public static final int disabledThrottle = 20;
 }
