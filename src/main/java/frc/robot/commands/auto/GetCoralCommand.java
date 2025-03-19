@@ -1,6 +1,8 @@
 package frc.robot.commands.auto;
 
 import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.math.filter.Debouncer;
+import edu.wpi.first.math.filter.Debouncer.DebounceType;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -38,11 +40,13 @@ public class GetCoralCommand {
         lineFollowSpeed.initDefault(DriveConstants.maxSpeedMetersPerSec * 0.7);
     }
 
-    public static Command getCoral(PieceVision pieceVision, Drive drive, Intake intake, Arm arm) {
+    public static Command getCoral(PieceVision pieceVision, Drive drive, Intake intake, Arm arm,
+        Runnable grabbingFailed) {
         // A PID controller for the X position of the robot relative to the line.
         try(PIDController xController = new PIDController(xControllerP.get(), xControllerI.get(), xControllerD.get());
             PIDController yController = new PIDController(yControllerP.get(), yControllerI.get(), yControllerD.get())) {
             Container<Double> startTime = new Container<>(0.0);
+            Debouncer targetLineMissingDebouncer = new Debouncer(0.5, DebounceType.kRising);
 
             return Commands.parallel(Commands.sequence( //
                 Commands.runOnce(() -> {
@@ -55,6 +59,8 @@ public class GetCoralCommand {
                     xController.setSetpoint(0);
                     yController.setSetpoint(0);
 
+                    targetLineMissingDebouncer.calculate(false);
+
                     startTime.value = Timer.getTimestamp();
                 }), //
                 Commands.run(() -> {
@@ -62,7 +68,7 @@ public class GetCoralCommand {
                     var targetLineMaybe = pieceVision.getTargetPath();
 
                     // If there's no target line, wait.
-                    if(targetLineMaybe == null) { return; }
+                    if(targetLineMaybe.isEmpty()) return;
                     var targetLine = targetLineMaybe.get();
 
                     var positionOnPath = (startTime.value - Timer.getTimestamp()) * lineFollowSpeed.get();
@@ -82,12 +88,21 @@ public class GetCoralCommand {
                 }, drive).until(() -> {
                     if(intake.intakeSensorTriggered()) return true;
 
+                    if(targetLineMissingDebouncer.calculate(pieceVision.getTargetPath().isEmpty())) {
+                        if(grabbingFailed != null) grabbingFailed.run();
+                        return true;
+                    }
+
                     // If the robot is at risk of running into the wall, stop.
                     var robotPosition = drive.getPose();
-                    var nextPosition = robotPosition.exp(drive.getChassisSpeeds().toTwist2d(0.3));
-                    return nextPosition.getX() < 0.0 || nextPosition.getY() < 0.0
+                    var nextPosition = robotPosition.exp(drive.getChassisSpeeds().toTwist2d(0.5));
+                    if(nextPosition.getX() < 0.0 || nextPosition.getY() < 0.0
                         || nextPosition.getX() > FieldConstants.fieldLength
-                        || nextPosition.getY() > FieldConstants.fieldWidth;
+                        || nextPosition.getY() > FieldConstants.fieldWidth) {
+                        if(grabbingFailed != null) grabbingFailed.run();
+                        return true;
+                    }
+                    return false;
                 }).finallyDo(() -> {
                     drive.stop();
                 }) //

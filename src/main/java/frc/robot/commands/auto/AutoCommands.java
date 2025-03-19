@@ -20,6 +20,7 @@ import frc.robot.FieldConstants;
 import frc.robot.FieldConstants.ReefBranch;
 import frc.robot.FieldConstants.ReefLevel;
 import frc.robot.commands.AutoScoreCommands;
+import frc.robot.commands.intake.IntakeCommands;
 import frc.robot.subsystems.arm.Arm;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.drive.DriveConstants;
@@ -34,18 +35,20 @@ public class AutoCommands {
 
     public static void registerNamedCommands(Drive drive, Vision vision, PieceVision pieceVision, Arm arm,
         Intake intake) {
-        NamedCommands.registerCommand("Auto Coral", grabCoral(drive, pieceVision, intake, arm));
+        NamedCommands.registerCommand("Auto Coral", grabCoral(drive, pieceVision, intake, arm, null));
 
         for(var branch : ReefBranch.values()) {
             for(var level : ReefLevel.values()) {
                 ReefTarget target = new ReefTarget(branch, level);
-                NamedCommands.registerCommand("Score " + branch + " " + level, AutoScoreCommands.autoScoreCommand(drive,
-                    vision, arm, target, Optional.empty(), () -> 0, () -> 0, null));
+                NamedCommands.registerCommand("Score " + branch.toString() + " " + level.toString(), AutoScoreCommands
+                    .autoScoreCommand(drive, vision, arm, target, Optional.empty(), () -> 0, () -> 0, null));
             }
         }
 
         NamedCommands.registerCommand("Score Until Failure",
             scoreUntilFailure(drive, vision, arm, pieceVision, intake));
+
+        NamedCommands.registerCommand("Start intake", IntakeCommands.intakeCommand(intake, arm));
     }
 
     /**
@@ -72,7 +75,7 @@ public class AutoCommands {
                 scoringPositionsAvailable.add(new ReefTarget(ReefBranch.A, ReefLevel.L4)); // 5-piece auton!?! lol yeah right...
             }
         }), Commands.sequence( //
-            grabCoral(drive, pieceVision, intake, arm), //
+            grabCoral(drive, pieceVision, intake, arm, () -> grabbingCoralFailed = true), //
             Commands.defer(() -> {
                 var nextAvailableTarget = scoringPositionsAvailable.remove(0);
                 if(scoringPositionsAvailable.isEmpty()) {
@@ -81,7 +84,7 @@ public class AutoCommands {
                 }
 
                 return AutoScoreCommands.autoScoreCommand(drive, vision, arm, nextAvailableTarget);
-            }, Set.of(drive, vision, arm)) //
+            }, Set.of(drive, vision, arm)).unless(() -> grabbingCoralFailed) //
         ).repeatedly().until(() -> grabbingCoralFailed));
     }
 
@@ -89,7 +92,8 @@ public class AutoCommands {
      * Constructs a command that autonomously gets a coral piece and returns to where it started.
      * @return
      */
-    public static Command grabCoral(Drive drive, PieceVision pieceVision, Intake intake, Arm arm) {
+    public static Command grabCoral(Drive drive, PieceVision pieceVision, Intake intake, Arm arm,
+        Runnable grabbingFailed) {
         Container<Pose2d> startPose = new Container<>(new Pose2d());
         return Commands.sequence( //
             Commands.runOnce(() -> {
@@ -99,7 +103,7 @@ public class AutoCommands {
             }),
 
             // Go to the coral piece
-            GetCoralCommand.getCoral(pieceVision, drive, intake, arm),
+            GetCoralCommand.getCoral(pieceVision, drive, intake, arm, grabbingFailed),
 
             // Go back to our starting position
             AutoBuilder.pathfindToPose(startPose.value,

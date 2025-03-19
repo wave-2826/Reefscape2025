@@ -1,13 +1,13 @@
 {
   "hubs": [
     {
-      "x": 2580,
-      "y": 229,
-      "width": 1560,
-      "height": 820,
+      "x": -1900,
+      "y": 238,
+      "width": 1880,
+      "height": 1000,
       "state": {
         "sidebar": {
-          "width": 350,
+          "width": 421,
           "expanded": [
             "NT:/AdvantageKit/SmartDashboard/Field",
             "NT:/AdvantageKit/SmartDashboard/field",
@@ -211,23 +211,6 @@
                     "options": {
                       "variant": "Coral"
                     }
-                  },
-                  {
-                    "type": "axes",
-                    "logKey": "NT:/AdvantageKit/RealOutputs/PieceVision/Camera",
-                    "logType": "Pose3d",
-                    "visible": true,
-                    "options": {}
-                  },
-                  {
-                    "type": "trajectory",
-                    "logKey": "NT:/AdvantageKit/RealOutputs/PieceVision/Piece1Line",
-                    "logType": "Pose3d[]",
-                    "visible": true,
-                    "options": {
-                      "color": "#00ff00",
-                      "size": "normal"
-                    }
                   }
                 ],
                 "game": "2025 Field (Welded)",
@@ -238,14 +221,14 @@
                 "cameraIndex": -1,
                 "orbitFov": 50,
                 "cameraPosition": [
-                  6.8301190451187646,
-                  2.5464442767623243,
-                  -3.3176452662840243
+                  2.375109957197572,
+                  3.7053724188477335,
+                  2.4229055469910197
                 ],
                 "cameraTarget": [
-                  5.134599394120227,
-                  -0.15119714099065634,
-                  2.5323686667938907
+                  6.624461911061968,
+                  0.5854653507044247,
+                  0.49104129080946324
                 ]
               },
               "controlsHeight": 226
@@ -368,6 +351,41 @@
                 "rightFilter": 0
               },
               "controllerUUID": "91ad3pmc6qup098qq6o1k0k94qxmmty9",
+              "renderer": null,
+              "controlsHeight": 200
+            },
+            {
+              "type": 1,
+              "title": "Line Graph",
+              "controller": {
+                "leftSources": [
+                  {
+                    "type": "stepped",
+                    "logKey": "NT:/AdvantageKit/RealOutputs/Intake/SimulatedCoralPosition",
+                    "logType": "Number",
+                    "visible": true,
+                    "options": {
+                      "color": "#2b66a2",
+                      "size": "normal"
+                    }
+                  }
+                ],
+                "rightSources": [],
+                "discreteSources": [],
+                "leftLockedRange": null,
+                "rightLockedRange": null,
+                "leftUnitConversion": {
+                  "type": null,
+                  "factor": 1
+                },
+                "rightUnitConversion": {
+                  "type": null,
+                  "factor": 1
+                },
+                "leftFilter": 0,
+                "rightFilter": 0
+              },
+              "controllerUUID": "hu10pmt3qxgpk4wwg7b5j2hx4olw87nx",
               "renderer": null,
               "controlsHeight": 200
             },

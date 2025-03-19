@@ -171,6 +171,8 @@ public class RobotContainer {
         // Initializes the driver station interface API.
         DriverStationInterface.getInstance();
 
+        AutoCommands.registerNamedCommands(drive, vision, pieceVision, arm, intake);
+
         // Set up auto routines
         autoChooser = new LoggedDashboardChooser<>("Auto Choices", AutoBuilder.buildAutoChooser());
         DriveTuningCommands.addTuningCommandsToAutoChooser(drive, autoChooser);
@@ -178,8 +180,6 @@ public class RobotContainer {
 
         // Configure the button bindings
         Controls.getInstance().configureControls(drive, driveSimulation, arm, intake, vision, climber);
-
-        AutoCommands.registerNamedCommands(drive, vision, pieceVision, arm, intake);
     }
 
     public Command getAutonomousCommand() {
