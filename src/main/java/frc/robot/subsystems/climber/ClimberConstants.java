@@ -13,7 +13,7 @@ import frc.robot.util.PIDConstants;
  * Constants related to the climber subsystem.
  */
 public class ClimberConstants {
-    public static final int climberMotorId = /* TODO */ 36;
+    public static final int climberMotorId = 36;
     /** The climber encoder zero angle, in radians. */
     public static final double climberZeroAngle = 0.3248305;
     public static final boolean invertClimber = false;

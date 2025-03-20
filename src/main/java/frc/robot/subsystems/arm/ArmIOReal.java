@@ -299,7 +299,8 @@ public class ArmIOReal implements ArmIO {
         sparkStickyFault = false;
         ifOk(armWristMotor, armWristEncoder::getPosition, (v) -> inputs.armWristPosition = Rotation2d.fromRadians(v));
         ifOk(armWristMotor, armWristEncoder::getVelocity, (v) -> inputs.armWristVelocity = v);
-        // TODO: Update once we have game piece sensors
+
+        // TODO: Update once we have game piece sensors (if we ever will...)
         inputs.gamePiecePresent = false;
 
         inputs.armWristMotorConnected = armWristConnectedDebouncer.calculate(!sparkStickyFault);

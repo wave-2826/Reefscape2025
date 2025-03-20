@@ -1,5 +1,6 @@
 package frc.robot.subsystems.intake;
 
+import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
 
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -7,6 +8,7 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.util.LoggedTracer;
 
 /**
  * The intake subsystem. Manages all intake motors.
@@ -19,6 +21,7 @@ public class Intake extends SubsystemBase {
     private IntakeVisualizer visualizer = new IntakeVisualizer("intake");
     private double intakeSpeed = 0;
     private double transportSpeed = 0;
+    private Rotation2d pitchSetpoint = Rotation2d.kZero;
 
     public Intake(IntakeIO io) {
         this.io = io;
@@ -26,18 +29,19 @@ public class Intake extends SubsystemBase {
 
     public Command setIntakePitchCommand(Rotation2d pitch) {
         return Commands.run(() -> {
-            setIntakePitchCommand(pitch);
+            setIntakePitch(pitch);
         }, this).until(this::atPitchSetpoint);
     }
 
-    public void setIntakePitch(Rotation2d pitch) {
-        Logger.recordOutput("Intake/TargetPitch", pitch.getRadians());
-        io.setIntakePitch(pitch);
+    private void setIntakePitch(Rotation2d pitch) {
+        Logger.recordOutput("Intake/TargetPitch", pitch);
+        pitchSetpoint = pitch;
+        io.setIntakePitch(pitchSetpoint);
     }
 
+    @AutoLogOutput(key = "Intake/AtPitchSetpoint")
     private boolean atPitchSetpoint() {
-        return Math
-            .abs(inputs.intakePitch.getDegrees() - inputs.intakePitch.getDegrees()) < INTAKE_PITCH_TOLERANCE_DEGREES;
+        return Math.abs(inputs.intakePitch.getDegrees() - pitchSetpoint.getDegrees()) < INTAKE_PITCH_TOLERANCE_DEGREES;
     }
 
     /** Sets the intake pitch motor to coast. */
@@ -91,5 +95,7 @@ public class Intake extends SubsystemBase {
         io.runVelocity(intakeSpeed, transportSpeed == 0 ? intakeSpeed : transportSpeed);
 
         visualizer.update(inputs.intakePitch);
+
+        LoggedTracer.record("Intake");
     }
 }

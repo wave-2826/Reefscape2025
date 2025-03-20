@@ -6,7 +6,6 @@ import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.mechanism.LoggedMechanism2d;
 import org.littletonrobotics.junction.mechanism.LoggedMechanismLigament2d;
 
-import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
@@ -14,6 +13,7 @@ import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.util.Color8Bit;
+import frc.robot.SimRobotGamePieceVisualization;
 
 public class ArmVisualizer {
     private final String name;
@@ -25,8 +25,7 @@ public class ArmVisualizer {
     public ArmVisualizer(String name) {
         this.name = name;
 
-        // TODO: Derive from robot base and elevator maximum extension
-        armMechanism = new LoggedMechanism2d(Units.inchesToMeters(30), Units.feetToMeters(7), new Color8Bit("#050515"));
+        armMechanism = new LoggedMechanism2d(Units.inchesToMeters(60), Units.feetToMeters(7), new Color8Bit("#050515"));
 
         var origin = ArmConstants.ElevatorConstants.elevatorOrigin;
 
@@ -47,8 +46,8 @@ public class ArmVisualizer {
      * @param wristRotation
      * @param hasGamePiece
      */
-    public void update(double elevatorHeightMeters, Rotation2d armPitch, Rotation2d wristRotation, boolean hasGamePiece,
-        Pose2d robotPose) {
+    public void update(double elevatorHeightMeters, Rotation2d armPitch, Rotation2d wristRotation,
+        boolean hasGamePiece) {
         elevatorHeightLigament.setLength(elevatorHeightMeters);
         armPitchLigament.setAngle(armPitch);
         Logger.recordOutput("Mechanism2d/" + name, armMechanism);
@@ -81,13 +80,7 @@ public class ArmVisualizer {
         if(hasGamePiece) {
             Pose3d coralPose = armWristPose.plus(ArmConstants.ShoulderConstants.wristToCoral);
             Transform3d coralTransform = new Transform3d(coralPose.getTranslation(), coralPose.getRotation());
-            Pose3d robotPose3d = new Pose3d(robotPose.getTranslation().getX(), robotPose.getTranslation().getY(), 0.0,
-                new Rotation3d(0.0, 0.0, robotPose.getRotation().getRadians()));
-            Logger.recordOutput("Mechanism3d/" + name + "/Coral", new Pose3d[] {
-                robotPose3d.plus(coralTransform)
-            });
-        } else {
-            Logger.recordOutput("Mechanism3d/" + name + "/Coral", new Pose3d[] {});
+            SimRobotGamePieceVisualization.setCoralTransform(coralTransform);
         }
     }
 }

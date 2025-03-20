@@ -14,6 +14,11 @@ public final class Constants {
     public static final boolean logInSimulation = false;
 
     /**
+     * Whether to use NetworkTables instead of RLog for AdvantageScope logging.
+     */
+    public static final boolean useNTLogs = true;
+
+    /**
      * Maintains a real-time thread priority for the main robot thread throughout the entire program execution. This is
      * INCREDIBLY dangerous! Do NOT use this without understanding the consequences and EXTENSIVELY testing code with it
      * enabled. If loop times are longer than 20ms, this WILL cause all other threads (including important vendor ones,

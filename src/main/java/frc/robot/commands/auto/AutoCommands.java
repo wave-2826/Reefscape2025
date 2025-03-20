@@ -85,7 +85,7 @@ public class AutoCommands {
 
                 return AutoScoreCommands.autoScoreCommand(drive, vision, arm, nextAvailableTarget);
             }, Set.of(drive, vision, arm)).unless(() -> grabbingCoralFailed) //
-        ).repeatedly().until(() -> grabbingCoralFailed));
+        ).repeatedly().until(() -> grabbingCoralFailed)).withName("ScoreUntilFailure");
     }
 
     /**
@@ -113,6 +113,6 @@ public class AutoCommands {
             Commands.runOnce(() -> {
                 Logger.recordOutput("Auto/GrabbingCoral", false);
             }) //
-        );
+        ).withName("GrabCoral");
     }
 }

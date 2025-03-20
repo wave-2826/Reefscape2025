@@ -12,12 +12,15 @@ import com.revrobotics.sim.SparkFlexSim;
 import com.revrobotics.sim.SparkMaxSim;
 
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Rotation3d;
+import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.system.plant.LinearSystemId;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.simulation.DCMotorSim;
 import edu.wpi.first.wpilibj.simulation.DIOSim;
 import edu.wpi.first.wpilibj.simulation.RoboRioSim;
 import edu.wpi.first.wpilibj.simulation.SingleJointedArmSim;
+import frc.robot.SimRobotGamePieceVisualization;
 
 public class IntakeIOSim extends IntakeIOReal {
     /** The maximum pitch above the ground that allows us to intake a game piece. */
@@ -36,10 +39,12 @@ public class IntakeIOSim extends IntakeIOReal {
     private final SparkAbsoluteEncoderSim pitchEncoderSim;
 
     private static final double intakeMOI = 0.1;
+    /** The intake minimum (lowest) angle. Positive numbers are downward. */
     private static final Rotation2d intakeMinAngle = Rotation2d.fromDegrees(0);
-    private static final Rotation2d intakeMaxAngle = Rotation2d.fromDegrees(90.);
-    private static final double intakePitchGearing = 48. * (111. / 28.); // Estimate?
-    private static final double intakePowerGearing = 9.; // Estimate?
+    /** The intake maximum (highest) angle. Positive numbers are downward. */
+    private static final Rotation2d intakeMaxAngle = Rotation2d.fromDegrees(-90);
+    private static final double intakePitchGearing = 24. * (111. / 28.);
+    private static final double intakePowerGearing = 9.;
     private static final double intakePowerMOI = 0.005;
     private static final double transportMOI = 0.005;
     private static final double transportGearing = 25.;
@@ -73,7 +78,7 @@ public class IntakeIOSim extends IntakeIOReal {
 
         // TODO: This doesn't work for some reason now? I can't figure it out for now.
         pitchSim = new SingleJointedArmSim(IntakeConstants.intakePitchMotor, intakePitchGearing, intakeMOI,
-            IntakeConstants.intakeLength.in(Meters) / 5., intakeMinAngle.getRadians(), intakeMaxAngle.getRadians(),
+            IntakeConstants.intakeLength.in(Meters) / 5., intakeMaxAngle.getRadians(), intakeMinAngle.getRadians(),
             true, intakeMaxAngle.getRadians());
 
         pitchEncoderSim.setPosition(pitchSim.getAngleRads());
@@ -140,6 +145,9 @@ public class IntakeIOSim extends IntakeIOReal {
 
         Logger.recordOutput("Intake/SimulatedCoralPosition",
             simulatedCoralPosition == null ? -1 : simulatedCoralPosition);
+        SimRobotGamePieceVisualization.setCoralTransform(simulatedCoralPosition == null ? null
+            : new Transform3d(simulatedCoralPosition * Units.inchesToMeters(28) - Units.inchesToMeters(15), 0.,
+                Units.inchesToMeters(10), Rotation3d.kZero));
 
         super.updateInputs(inputs);
 
@@ -147,10 +155,12 @@ public class IntakeIOSim extends IntakeIOReal {
             && inputs.intakeWheelSpeed > MIN_INTAKE_WHEEL_SPEED &&
             // I don't currently want to deal with simulating issues with multiple game pieces, so we
             // just disallow intaking if we have a game piece.
-            simulatedCoralPosition != null) {
+            simulatedCoralPosition == null) {
             intakeSimulation.startIntake();
+            Logger.recordOutput("Intake/SimulatedIntakeRunning", true);
         } else {
             intakeSimulation.stopIntake();
+            Logger.recordOutput("Intake/SimulatedIntakeRunning", false);
         }
     }
 }

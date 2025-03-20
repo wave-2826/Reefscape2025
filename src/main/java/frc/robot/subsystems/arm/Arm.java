@@ -8,7 +8,6 @@ import java.util.function.Supplier;
 import org.littletonrobotics.junction.Logger;
 
 import edu.wpi.first.math.MathUtil;
-import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
@@ -55,12 +54,8 @@ public class Arm extends SubsystemBase {
                 : ArmConstants.ShoulderConstants.armPitchKgReal);
     }
 
-    // Slightly hacky
-    private final Supplier<Pose2d> robotPose;
-
-    public Arm(ArmIO io, Supplier<Pose2d> robotPose) {
+    public Arm(ArmIO io) {
         this.io = io;
-        this.robotPose = robotPose;
         this.inputs = new ArmIOInputsAutoLogged();
     }
 
@@ -68,7 +63,7 @@ public class Arm extends SubsystemBase {
         return Commands.run(() -> {
             targetState = state;
             adjustedTarget = getAdjustedTarget();
-        }, this).until(this::isAtTarget);
+        }, this).until(this::isAtTarget).withName("ArmGoToState");
     }
 
     public Command goToStateCommand(Supplier<ArmState> state) {
@@ -175,19 +170,19 @@ public class Arm extends SubsystemBase {
             Logger.recordOutput("Arm/AtTarget", isAtTarget());
         }
 
-        // TODO: Only reset when scoring
+        // TODO: A more robust resetting solution. Our elevator basically never skips, though, so just an operator override is fine.
         // If the elevator is moving slowly, we can reset the encoder position to the elevator height
         // from our sensor.
-        if(inputs.elevatorVelocityMetersPerSecond < 0.03 && inputs.elevatorMotorsConnected
-            && inputs.validAbsoluteMeasurement) {
-            // io.resetHeight(inputs.absoluteHeightMeters);
-            Logger.recordOutput("Arm/ElevatorResetting", true);
-        } else {
-            Logger.recordOutput("Arm/ElevatorResetting", false);
-        }
+        // if(inputs.elevatorVelocityMetersPerSecond < 0.03 && inputs.elevatorMotorsConnected
+        //     && inputs.validAbsoluteMeasurement) {
+        //     io.resetHeight(inputs.absoluteHeightMeters);
+        //     Logger.recordOutput("Arm/ElevatorResetting", true);
+        // } else {
+        //     Logger.recordOutput("Arm/ElevatorResetting", false);
+        // }
 
         visualizer.update(inputs.absoluteHeightMeters, inputs.armPitchPosition, inputs.armWristPosition,
-            inputs.gamePiecePresent, robotPose.get());
+            inputs.gamePiecePresent);
 
         // Update alerts
         elevatorMotorDisconnectedAlert.set(!inputs.elevatorMotorsConnected);

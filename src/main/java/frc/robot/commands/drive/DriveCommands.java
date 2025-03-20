@@ -70,7 +70,7 @@ public class DriveCommands {
     public static Command driveStraightCommand(Drive drive, double speedMetersPerSecond) {
         return Commands.run(() -> {
             drive.runVelocity(new ChassisSpeeds(speedMetersPerSecond, 0., 0.));
-        }, drive);
+        }, drive).withName("DriveStraight");
     }
 
     /**

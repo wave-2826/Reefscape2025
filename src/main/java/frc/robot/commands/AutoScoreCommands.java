@@ -152,7 +152,7 @@ public class AutoScoreCommands {
         ).finallyDo(() -> {
             Logger.recordOutput("AutoScore/RunningCloseLineup", false);
             Logger.recordOutput("AutoScore/InitialLineupPose", Pose2d.kZero);
-        }); // @formatter:on
+        }).withName("AutoAlign" + target.toString()); // @formatter:on
     }
 
     private static class AutoScoreState {
@@ -203,7 +203,8 @@ public class AutoScoreCommands {
 
         return Commands.sequence(Commands.runOnce(() -> autoScoreRunning = true), autoAlign,
             // Score
-            ScoringSequenceCommands.scoreAtLevel(target.level(), arm, drive)).finallyDo(() -> autoScoreRunning = false);
+            ScoringSequenceCommands.scoreAtLevel(target.level(), arm, drive)).finallyDo(() -> autoScoreRunning = false)
+            .withName("AutoScore" + target.toString());
     }
 
     /**

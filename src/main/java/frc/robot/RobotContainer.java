@@ -87,7 +87,7 @@ public class RobotContainer {
                     new VisionIOPhotonVision(VisionConstants.camera3Name, VisionConstants.robotToCamera3));
                 pieceVision = new PieceVision(new PieceVisionIOLimelight(PieceVisionConstants.cameraHostname),
                     drive::getChassisSpeeds, drive::getPose);
-                arm = new Arm(new ArmIOReal(), drive::getPose);
+                arm = new Arm(new ArmIOReal());
                 climber = new Climber(new ClimberIOReal());
                 intake = new Intake(new IntakeIOReal());
 
@@ -119,7 +119,7 @@ public class RobotContainer {
                         driveSimulation::getSimulatedDriveTrainPose));
                 pieceVision = new PieceVision(new PieceVisionIOSim(driveSimulation::getSimulatedDriveTrainPose),
                     drive::getChassisSpeeds, drive::getPose);
-                arm = new Arm(new ArmIOSim(), driveSimulation::getSimulatedDriveTrainPose);
+                arm = new Arm(new ArmIOSim());
                 climber = new Climber(new ClimberIOSim());
                 intake = new Intake(new IntakeIOSim(driveSimulation));
 
@@ -154,7 +154,7 @@ public class RobotContainer {
                 }, drive::getChassisSpeeds, drive::getPose);
                 arm = new Arm(new ArmIO() {
                     /** Replayed robot doesn't have IO */
-                }, drive::getPose);
+                });
                 climber = new Climber(new ClimberIO() {
                     /** Replayed robot doesn't have IO */
                 });
@@ -205,6 +205,8 @@ public class RobotContainer {
         Logger.recordOutput("FieldSimulation/RobotPosition", driveSimulation.getSimulatedDriveTrainPose());
         Logger.recordOutput("FieldSimulation/Coral", SimulatedArena.getInstance().getGamePiecesArrayByType("Coral"));
         Logger.recordOutput("FieldSimulation/Algae", SimulatedArena.getInstance().getGamePiecesArrayByType("Algae"));
+
+        SimRobotGamePieceVisualization.update(driveSimulation.getSimulatedDriveTrainPose());
 
         if(!VisionConstants.enableVisionSimulation) {
             drive.addVisionMeasurement(driveSimulation.getSimulatedDriveTrainPose(), Timer.getTimestamp(),

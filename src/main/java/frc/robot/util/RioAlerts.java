@@ -1,4 +1,4 @@
-package frc.robot;
+package frc.robot.util;
 
 import edu.wpi.first.hal.can.CANStatus;
 import edu.wpi.first.wpilibj.Alert;

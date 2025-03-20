@@ -39,9 +39,8 @@ public class DriveConstants {
 
     public static final int pigeonCanId = 10;
 
-    // TODO: Measure module offsets for real drive base
     // The "front" of the robot is the elevator side. Yes, "front" technically doesn't mean anything,
-    // but it makes it much easier to refer to locations
+    // but it makes it much easier to refer to locations.
 
     // TODO: Command to tune wheel offsets
     public static final SwerveModuleConfiguration frontLeftModule = new SwerveModuleConfiguration(41, 42,

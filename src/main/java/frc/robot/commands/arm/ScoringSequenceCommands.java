@@ -167,7 +167,7 @@ public class ScoringSequenceCommands {
                 DriveCommands.driveStraightCommand(drive, Units.feetToMeters(-2.5), 0.75)
             ),
             arm.goToStateCommand(ArmConstants.restingState)
-        );
+        ).withName("ScoreAt" + level.name() + "Sequence");
         // @formatter:on
     }
 
@@ -178,6 +178,7 @@ public class ScoringSequenceCommands {
      */
     private static Command troughScoringSequence(Arm arm) {
         return Commands.sequence(arm.goToStateCommand(new ArmState(Rotation2d.fromDegrees(0),
-            Inches.of(L1ScoreHeight.get()), WristRotation.Vertical, EndEffectorState.velocity(10.))));
+            Inches.of(L1ScoreHeight.get()), WristRotation.Vertical, EndEffectorState.velocity(10.))))
+            .withName("TroughScoringSequence");
     }
 }

@@ -124,17 +124,19 @@ public class Controls {
         }));
 
         // Override and manual mode enable
-        operator.start().onTrue(Commands.runOnce(() -> {
-            if(operatorMode == OperatorMode.Normal) operatorMode = OperatorMode.Manual;
-            else operatorMode = OperatorMode.Normal;
+        operator.start().and(operator.back().negate()).debounce(0.05).onTrue(Commands.runOnce(() -> {
+            if(operatorMode == OperatorMode.Manual) operatorMode = OperatorMode.Normal;
+            else operatorMode = OperatorMode.Manual;
         }));
-        operator.back().and(operator.start()).onTrue(Commands.runOnce(() -> {
-            if(operatorMode == OperatorMode.Normal) operatorMode = OperatorMode.Override;
-            else operatorMode = OperatorMode.Normal;
+        operator.back().and(operator.start()).debounce(0.05).onTrue(Commands.runOnce(() -> {
+            if(operatorMode == OperatorMode.Override) operatorMode = OperatorMode.Normal;
+            else operatorMode = OperatorMode.Override;
         }));
 
-        operatorManual.whileTrue(controllerRumbleWhileRunning(false, true, RumbleType.kRightRumble));
-        operatorOverride.whileTrue(controllerRumbleWhileRunning(false, true, RumbleType.kLeftRumble));
+        operatorManual.whileTrue(
+            controllerRumbleWhileRunning(false, true, RumbleType.kRightRumble).withName("ManualOperatorControls"));
+        operatorOverride.whileTrue(
+            controllerRumbleWhileRunning(false, true, RumbleType.kLeftRumble).withName("OverrideOperatorControls"));
 
         // Manual operator controls
         Container<Double> height = new Container<Double>(0.525);
@@ -152,7 +154,7 @@ public class Controls {
             // TODO: SEVEN RIVERS - Change to closed loop control here
             intake.overridePitchPower(MathUtil.applyDeadband(operator.getRightY(), 0.2));
             intake.runIntakeOpenLoop(MathUtil.applyDeadband(operator.getLeftY(), 0.2) * 0.4);
-        }, intake));
+        }, intake).withName("IntakeManualControls"));
 
         operatorManual.and(intakeManualOverride.negate()).whileTrue(arm.setTargetStateCommand(() -> {
             double eeSpeed = MathUtil.applyDeadband(operator.getLeftTriggerAxis() - operator.getRightTriggerAxis(), 0.2)
@@ -172,7 +174,7 @@ public class Controls {
 
             return new ArmState(Rotation2d.fromDegrees(pitch.value), Meters.of(height.value), wristRotation.value,
                 endEffectorState);
-        }));
+        }).withName("ArmManualControls"));
 
         // Override operator controls
         var intakeOverride = operator.b().and(operatorOverride);
@@ -180,10 +182,10 @@ public class Controls {
         intakeOverride.whileTrue(Commands.run(() -> {
             intake.overridePitchPower(MathUtil.applyDeadband(operator.getRightY(), 0.2));
             intake.runIntakeOpenLoop(MathUtil.applyDeadband(operator.getLeftY(), 0.2) * 0.4);
-        }, intake));
+        }, intake).withName("PitchOverrideControls"));
         climberOverride.whileTrue(Commands.run(() -> {
             climber.runClimberOpenLoop(MathUtil.applyDeadband(operator.getLeftY(), 0.2));
-        }, climber));
+        }, climber).withName("ClimberOverrideControls"));
 
         operatorOverride.and(intakeOverride.negate()).and(climberOverride.negate()).whileTrue(Commands.run(() -> {
             // Arm control mode
@@ -200,7 +202,7 @@ public class Controls {
 
             arm.overrideEndEffectorPower(
                 MathUtil.applyDeadband(operator.getLeftTriggerAxis() - operator.getRightTriggerAxis(), 0.2) * 0.4);
-        }, arm));
+        }, arm).withName("ArmOverrideControls"));
 
         // Simulation-specific controls
         if(Constants.currentMode == Constants.Mode.SIM) {
@@ -249,7 +251,7 @@ public class Controls {
         }, () -> {
             if(forDriver) setDriverRumble(type, 0.0, hashCode());
             if(forOperator) setOperatorRumble(type, 0.0, hashCode());
-        });
+        }).withName("ControllerRumbleWhileRunning");
     }
 
     /** Updates the controls, including shown alerts. */

@@ -36,9 +36,9 @@ public class ArmConstants {
         WristRotation.Vertical, EndEffectorState.velocity(-18));
 
     public class ElevatorConstants {
-        public static final int elevatorHeightMotor1Id = /* TODO */ 50;
-        public static final int elevatorHeightMotor2Id = /* TODO */ 51;
-        public static final int elevatorHeightSensorId = /* TODO */ 54;
+        public static final int elevatorHeightMotor1Id = 50;
+        public static final int elevatorHeightMotor2Id = 51;
+        public static final int elevatorHeightSensorId = 54;
 
         // PID constants for the elevator position PID
         public static final LoggedTunableSparkPID elevatorPID = new LoggedTunableSparkPID("Arm/Elevator")
@@ -116,18 +116,18 @@ public class ArmConstants {
     }
 
     public class ShoulderConstants {
-        public static final int armPitchMotorId = /* TODO */ 52;
-        public static final int armWristMotorId = /* TODO */ 53;
+        public static final int armPitchMotorId = 52;
+        public static final int armWristMotorId = 53;
 
         /** The wrist absolute encoder zero offset, in radians. */
         public static final double wristZeroOffset = 0.7912476;
         /** The pitch absolute encoder zero offset, in radians. */
         public static final double pitchZeroOffset = 0.3618647;
 
-        /** The highest soft stop for the elevator. */
-        public static final Rotation2d maximumPitch = Rotation2d.fromDegrees(30.);
-        /** The lowest soft stop for the elevator. */
-        public static final Rotation2d minimumPitch = Rotation2d.fromDegrees(-35.);
+        /** The highest soft stop for the arm pitch. */
+        public static final Rotation2d maximumPitch = Rotation2d.fromDegrees(90.);
+        /** The lowest soft stop for the arm pitch. */
+        public static final Rotation2d minimumPitch = Rotation2d.fromDegrees(-100.);
 
         /** The feedforward gravity constant for the arm in volts. */
         public static final double armPitchKgReal = 0.50;
@@ -202,7 +202,7 @@ public class ArmConstants {
     }
 
     public class EndEffectorConstants {
-        public static final int endEffectorMotorId = /* TODO */ 54;
+        public static final int endEffectorMotorId = 54;
 
         public static final double endEffectorReduction = 32. / 11. * 9.;
 
@@ -229,7 +229,7 @@ public class ArmConstants {
         public static final double endEffectorPositionConversionFactor = 2 * Math.PI / endEffectorReduction;
         /** The conversion factor from wrist motor RPM to radians per second. */
         public static final double endEffectorVelocityConversionFactor = endEffectorPositionConversionFactor / 60.;
-        public static final int endEffectorMotorCurrentLimit = 35;
+        public static final int endEffectorMotorCurrentLimit = 25;
         public static final boolean endEffectorMotorInverted = true;
     }
 }

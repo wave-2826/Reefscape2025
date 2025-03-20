@@ -107,6 +107,7 @@ public class CloseLineupCommand extends Command {
         this.lineupFeedback = lineupFeedback;
 
         addRequirements(drive);
+        setName("CloseLineup");
     }
 
     @Override

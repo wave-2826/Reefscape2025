@@ -59,10 +59,11 @@ public class IntakeCommands {
                 .onlyIf(DriverStation::isTeleop)
         ).finallyDo(() -> {
             intake.runIntakeOpenLoop(0.0);
-            intake.setIntakePitch(Rotation2d.fromDegrees(80));
+            intake.setIntakePitchCommand(Rotation2d.fromDegrees(80)).schedule();
         })
         // HACK
-        .unless(() -> AutoScoreCommands.autoScoreRunning).until(() -> AutoScoreCommands.autoScoreRunning);
+        .unless(() -> AutoScoreCommands.autoScoreRunning).until(() -> AutoScoreCommands.autoScoreRunning)
+        .withName("IntakeSequence");
         // @formatter:on
     }
 }

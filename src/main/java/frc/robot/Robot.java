@@ -14,6 +14,8 @@ import frc.robot.util.LoggedTracer;
 import frc.robot.util.LoggedTunableSparkPID;
 import frc.robot.util.NTClientLogger;
 import frc.robot.util.Pn532;
+import frc.robot.util.RioAlerts;
+import frc.robot.util.ThreadPriorityDummyLogReceiver;
 
 import java.lang.reflect.Field;
 import java.util.HashMap;
@@ -24,6 +26,7 @@ import org.littletonrobotics.junction.LogFileUtil;
 import org.littletonrobotics.junction.LoggedRobot;
 import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.networktables.NT4Publisher;
+import org.littletonrobotics.junction.rlog.RLOGServer;
 import org.littletonrobotics.junction.wpilog.WPILOGReader;
 import org.littletonrobotics.junction.wpilog.WPILOGWriter;
 import org.littletonrobotics.urcl.URCL;
@@ -92,12 +95,14 @@ public class Robot extends LoggedRobot {
             case REAL:
                 // Running on a real robot, log to a USB stick ("/U/logs")
                 Logger.addDataReceiver(new WPILOGWriter());
-                Logger.addDataReceiver(new NT4Publisher());
+                if(Constants.useNTLogs) Logger.addDataReceiver(new NT4Publisher());
+                else Logger.addDataReceiver(new RLOGServer());
                 break;
             case SIM:
                 // Running a physics simulator, log to NT
                 if(Constants.logInSimulation) Logger.addDataReceiver(new WPILOGWriter());
-                Logger.addDataReceiver(new NT4Publisher());
+                if(Constants.useNTLogs) Logger.addDataReceiver(new NT4Publisher());
+                else Logger.addDataReceiver(new RLOGServer());
                 break;
             case REPLAY:
                 // Replaying a log, set up replay source
@@ -107,6 +112,8 @@ public class Robot extends LoggedRobot {
                 Logger.addDataReceiver(new WPILOGWriter(LogFileUtil.addPathSuffix(logPath, "_replay")));
                 break;
         }
+
+        if(Constants.useSuperDangerousRTThreadPriority) Logger.addDataReceiver(new ThreadPriorityDummyLogReceiver());
 
         // Initialize URCL
         Logger.registerURCL(URCL.startExternal());
@@ -167,6 +174,7 @@ public class Robot extends LoggedRobot {
         }
     }
 
+    @SuppressWarnings("unused")
     private String getBatteryID() {
         System.out.println("Reading battery NFC data from Pn532...");
 

@@ -11,4 +11,9 @@ public record ReefTarget(ReefBranch branch, ReefLevel level) {
         ReefTarget other = (ReefTarget) obj;
         return branch == other.branch && level == other.level;
     }
+
+    @Override
+    public final String toString() {
+        return level.toString() + branch.toString();
+    }
 }

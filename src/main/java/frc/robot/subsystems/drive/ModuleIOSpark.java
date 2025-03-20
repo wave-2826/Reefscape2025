@@ -91,7 +91,8 @@ public class ModuleIOSpark implements ModuleIO {
         turnConfig.closedLoop.feedbackSensor(FeedbackSensor.kPrimaryEncoder).positionWrappingEnabled(true)
             .positionWrappingInputRange(turnPIDMinInput, turnPIDMaxInput).pidf(turnKp, 0.0, turnKd, 0.0);
         // TODO: Compare odometry accuracy
-        turnConfig.signals.analogPositionAlwaysOn(true).analogPositionPeriodMs(20).analogVelocityAlwaysOn(true)
+        turnConfig.signals.analogPositionAlwaysOn(true)
+            .analogPositionPeriodMs((int) (1.0 / DriveConstants.odometryFrequency)).analogVelocityAlwaysOn(true)
             .analogVelocityPeriodMs(20).primaryEncoderPositionAlwaysOn(true).primaryEncoderPositionPeriodMs(20)
             .primaryEncoderVelocityAlwaysOn(true).primaryEncoderVelocityPeriodMs(20).appliedOutputPeriodMs(20)
             .busVoltagePeriodMs(20).outputCurrentPeriodMs(20);

@@ -22,7 +22,7 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.drive.DriveConstants;
 import frc.robot.util.LoggedTracer;
-import frc.robot.RioAlerts;
+import frc.robot.util.RioAlerts;
 
 // TODO: Alpha compositing with custom RGBA color class? (not that we care _that_ much, I suppose...)
 
@@ -408,7 +408,7 @@ public class LEDs extends SubsystemBase {
      * Updates the LEDs. Runs regardless of the robot mode.
      */
     @Override
-    public synchronized void periodic() {
+    public void periodic() {
         loopCycles++;
         if(loopCycles < SKIP_FIRST_LOOP_CYCLES) { return; }
 
