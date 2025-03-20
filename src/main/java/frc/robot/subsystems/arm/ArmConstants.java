@@ -23,7 +23,7 @@ public class ArmConstants {
     public static final ArmState restingState = new ArmState(Rotation2d.fromDegrees(-55), Inches.of(19.5),
         WristRotation.Horizontal, EndEffectorState.hold());
     /** The state the arm is in when getting a piece. */
-    public static final ArmState getPieceState = new ArmState(Rotation2d.fromDegrees(-100), Inches.of(14.75),
+    public static final ArmState getPieceState = new ArmState(Rotation2d.fromDegrees(-100), Inches.of(16.0),
         WristRotation.Horizontal, EndEffectorState.velocity(-5));
     /** The second state the arm is in when getting a piece. */
     public static final ArmState getPieceState2 = new ArmState(Rotation2d.fromDegrees(-100), Inches.of(14.25),

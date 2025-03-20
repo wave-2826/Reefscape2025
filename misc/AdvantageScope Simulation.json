@@ -9,45 +9,44 @@
                 "sidebar": {
                     "width": 366,
                     "expanded": [
-                        "NT:/AdvantageKit/SmartDashboard/Field",
-                        "NT:/AdvantageKit/SmartDashboard/field",
-                        "NT:/AdvantageKitNT:/AdvantageKit",
-                        "NT:/AdvantageKit/RealOutputs",
-                        "NT:/AdvantageKit/RealOutputs/FieldSimulation",
-                        "NT:/AdvantageKit/RealOutputs/Odometry",
-                        "NT:/AdvantageKit/RealOutputs/Vision",
-                        "NT:/AdvantageKit/RealOutputs/Vision/AprilTags",
-                        "NT:/AdvantageKit/RealOutputs/Vision/AprilTags/Filtering",
-                        "NT:/AdvantageKit/RealOutputs/SwerveStates/Measured/0",
-                        "NT:/AdvantageKit/RealOutputs/SwerveStates/Measured/0/angle",
-                        "NT:/AdvantageKit/Drive/Module0",
-                        "NT:/AdvantageKit/Drive/Module0/TurnAbsolutePosition",
-                        "NT:/AdvantageKit/Robot",
-                        "NT:/AdvantageKit/Robot/SwerveDrivetrain/Sim",
-                        "NT:/AdvantageKit/Robot/SwerveDrivetrain/Sim/GroundTruthPose",
-                        "NT:/AdvantageKit/Robot/SwerveTeleopControlCommand",
-                        "NT:/AdvantageKit/Robot/SwerveTeleopControlCommand/CommandedSpeeds",
-                        "NT:/AdvantageKit/Robot/SwerveDrivetrain",
-                        "NT:/AdvantageKit/Robot/SwerveDrivetrain/State",
-                        "NT:/AdvantageKit/Robot/SwerveDrivetrain/State/ModuleStates",
-                        "NT:/AdvantageKit/RealOutputs/Field",
-                        "NT:/AdvantageKit/Pose",
-                        "NT:/AdvantageKit/RealOutputs/Vision/MeasurementErrors",
-                        "NT:/AdvantageKit/RealOutputs/Vision/AprilTags/MeasurementErrors",
-                        "NT:/AdvantageKit/RealOutputs/Vision/AprilTags/Results",
-                        "NT:/AdvantageKit/RealOutputs/LoggedRobot",
-                        "NT:/AdvantageKit/SmartDashboard",
-                        "NT:/AdvantageKit/PathPlanner",
-                        "NT:/AdvantageKit/SmartDashboard/SwerveDrive",
-                        "NT:/AdvantageKit/RealOutputs/SwerveStates/Measured/1",
-                        "NT:/AdvantageKit/RealOutputs/SwerveStates/Measured/1/angle",
-                        "NT:/AdvantageKit/RealOutputs/SwerveStates/Measured/2",
-                        "NT:/AdvantageKit/RealOutputs/SwerveStates/Measured/2/angle",
-                        "NT:/AdvantageKit/RealOutputs/SwerveStates/Measured/3",
-                        "NT:/AdvantageKit/RealOutputs/SwerveStates/Measured/3/angle",
-                        "NT:/AdvantageKit/RealOutputs/SwerveStates",
-                        "NT:/AdvantageKit/RealOutputs/Odometry/Robot",
-                        "NT:/AdvantageKit/RealOutputs/SwerveStates/Measured"
+                        "/SmartDashboard/Field",
+                        "/SmartDashboard/field",
+                        "/RealOutputs",
+                        "/RealOutputs/FieldSimulation",
+                        "/RealOutputs/Odometry",
+                        "/RealOutputs/Vision",
+                        "/RealOutputs/Vision/AprilTags",
+                        "/RealOutputs/Vision/AprilTags/Filtering",
+                        "/RealOutputs/SwerveStates/Measured/0",
+                        "/RealOutputs/SwerveStates/Measured/0/angle",
+                        "/Drive/Module0",
+                        "/Drive/Module0/TurnAbsolutePosition",
+                        "/Robot",
+                        "/Robot/SwerveDrivetrain/Sim",
+                        "/Robot/SwerveDrivetrain/Sim/GroundTruthPose",
+                        "/Robot/SwerveTeleopControlCommand",
+                        "/Robot/SwerveTeleopControlCommand/CommandedSpeeds",
+                        "/Robot/SwerveDrivetrain",
+                        "/Robot/SwerveDrivetrain/State",
+                        "/Robot/SwerveDrivetrain/State/ModuleStates",
+                        "/RealOutputs/Field",
+                        "/Pose",
+                        "/RealOutputs/Vision/MeasurementErrors",
+                        "/RealOutputs/Vision/AprilTags/MeasurementErrors",
+                        "/RealOutputs/Vision/AprilTags/Results",
+                        "/RealOutputs/LoggedRobot",
+                        "/SmartDashboard",
+                        "/PathPlanner",
+                        "/SmartDashboard/SwerveDrive",
+                        "/RealOutputs/SwerveStates/Measured/1",
+                        "/RealOutputs/SwerveStates/Measured/1/angle",
+                        "/RealOutputs/SwerveStates/Measured/2",
+                        "/RealOutputs/SwerveStates/Measured/2/angle",
+                        "/RealOutputs/SwerveStates/Measured/3",
+                        "/RealOutputs/SwerveStates/Measured/3/angle",
+                        "/RealOutputs/SwerveStates",
+                        "/RealOutputs/Odometry/Robot",
+                        "/RealOutputs/SwerveStates/Measured"
                     ]
                 },
                 "tabs": {
@@ -68,7 +67,7 @@
                                 "sources": [
                                     {
                                         "type": "ghost",
-                                        "logKey": "NT:/AdvantageKit/RealOutputs/Odometry/Robot",
+                                        "logKey": "/RealOutputs/Odometry/Robot",
                                         "logType": "Pose2d",
                                         "visible": false,
                                         "options": {
@@ -78,7 +77,7 @@
                                     },
                                     {
                                         "type": "robot",
-                                        "logKey": "NT:/AdvantageKit/RealOutputs/FieldSimulation/RobotPosition",
+                                        "logKey": "/RealOutputs/FieldSimulation/RobotPosition",
                                         "logType": "Pose2d",
                                         "visible": true,
                                         "options": {
@@ -87,7 +86,7 @@
                                     },
                                     {
                                         "type": "swerveStates",
-                                        "logKey": "NT:/AdvantageKit/RealOutputs/SwerveStates/Setpoints",
+                                        "logKey": "/RealOutputs/SwerveStates/Setpoints",
                                         "logType": "SwerveModuleState[]",
                                         "visible": true,
                                         "options": {
@@ -97,7 +96,7 @@
                                     },
                                     {
                                         "type": "swerveStates",
-                                        "logKey": "NT:/AdvantageKit/RealOutputs/SwerveStates/Measured",
+                                        "logKey": "/RealOutputs/SwerveStates/Measured",
                                         "logType": "SwerveModuleState[]",
                                         "visible": true,
                                         "options": {
@@ -107,49 +106,49 @@
                                     },
                                     {
                                         "type": "component",
-                                        "logKey": "NT:/AdvantageKit/RealOutputs/Mechanism3d/intake/Intake",
+                                        "logKey": "/RealOutputs/Mechanism3d/intake/Intake",
                                         "logType": "Pose3d",
                                         "visible": true,
                                         "options": {}
                                     },
                                     {
                                         "type": "component",
-                                        "logKey": "NT:/AdvantageKit/RealOutputs/Mechanism3d/climber/Climber",
+                                        "logKey": "/RealOutputs/Mechanism3d/climber/Climber",
                                         "logType": "Pose3d",
                                         "visible": true,
                                         "options": {}
                                     },
                                     {
                                         "type": "component",
-                                        "logKey": "NT:/AdvantageKit/RealOutputs/Mechanism3d/arm/Arm/0",
+                                        "logKey": "/RealOutputs/Mechanism3d/arm/Arm/0",
                                         "logType": "Pose3d",
                                         "visible": true,
                                         "options": {}
                                     },
                                     {
                                         "type": "component",
-                                        "logKey": "NT:/AdvantageKit/RealOutputs/Mechanism3d/arm/Arm/1",
+                                        "logKey": "/RealOutputs/Mechanism3d/arm/Arm/1",
                                         "logType": "Pose3d",
                                         "visible": true,
                                         "options": {}
                                     },
                                     {
                                         "type": "component",
-                                        "logKey": "NT:/AdvantageKit/RealOutputs/Mechanism3d/arm/Arm/2",
+                                        "logKey": "/RealOutputs/Mechanism3d/arm/Arm/2",
                                         "logType": "Pose3d",
                                         "visible": true,
                                         "options": {}
                                     },
                                     {
                                         "type": "component",
-                                        "logKey": "NT:/AdvantageKit/RealOutputs/Mechanism3d/arm/Arm/3",
+                                        "logKey": "/RealOutputs/Mechanism3d/arm/Arm/3",
                                         "logType": "Pose3d",
                                         "visible": true,
                                         "options": {}
                                     },
                                     {
                                         "type": "vision",
-                                        "logKey": "NT:/AdvantageKit/RealOutputs/PieceVision/EstimatedFieldLocations",
+                                        "logKey": "/RealOutputs/PieceVision/EstimatedFieldLocations",
                                         "logType": "Pose3d[]",
                                         "visible": false,
                                         "options": {
@@ -159,7 +158,7 @@
                                     },
                                     {
                                         "type": "ghost",
-                                        "logKey": "NT:/AdvantageKit/RealOutputs/AutoScore/InitialLineupPose",
+                                        "logKey": "/RealOutputs/AutoScore/InitialLineupPose",
                                         "logType": "Pose2d",
                                         "visible": false,
                                         "options": {
@@ -169,7 +168,7 @@
                                     },
                                     {
                                         "type": "gamePiece",
-                                        "logKey": "NT:/AdvantageKit/RealOutputs/FieldSimulation/Algae",
+                                        "logKey": "/RealOutputs/FieldSimulation/Algae",
                                         "logType": "Pose3d[]",
                                         "visible": true,
                                         "options": {
@@ -178,7 +177,7 @@
                                     },
                                     {
                                         "type": "gamePiece",
-                                        "logKey": "NT:/AdvantageKit/RealOutputs/FieldSimulation/Coral",
+                                        "logKey": "/RealOutputs/FieldSimulation/Coral",
                                         "logType": "Pose3d[]",
                                         "visible": true,
                                         "options": {
@@ -187,7 +186,7 @@
                                     },
                                     {
                                         "type": "gamePiece",
-                                        "logKey": "NT:/AdvantageKit/RealOutputs/Mechanism3d/arm/Coral",
+                                        "logKey": "/RealOutputs/Mechanism3d/arm/Coral",
                                         "logType": "Pose3d[]",
                                         "visible": true,
                                         "options": {
@@ -222,7 +221,7 @@
                                 "sources": [
                                     {
                                         "type": "ghost",
-                                        "logKey": "NT:/AdvantageKit/RealOutputs/Odometry/Robot",
+                                        "logKey": "/RealOutputs/Odometry/Robot",
                                         "logType": "Pose2d",
                                         "visible": true,
                                         "options": {
@@ -231,14 +230,14 @@
                                     },
                                     {
                                         "type": "robot",
-                                        "logKey": "NT:/AdvantageKit/RealOutputs/FieldSimulation/RobotPosition",
+                                        "logKey": "/RealOutputs/FieldSimulation/RobotPosition",
                                         "logType": "Pose2d",
                                         "visible": true,
                                         "options": {}
                                     },
                                     {
                                         "type": "ghost",
-                                        "logKey": "NT:/AdvantageKit/RealOutputs/CloseLineup/TargetPose",
+                                        "logKey": "/RealOutputs/CloseLineup/TargetPose",
                                         "logType": "Pose2d",
                                         "visible": true,
                                         "options": {
@@ -247,7 +246,7 @@
                                     },
                                     {
                                         "type": "arrow",
-                                        "logKey": "NT:/AdvantageKit/RealOutputs/Vision/Summary/TagPoses",
+                                        "logKey": "/RealOutputs/Vision/Summary/TagPoses",
                                         "logType": "Pose3d[]",
                                         "visible": false,
                                         "options": {
@@ -256,7 +255,7 @@
                                     },
                                     {
                                         "type": "ghost",
-                                        "logKey": "NT:/AdvantageKit/RealOutputs/Vision/Summary/IndividualTagRobotPoses",
+                                        "logKey": "/RealOutputs/Vision/Summary/IndividualTagRobotPoses",
                                         "logType": "Pose3d[]",
                                         "visible": false,
                                         "options": {
@@ -265,7 +264,7 @@
                                     },
                                     {
                                         "type": "ghost",
-                                        "logKey": "NT:/AdvantageKit/RealOutputs/Vision/Summary/IndividualTagRobotPosesAccepted",
+                                        "logKey": "/RealOutputs/Vision/Summary/IndividualTagRobotPosesAccepted",
                                         "logType": "Pose3d[]",
                                         "visible": false,
                                         "options": {
@@ -274,7 +273,7 @@
                                     },
                                     {
                                         "type": "ghost",
-                                        "logKey": "NT:/AdvantageKit/RealOutputs/Vision/Summary/IndividualTagRobotPosesRejected",
+                                        "logKey": "/RealOutputs/Vision/Summary/IndividualTagRobotPosesRejected",
                                         "logType": "Pose3d[]",
                                         "visible": false,
                                         "options": {
@@ -283,7 +282,7 @@
                                     },
                                     {
                                         "type": "ghost",
-                                        "logKey": "NT:/AdvantageKit/RealOutputs/AutoScore/InitialLineupPose",
+                                        "logKey": "/RealOutputs/AutoScore/InitialLineupPose",
                                         "logType": "Pose2d",
                                         "visible": true,
                                         "options": {
@@ -332,7 +331,7 @@
                                 "leftSources": [
                                     {
                                         "type": "stepped",
-                                        "logKey": "NT:/AdvantageKit/RealOutputs/Intake/SimulatedCoralPosition",
+                                        "logKey": "/RealOutputs/Intake/SimulatedCoralPosition",
                                         "logType": "Number",
                                         "visible": true,
                                         "options": {
@@ -367,7 +366,7 @@
                                 "sources": [
                                     {
                                         "type": "states",
-                                        "logKey": "NT:/AdvantageKit/RealOutputs/SwerveStates/Measured",
+                                        "logKey": "/RealOutputs/SwerveStates/Measured",
                                         "logType": "SwerveModuleState[]",
                                         "visible": true,
                                         "options": {
@@ -377,7 +376,7 @@
                                     },
                                     {
                                         "type": "states",
-                                        "logKey": "NT:/AdvantageKit/RealOutputs/SwerveStates/Setpoints",
+                                        "logKey": "/RealOutputs/SwerveStates/Setpoints",
                                         "logType": "SwerveModuleState[]",
                                         "visible": true,
                                         "options": {
@@ -387,7 +386,7 @@
                                     },
                                     {
                                         "type": "rotation",
-                                        "logKey": "NT:/AdvantageKit/RealOutputs/Odometry/Robot/rotation",
+                                        "logKey": "/RealOutputs/Odometry/Robot/rotation",
                                         "logType": "Rotation2d",
                                         "visible": true,
                                         "options": {}

@@ -102,10 +102,6 @@ public class SimplePIDLineupCommand extends Command {
         double ySpeed = yController.calculate(currentPose.getY());
         double thetaSpeed = thetaController.calculate(currentPose.getRotation().getRadians());
 
-        // Terrible solution. Do not copy.
-        if(xController.atSetpoint()) xSpeed = 0.;
-        if(yController.atSetpoint()) ySpeed = 0.;
-
         ChassisSpeeds wheelSpeeds = ChassisSpeeds.fromFieldRelativeSpeeds(xSpeed, ySpeed, thetaSpeed,
             currentPose.getRotation());
 
