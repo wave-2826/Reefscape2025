@@ -38,7 +38,7 @@ public class IntakeConstants {
     public static final boolean powerMotorInverted = false;
     public static final int powerMotorCurrentLimit = 65;
 
-    public static final double intakeZeroAngle = 0.8223482;
+    public static final double intakeZeroAngle = 0.9921534;
 
     public static final int intakeDriveMotorId = 45;
 
