@@ -13,41 +13,8 @@
                         "NT:/AdvantageKit/SmartDashboard/field",
                         "NT:/AdvantageKitNT:/AdvantageKit",
                         "NT:/AdvantageKit/RealOutputs",
-                        "NT:/AdvantageKit/RealOutputs/FieldSimulation",
                         "NT:/AdvantageKit/RealOutputs/Odometry",
-                        "NT:/AdvantageKit/RealOutputs/Vision",
-                        "NT:/AdvantageKit/RealOutputs/Vision/AprilTags",
-                        "NT:/AdvantageKit/RealOutputs/Vision/AprilTags/Filtering",
-                        "NT:/AdvantageKit/RealOutputs/SwerveStates/Measured/0",
-                        "NT:/AdvantageKit/RealOutputs/SwerveStates/Measured/0/angle",
-                        "NT:/AdvantageKit/Drive/Module0",
-                        "NT:/AdvantageKit/Drive/Module0/TurnAbsolutePosition",
-                        "NT:/AdvantageKit/Robot",
-                        "NT:/AdvantageKit/Robot/SwerveDrivetrain/Sim",
-                        "NT:/AdvantageKit/Robot/SwerveDrivetrain/Sim/GroundTruthPose",
-                        "NT:/AdvantageKit/Robot/SwerveTeleopControlCommand",
-                        "NT:/AdvantageKit/Robot/SwerveTeleopControlCommand/CommandedSpeeds",
-                        "NT:/AdvantageKit/Robot/SwerveDrivetrain",
-                        "NT:/AdvantageKit/Robot/SwerveDrivetrain/State",
-                        "NT:/AdvantageKit/Robot/SwerveDrivetrain/State/ModuleStates",
-                        "NT:/AdvantageKit/RealOutputs/Field",
-                        "NT:/AdvantageKit/Pose",
-                        "NT:/AdvantageKit/RealOutputs/Vision/MeasurementErrors",
-                        "NT:/AdvantageKit/RealOutputs/Vision/AprilTags/MeasurementErrors",
-                        "NT:/AdvantageKit/RealOutputs/Vision/AprilTags/Results",
-                        "NT:/AdvantageKit/RealOutputs/LoggedRobot",
-                        "NT:/AdvantageKit/SmartDashboard",
-                        "NT:/AdvantageKit/PathPlanner",
-                        "NT:/AdvantageKit/SmartDashboard/SwerveDrive",
-                        "NT:/AdvantageKit/RealOutputs/SwerveStates/Measured/1",
-                        "NT:/AdvantageKit/RealOutputs/SwerveStates/Measured/1/angle",
-                        "NT:/AdvantageKit/RealOutputs/SwerveStates/Measured/2",
-                        "NT:/AdvantageKit/RealOutputs/SwerveStates/Measured/2/angle",
-                        "NT:/AdvantageKit/RealOutputs/SwerveStates/Measured/3",
-                        "NT:/AdvantageKit/RealOutputs/SwerveStates/Measured/3/angle",
-                        "NT:/AdvantageKit/RealOutputs/SwerveStates",
-                        "NT:/AdvantageKit/RealOutputs/Odometry/Robot",
-                        "NT:/AdvantageKit/RealOutputs/SwerveStates/Measured"
+                        "NT:/AdvantageKit/RealOutputs/Vision"
                     ]
                 },
                 "tabs": {
@@ -67,18 +34,8 @@
                             "controller": {
                                 "sources": [
                                     {
-                                        "type": "ghost",
-                                        "logKey": "NT:/AdvantageKit/RealOutputs/Odometry/Robot",
-                                        "logType": "Pose2d",
-                                        "visible": false,
-                                        "options": {
-                                            "model": "Wave2025",
-                                            "color": "#00ff00"
-                                        }
-                                    },
-                                    {
                                         "type": "robot",
-                                        "logKey": "NT:/AdvantageKit/RealOutputs/FieldSimulation/RobotPosition",
+                                        "logKey": "NT:/AdvantageKit/RealOutputs/Odometry/Robot",
                                         "logType": "Pose2d",
                                         "visible": true,
                                         "options": {
@@ -169,24 +126,6 @@
                                     },
                                     {
                                         "type": "gamePiece",
-                                        "logKey": "NT:/AdvantageKit/RealOutputs/FieldSimulation/Algae",
-                                        "logType": "Pose3d[]",
-                                        "visible": true,
-                                        "options": {
-                                            "variant": "Algae"
-                                        }
-                                    },
-                                    {
-                                        "type": "gamePiece",
-                                        "logKey": "NT:/AdvantageKit/RealOutputs/FieldSimulation/Coral",
-                                        "logType": "Pose3d[]",
-                                        "visible": true,
-                                        "options": {
-                                            "variant": "Coral"
-                                        }
-                                    },
-                                    {
-                                        "type": "gamePiece",
                                         "logKey": "NT:/AdvantageKit/RealOutputs/Mechanism3d/arm/Coral",
                                         "logType": "Pose3d[]",
                                         "visible": true,
@@ -221,17 +160,8 @@
                             "controller": {
                                 "sources": [
                                     {
-                                        "type": "ghost",
-                                        "logKey": "NT:/AdvantageKit/RealOutputs/Odometry/Robot",
-                                        "logType": "Pose2d",
-                                        "visible": true,
-                                        "options": {
-                                            "color": "#00ff00"
-                                        }
-                                    },
-                                    {
                                         "type": "robot",
-                                        "logKey": "NT:/AdvantageKit/RealOutputs/FieldSimulation/RobotPosition",
+                                        "logKey": "NT:/AdvantageKit/RealOutputs/Odometry/Robot",
                                         "logType": "Pose2d",
                                         "visible": true,
                                         "options": {}
@@ -416,6 +346,339 @@
                             "controllerUUID": "1mu7lxp5m9rejv61d0z96e8ltd6p7xmi",
                             "renderer": null,
                             "controlsHeight": 85
+                        },
+                        {
+                            "type": 0,
+                            "title": "",
+                            "controller": null,
+                            "controllerUUID": "drcbfqllj0zmd1fqku54ga74c36gxw88",
+                            "renderer": "#/more-features/gltf-convert",
+                            "controlsHeight": 0
+                        },
+                        {
+                            "type": 1,
+                            "title": "Line Graph",
+                            "controller": {
+                                "leftSources": [
+                                    {
+                                        "type": "stepped",
+                                        "logKey": "NT:/AdvantageKit/RealOutputs/Arm/TargetHeight",
+                                        "logType": "Number",
+                                        "visible": true,
+                                        "options": {
+                                            "color": "#e5b31b",
+                                            "size": "normal"
+                                        }
+                                    },
+                                    {
+                                        "type": "stepped",
+                                        "logKey": "NT:/AdvantageKit/RealOutputs/Arm/TargetPitch",
+                                        "logType": "Number",
+                                        "visible": true,
+                                        "options": {
+                                            "color": "#af2437",
+                                            "size": "normal"
+                                        }
+                                    },
+                                    {
+                                        "type": "stepped",
+                                        "logKey": "NT:/AdvantageKit/RealOutputs/Arm/TargetWrist",
+                                        "logType": "Number",
+                                        "visible": true,
+                                        "options": {
+                                            "color": "#80588e",
+                                            "size": "normal"
+                                        }
+                                    },
+                                    {
+                                        "type": "stepped",
+                                        "logKey": "NT:/AdvantageKit/RealOutputs/Arm/TargetEndEffector",
+                                        "logType": "Number",
+                                        "visible": true,
+                                        "options": {
+                                            "color": "#e48b32",
+                                            "size": "normal"
+                                        }
+                                    }
+                                ],
+                                "rightSources": [
+                                    {
+                                        "type": "stepped",
+                                        "logKey": "NT:/AdvantageKit/Arm/ArmPitchVelocity",
+                                        "logType": "Number",
+                                        "visible": false,
+                                        "options": {
+                                            "color": "#c0b487",
+                                            "size": "normal"
+                                        }
+                                    }
+                                ],
+                                "discreteSources": [
+                                    {
+                                        "type": "stripes",
+                                        "logKey": "NT:/AdvantageKit/RealOutputs/Arm/AtTarget",
+                                        "logType": "Boolean",
+                                        "visible": true,
+                                        "options": {
+                                            "color": "#2b66a2"
+                                        }
+                                    },
+                                    {
+                                        "type": "stripes",
+                                        "logKey": "NT:/AdvantageKit/RealOutputs/Arm/AtTargetHeight",
+                                        "logType": "Boolean",
+                                        "visible": true,
+                                        "options": {
+                                            "color": "#858584"
+                                        }
+                                    },
+                                    {
+                                        "type": "stripes",
+                                        "logKey": "NT:/AdvantageKit/RealOutputs/Arm/AtTargetPitch",
+                                        "logType": "Boolean",
+                                        "visible": true,
+                                        "options": {
+                                            "color": "#3b875a"
+                                        }
+                                    },
+                                    {
+                                        "type": "stripes",
+                                        "logKey": "NT:/AdvantageKit/RealOutputs/Arm/AtTargetWrist",
+                                        "logType": "Boolean",
+                                        "visible": true,
+                                        "options": {
+                                            "color": "#d993aa"
+                                        }
+                                    }
+                                ],
+                                "leftLockedRange": [
+                                    -1.7278759594743862,
+                                    1.7278759594743862
+                                ],
+                                "rightLockedRange": null,
+                                "leftUnitConversion": {
+                                    "type": null,
+                                    "factor": 1
+                                },
+                                "rightUnitConversion": {
+                                    "type": null,
+                                    "factor": 1
+                                },
+                                "leftFilter": 0,
+                                "rightFilter": 0
+                            },
+                            "controllerUUID": "5zi1lhufyitvq3euoeiobj9c8c8u0an7",
+                            "renderer": null,
+                            "controlsHeight": 200
+                        },
+                        {
+                            "type": 1,
+                            "title": "Line Graph",
+                            "controller": {
+                                "leftSources": [
+                                    {
+                                        "type": "stepped",
+                                        "logKey": "NT:/AdvantageKit/Arm/EndEffectorVelocity",
+                                        "logType": "Number",
+                                        "visible": true,
+                                        "options": {
+                                            "color": "#2b66a2",
+                                            "size": "normal"
+                                        }
+                                    },
+                                    {
+                                        "type": "stepped",
+                                        "logKey": "NT:/AdvantageKit/RealOutputs/Arm/TargetEndEffector",
+                                        "logType": "Number",
+                                        "visible": true,
+                                        "options": {
+                                            "color": "#e5b31b",
+                                            "size": "normal"
+                                        }
+                                    }
+                                ],
+                                "rightSources": [
+                                    {
+                                        "type": "stepped",
+                                        "logKey": "NT:/AdvantageKit/Arm/AbsoluteHeightMeters",
+                                        "logType": "Number",
+                                        "visible": true,
+                                        "options": {
+                                            "color": "#af2437",
+                                            "size": "normal"
+                                        }
+                                    }
+                                ],
+                                "discreteSources": [],
+                                "leftLockedRange": [
+                                    -0.5060209751129151,
+                                    10.626440477371215
+                                ],
+                                "rightLockedRange": null,
+                                "leftUnitConversion": {
+                                    "type": null,
+                                    "factor": 1
+                                },
+                                "rightUnitConversion": {
+                                    "type": null,
+                                    "factor": 1
+                                },
+                                "leftFilter": 0,
+                                "rightFilter": 0
+                            },
+                            "controllerUUID": "mtbvaum68gf5w3lw2ugibncl2vb45dpz",
+                            "renderer": null,
+                            "controlsHeight": 200
+                        },
+                        {
+                            "type": 1,
+                            "title": "Line Graph",
+                            "controller": {
+                                "leftSources": [
+                                    {
+                                        "type": "stepped",
+                                        "logKey": "NT:/AdvantageKit/RealOutputs/CloseLineup/TargetX",
+                                        "logType": "Number",
+                                        "visible": true,
+                                        "options": {
+                                            "color": "#af2437",
+                                            "size": "normal"
+                                        }
+                                    },
+                                    {
+                                        "type": "stepped",
+                                        "logKey": "NT:/AdvantageKit/RealOutputs/CloseLineup/TargetY",
+                                        "logType": "Number",
+                                        "visible": true,
+                                        "options": {
+                                            "color": "#2b66a2",
+                                            "size": "normal"
+                                        }
+                                    },
+                                    {
+                                        "type": "stepped",
+                                        "logKey": "NT:/AdvantageKit/RealOutputs/Odometry/Robot/translation/x",
+                                        "logType": "Number",
+                                        "visible": true,
+                                        "options": {
+                                            "color": "#af2437",
+                                            "size": "normal"
+                                        }
+                                    },
+                                    {
+                                        "type": "stepped",
+                                        "logKey": "NT:/AdvantageKit/RealOutputs/Odometry/Robot/translation/y",
+                                        "logType": "Number",
+                                        "visible": true,
+                                        "options": {
+                                            "color": "#2b66a2",
+                                            "size": "normal"
+                                        }
+                                    }
+                                ],
+                                "rightSources": [
+                                    {
+                                        "type": "stepped",
+                                        "logKey": "NT:/AdvantageKit/RealOutputs/Odometry/Robot/rotation/value",
+                                        "logType": "Number",
+                                        "visible": true,
+                                        "options": {
+                                            "color": "#e5b31b",
+                                            "size": "normal"
+                                        }
+                                    },
+                                    {
+                                        "type": "stepped",
+                                        "logKey": "NT:/AdvantageKit/RealOutputs/CloseLineup/TargetRotation/value",
+                                        "logType": "Number",
+                                        "visible": true,
+                                        "options": {
+                                            "color": "#e5b31b",
+                                            "size": "normal"
+                                        }
+                                    }
+                                ],
+                                "discreteSources": [],
+                                "leftLockedRange": [
+                                    2,
+                                    4
+                                ],
+                                "rightLockedRange": [
+                                    0,
+                                    2.5
+                                ],
+                                "leftUnitConversion": {
+                                    "type": null,
+                                    "factor": 1
+                                },
+                                "rightUnitConversion": {
+                                    "type": null,
+                                    "factor": 1
+                                },
+                                "leftFilter": 0,
+                                "rightFilter": 0
+                            },
+                            "controllerUUID": "fpbf750gkc0ffcjbfbb6u8roi4glvnp0",
+                            "renderer": null,
+                            "controlsHeight": 200
+                        },
+                        {
+                            "type": 2,
+                            "title": "Odometry",
+                            "controller": {
+                                "sources": [
+                                    {
+                                        "type": "robot",
+                                        "logKey": "NT:/AdvantageKit/RealOutputs/Odometry/Robot",
+                                        "logType": "Pose2d",
+                                        "visible": true,
+                                        "options": {}
+                                    }
+                                ],
+                                "game": "2025 Field (Welded)",
+                                "bumpers": "auto",
+                                "origin": "blue",
+                                "orientation": 0,
+                                "size": 30
+                            },
+                            "controllerUUID": "m6pbwhlog72uyjzc2x71dw61fmd1l0yz",
+                            "renderer": null,
+                            "controlsHeight": 200
+                        },
+                        {
+                            "type": 3,
+                            "title": "3D Field",
+                            "controller": {
+                                "sources": [],
+                                "game": "2025 Field (Welded)",
+                                "origin": "blue"
+                            },
+                            "controllerUUID": "ohyh66wqqxbo6do39399v9uwhi122jro",
+                            "renderer": {
+                                "cameraIndex": -1,
+                                "orbitFov": 50,
+                                "cameraPosition": [
+                                    11.577671032350832,
+                                    2.493024246323962,
+                                    -3.071763491085215
+                                ],
+                                "cameraTarget": [
+                                    0.770963862611798,
+                                    -1.6822534433028378,
+                                    -0.9018034371172324
+                                ]
+                            },
+                            "controlsHeight": 200
+                        },
+                        {
+                            "type": 5,
+                            "title": "Console",
+                            "controller": "NT:/AdvantageKit/RealOutputs/Console",
+                            "controllerUUID": "w4g474l9am31ybxt8tlmjpu2y9vct10i",
+                            "renderer": {
+                                "highlight": false
+                            },
+                            "controlsHeight": 0
                         }
                     ]
                 }
