@@ -111,9 +111,6 @@ public class Controls {
 
         operator.b().and(normalOperator).onTrue(arm.goToStateCommand(ArmConstants.restingState));
 
-        operator.povUp().and(normalOperator).onTrue(arm.goToStateCommand(ArmConstants.sourceIntakeState))
-            .onFalse(arm.goToStateCommand(ArmConstants.sourceIntakeState.withEndEffector(EndEffectorState.hold())));
-
         operator.back().and(normalOperator).onTrue(Commands.runOnce(arm::resetToAbsolute));
 
         // Go to active scoring position

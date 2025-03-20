@@ -25,9 +25,6 @@ public class ArmConstants {
     /** The state the arm is in when getting a piece. */
     public static final ArmState getPieceState = new ArmState(Rotation2d.fromDegrees(-95), Inches.of(14.25),
         WristRotation.Horizontal, EndEffectorState.velocity(-8));
-    /** The state used for source intaking. */
-    public static final ArmState sourceIntakeState = new ArmState(Rotation2d.fromDegrees(80), Inches.of(5),
-        WristRotation.Vertical, EndEffectorState.velocity(-18));
 
     public class ElevatorConstants {
         public static final int elevatorHeightMotor1Id = 50;
