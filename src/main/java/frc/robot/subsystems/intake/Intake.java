@@ -30,7 +30,7 @@ public class Intake extends SubsystemBase {
     public Command setIntakePitchCommand(Rotation2d pitch) {
         return Commands.run(() -> {
             setIntakePitch(pitch);
-        }, this).until(this::atPitchSetpoint);
+        }, this).until(this::atPitchSetpoint).withTimeout(0.75);
     }
 
     private void setIntakePitch(Rotation2d pitch) {
