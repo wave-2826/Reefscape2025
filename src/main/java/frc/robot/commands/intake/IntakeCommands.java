@@ -12,26 +12,25 @@ import frc.robot.subsystems.intake.Intake;
 
 public class IntakeCommands {
     public static Command getPiece(Arm arm) {
-        return Commands.sequence(arm.goToStateCommand(ArmConstants.getPieceState).withTimeout(0.5),
-            Commands.waitSeconds(0.8), arm.goToStateCommand(ArmConstants.getPieceStateDown).withTimeout(0.5),
-            arm.goToStateCommand(ArmConstants.getPieceState).withTimeout(0.5),
-            arm.goToStateCommand(ArmConstants.restingState).withTimeout(0.25));
+        return Commands.sequence(arm.goToStateCommand(ArmConstants.restingState),
+            arm.goToStateCommand(ArmConstants.getPieceState), arm.goToStateCommand(ArmConstants.restingState))
+            .withTimeout(1.0);
     }
 
     public static Command getPieceFromIntake(Intake intake, Arm arm) {
         // @formatter:off
         return Commands.sequence(
-            arm.goToStateCommand(ArmConstants.restingState).withTimeout(0.5),
+            arm.goToStateCommand(ArmConstants.restingState),
             intake.setTransportOverrideSpeedCommand(1.0),
 
-            Commands.sequence(
-                Commands.waitUntil(intake::transportSensorTriggered),
-                Commands.waitSeconds(0.15),
-                intake.setTransportOverrideSpeedCommand(0.0),
+            Commands.waitUntil(intake::transportSensorTriggered),
+            Commands.waitSeconds(0.15),
+            intake.setTransportOverrideSpeedCommand(0.0),
 
-                getPiece(arm)
-            ).withTimeout(0.75)
-        ).withName("GetPieceFromIntake");
+            getPiece(arm)
+        ).withName("GetPieceFromIntake").withTimeout(2.5).finallyDo(() -> {
+            intake.setTransportOverrideSpeed(0.0);
+        });
         // @formatter:on
     }
 

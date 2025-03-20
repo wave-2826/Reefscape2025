@@ -20,14 +20,11 @@ import frc.robot.util.GearRatios.UltraPlanetaryRatio;
  */
 public class ArmConstants {
     /** The state that the arm rests in while waiting for a game piece. */
-    public static final ArmState restingState = new ArmState(Rotation2d.fromDegrees(-55), Inches.of(19.5),
+    public static final ArmState restingState = new ArmState(Rotation2d.fromDegrees(-95), Inches.of(16.5),
         WristRotation.Horizontal, EndEffectorState.hold());
     /** The state the arm is in when getting a piece. */
-    public static final ArmState getPieceState = new ArmState(Rotation2d.fromDegrees(-100), Inches.of(16.0),
-        WristRotation.Horizontal, EndEffectorState.velocity(-5));
-    /** The second state the arm is in when getting a piece. */
-    public static final ArmState getPieceStateDown = new ArmState(Rotation2d.fromDegrees(-100), Inches.of(14.25),
-        WristRotation.Horizontal, EndEffectorState.velocity(-15));
+    public static final ArmState getPieceState = new ArmState(Rotation2d.fromDegrees(-95), Inches.of(14.25),
+        WristRotation.Horizontal, EndEffectorState.velocity(-8));
     /** The state used for source intaking. */
     public static final ArmState sourceIntakeState = new ArmState(Rotation2d.fromDegrees(80), Inches.of(5),
         WristRotation.Vertical, EndEffectorState.velocity(-18));
