@@ -25,8 +25,7 @@ public class DriveConstants {
     public record SwerveModuleConfiguration(int driveMotorCanID, int turnMotorCanID, Rotation2d zeroOffset) {
     }
 
-    // TODO: Measure our effective maximum speed once robot is built
-    public static final double maxSpeedMetersPerSec = 4.5; // "Magic" number from max speed measurement
+    public static final double maxSpeedMetersPerSec = 4.0; // "Magic" number from max speed measurement
     public static final double odometryFrequency = 100.0; // Hz
     public static final double bumperSizeMeters = Units.inchesToMeters(37.625);
     public static final double trackWidth = Units.inchesToMeters(24.);
