@@ -28,6 +28,6 @@ public class ClimbCommands {
 
             // climber.runClimber(climberRotation.value);
             climber.runClimberOpenLoop(-climbSpeed);
-        });
+        }).finallyDo(() -> climber.runClimberOpenLoop(0));
     }
 }
