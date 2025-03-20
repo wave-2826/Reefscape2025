@@ -6,7 +6,6 @@ import edu.wpi.first.wpilibj.GenericHID.RumbleType;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.Controls;
-import frc.robot.commands.AutoScoreCommands;
 import frc.robot.subsystems.arm.Arm;
 import frc.robot.subsystems.arm.ArmConstants;
 import frc.robot.subsystems.intake.Intake;
@@ -22,8 +21,6 @@ public class IntakeCommands {
     public static Command getPieceFromIntake(Intake intake, Arm arm) {
         // @formatter:off
         return Commands.sequence(
-            Commands.waitUntil(() -> !AutoScoreCommands.autoScoreRunning),
-            
             arm.goToStateCommand(ArmConstants.restingState).withTimeout(0.5),
             intake.setTransportOverrideSpeedCommand(1.0),
 
