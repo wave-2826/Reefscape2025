@@ -26,11 +26,8 @@ public class ArmConstants {
     public static final ArmState getPieceState = new ArmState(Rotation2d.fromDegrees(-100), Inches.of(16.0),
         WristRotation.Horizontal, EndEffectorState.velocity(-5));
     /** The second state the arm is in when getting a piece. */
-    public static final ArmState getPieceState2 = new ArmState(Rotation2d.fromDegrees(-100), Inches.of(14.25),
+    public static final ArmState getPieceStateDown = new ArmState(Rotation2d.fromDegrees(-100), Inches.of(14.25),
         WristRotation.Horizontal, EndEffectorState.velocity(-15));
-    /** The state used during intaking to make sure the passive stage clears the transport. */
-    public static final ArmState intakeClearanceState = new ArmState(Rotation2d.fromDegrees(-90), Inches.of(30.0),
-        WristRotation.Horizontal, EndEffectorState.hold());
     /** The state used for source intaking. */
     public static final ArmState sourceIntakeState = new ArmState(Rotation2d.fromDegrees(80), Inches.of(5),
         WristRotation.Vertical, EndEffectorState.velocity(-18));
@@ -135,7 +132,7 @@ public class ArmConstants {
 
         public static final LoggedTunableSparkPID armPitchPID = new LoggedTunableSparkPID("Arm/Pitch")
             // .addRealRobotGains(new PIDConstants(0.8, 0.001, 0.9).iZone(Units.degreesToRadians(5)))
-            .addRealRobotGains(new PIDConstants(0.6, 0.001, 0.7).iZone(Units.degreesToRadians(5)))
+            .addRealRobotGains(new PIDConstants(0.5, 0.001, 0.8).iZone(Units.degreesToRadians(5)))
             .addSimGains(new PIDConstants(25., 0.001, 0.3).iZone(Units.degreesToRadians(5)));
 
         public static final double armPitchReduction = 9 * (36 / 12);
