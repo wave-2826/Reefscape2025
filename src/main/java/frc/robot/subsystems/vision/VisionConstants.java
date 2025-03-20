@@ -35,8 +35,8 @@ public class VisionConstants {
         .loadField(AprilTagFields.k2025ReefscapeWelded);
 
     // Camera names; must match names configured in PhotonVision
-    public static final String camera0Name = "2826_OV9281_Ben"; // Front right
-    public static final String camera1Name = "2826_OV9281_Abe"; // Front left
+    public static final String camera0Name = "2826_OV9281_Abe"; // Front left
+    public static final String camera1Name = "2826_OV9281_Ben"; // Front right
     public static final String camera2Name = "2826_OV9281_Cal"; // Back left
     public static final String camera3Name = "2826_OV9281_Dan"; // Back right
 

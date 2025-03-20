@@ -24,11 +24,13 @@ public class IntakeCommands {
             arm.goToStateCommand(ArmConstants.restingState).withTimeout(0.5),
             intake.setTransportOverrideSpeedCommand(1.0),
 
-            Commands.waitUntil(intake::transportSensorTriggered),
-            Commands.waitSeconds(0.15),
-            intake.setTransportOverrideSpeedCommand(0.0),
+            Commands.sequence(
+                Commands.waitUntil(intake::transportSensorTriggered),
+                Commands.waitSeconds(0.15),
+                intake.setTransportOverrideSpeedCommand(0.0),
 
-            getPiece(arm)
+                getPiece(arm)
+            ).withTimeout(0.75)
         ).withName("GetPieceFromIntake");
         // @formatter:on
     }
