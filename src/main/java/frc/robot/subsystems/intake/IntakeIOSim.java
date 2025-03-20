@@ -20,7 +20,7 @@ import edu.wpi.first.wpilibj.simulation.DCMotorSim;
 import edu.wpi.first.wpilibj.simulation.DIOSim;
 import edu.wpi.first.wpilibj.simulation.RoboRioSim;
 import edu.wpi.first.wpilibj.simulation.SingleJointedArmSim;
-import frc.robot.SimRobotGamePieceVisualization;
+import frc.robot.SimRobotGamePiece;
 
 public class IntakeIOSim extends IntakeIOReal {
     /** The maximum pitch above the ground that allows us to intake a game piece. */
@@ -47,7 +47,7 @@ public class IntakeIOSim extends IntakeIOReal {
     private static final double intakePowerGearing = 9.;
     private static final double intakePowerMOI = 0.005;
     private static final double transportMOI = 0.005;
-    private static final double transportGearing = 25.;
+    private static final double transportGearing = 15.;
 
     private final IntakeSimulation intakeSimulation;
 
@@ -97,7 +97,11 @@ public class IntakeIOSim extends IntakeIOReal {
             // Width of the intake
             Inches.of(17.5),
             // The extension length of the intake beyond the robot's frame when activated
-            Inches.of(13.5), IntakeSimulation.IntakeSide.BACK, 1);
+            Inches.of(9.0), IntakeSimulation.IntakeSide.BACK, 1);
+    }
+
+    public static void addCoral() {
+        simulatedCoralPosition = 0.;
     }
 
     @Override
@@ -126,13 +130,12 @@ public class IntakeIOSim extends IntakeIOReal {
         // TODO: Track coral path and activate sensors
         intakeDIOSim.setValue(
             !(simulatedCoralPosition != null && simulatedCoralPosition > 0.1 && simulatedCoralPosition < 0.5));
-        transportDIOSim.setValue(
-            !(simulatedCoralPosition != null && simulatedCoralPosition > 0.6 && simulatedCoralPosition < 0.9));
+        transportDIOSim.setValue(!(simulatedCoralPosition != null && simulatedCoralPosition > 0.7));
 
         if(simulatedCoralPosition != null) {
-            double transportLength = Units.inchesToMeters(25);
-            simulatedCoralPosition += powerSim.getAngularVelocityRadPerSec() * Units.inchesToMeters(3.) * 0.9
-                / transportLength;
+            double transportLength = Units.inchesToMeters(24);
+            simulatedCoralPosition += transportSim.getAngularVelocityRadPerSec() / transportGearing
+                * Units.inchesToMeters(2.9) * 1.3 / transportLength * 0.02;
             if(simulatedCoralPosition > 1) {
                 simulatedCoralPosition = 1.;
             }
@@ -145,9 +148,9 @@ public class IntakeIOSim extends IntakeIOReal {
 
         Logger.recordOutput("Intake/SimulatedCoralPosition",
             simulatedCoralPosition == null ? -1 : simulatedCoralPosition);
-        SimRobotGamePieceVisualization.setCoralTransform(simulatedCoralPosition == null ? null
-            : new Transform3d(simulatedCoralPosition * Units.inchesToMeters(28) - Units.inchesToMeters(15), 0.,
-                Units.inchesToMeters(10), Rotation3d.kZero));
+        if(simulatedCoralPosition != null) SimRobotGamePiece.setCoralTransform(
+            new Transform3d(simulatedCoralPosition * Units.inchesToMeters(28) - Units.inchesToMeters(12), 0.,
+                Units.inchesToMeters(9), Rotation3d.kZero));
 
         super.updateInputs(inputs);
 

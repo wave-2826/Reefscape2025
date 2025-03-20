@@ -14,6 +14,7 @@ import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.Timer;
+import frc.robot.FieldConstants;
 
 public class PieceVisionIOSim implements PieceVisionIO {
     /** The framerate of the simulated camera, in FPS. */
@@ -29,6 +30,10 @@ public class PieceVisionIOSim implements PieceVisionIO {
      * are occluded by the intake.
      */
     private static final double MIN_DISTANCE = Units.inchesToMeters(5 + 15);
+    /**
+     * The horizontal distance before which the camera will not track pieces, in meters.
+     */
+    private static final double MAX_DISTANCE = FieldConstants.fieldLength / 3.;
     /**
      * The chance each frame for a piece to randomly not be registered. Scaled by the distance in meters.
      */
@@ -71,8 +76,12 @@ public class PieceVisionIOSim implements PieceVisionIO {
             if(pieceDistance < MIN_DISTANCE) {
                 continue;
             }
+            if(pieceDistance > MAX_DISTANCE) {
+                continue;
+            }
 
-            double failureChance = Math.min(0.9, Math.max(0., (pieceDistance - MIN_DISTANCE) * FAILURE_CHANCE));
+            double failureChance = Math.min(0.9,
+                Math.max(0., Math.pow((pieceDistance - MIN_DISTANCE), 2) * FAILURE_CHANCE));
             if(Math.random() < failureChance) {
                 continue;
             }

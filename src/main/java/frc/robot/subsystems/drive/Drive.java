@@ -126,8 +126,7 @@ public class Drive extends SubsystemBase {
 
         // Configure AutoBuilder for PathPlanner
         AutoBuilder.configure(this::getPose, this::setPose, this::getChassisSpeeds, this::runVelocityWithFeedforward,
-            Constants.currentMode == Constants.Mode.SIM ? DriveConstants.simHolonomicDriveController
-                : DriveConstants.realHolonomicDriveController,
+            Constants.isSim ? DriveConstants.simHolonomicDriveController : DriveConstants.realHolonomicDriveController,
             pathplannerConfig, () -> DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red, this);
         Pathfinding.setPathfinder(new LocalADStarAK());
         PathPlannerLogging.setLogActivePathCallback((activePath) -> {

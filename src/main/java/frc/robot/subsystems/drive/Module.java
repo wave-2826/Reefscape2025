@@ -31,7 +31,7 @@ public class Module {
     private static final LoggedTunableNumber turnDerivativeFilter = new LoggedTunableNumber("Drive/TurnDFilter");
 
     static {
-        boolean isSim = Constants.currentMode == Constants.Mode.SIM;
+        boolean isSim = Constants.isSim;
 
         driveP.initDefault(isSim ? DriveConstants.driveSimP : DriveConstants.driveKp);
         driveD.initDefault(isSim ? DriveConstants.driveSimD : DriveConstants.driveKd);
@@ -124,7 +124,7 @@ public class Module {
         // Apply setpoints
         // The simulation doesn't account for swerve azimuth coupling, so we don't do
         // couple calculation in simulation.
-        double coupleRadPerSecond = Constants.currentMode == Constants.Mode.SIM ? 0
+        double coupleRadPerSecond = Constants.isSim ? 0
             : DriveConstants.turnDriveCouplingFactor * inputs.turnVelocityRadPerSec;
         double speedRadPerSec = state.speedMetersPerSecond / DriveConstants.wheelRadiusMeters + coupleRadPerSecond;
         double nextSpeedRadPerSec = (state.speedMetersPerSecond + acceleration.in(MetersPerSecondPerSecond) * 0.02)

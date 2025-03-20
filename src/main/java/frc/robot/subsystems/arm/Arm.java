@@ -46,12 +46,10 @@ public class Arm extends SubsystemBase {
     private static final LoggedTunableNumber armPitchKg = new LoggedTunableNumber("Arm/pitchKg");
 
     static {
-        elevatorKg
-            .initDefault(Constants.currentMode == Constants.Mode.SIM ? ArmConstants.ElevatorConstants.elevatorKgSim
-                : ArmConstants.ElevatorConstants.elevatorKgReal);
-        armPitchKg
-            .initDefault(Constants.currentMode == Constants.Mode.SIM ? ArmConstants.ShoulderConstants.armPitchKgSim
-                : ArmConstants.ShoulderConstants.armPitchKgReal);
+        elevatorKg.initDefault(Constants.isSim ? ArmConstants.ElevatorConstants.elevatorKgSim
+            : ArmConstants.ElevatorConstants.elevatorKgReal);
+        armPitchKg.initDefault(Constants.isSim ? ArmConstants.ShoulderConstants.armPitchKgSim
+            : ArmConstants.ShoulderConstants.armPitchKgReal);
     }
 
     public Arm(ArmIO io) {

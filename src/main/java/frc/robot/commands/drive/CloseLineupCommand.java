@@ -52,13 +52,13 @@ public class CloseLineupCommand extends Command {
         "CloseLineup/thetaRotationTolerance");
 
     static {
-        translationKp.initDefault(1.5);
+        translationKp.initDefault(2.5);
         translationKi.initDefault(0.0);
-        translationKd.initDefault(0.25);
+        translationKd.initDefault(0.5);
 
-        thetaRotationKp.initDefault(1.75);
+        thetaRotationKp.initDefault(2.0);
         thetaRotationKi.initDefault(0.0);
-        thetaRotationKd.initDefault(0.0);
+        thetaRotationKd.initDefault(0.2);
 
         xTranslationTolerance.initDefault(Units.inchesToMeters(1.0));
         yTranslationTolerance.initDefault(Units.inchesToMeters(1.0));

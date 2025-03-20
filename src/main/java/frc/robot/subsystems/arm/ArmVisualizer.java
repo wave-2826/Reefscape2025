@@ -13,7 +13,7 @@ import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.util.Color8Bit;
-import frc.robot.SimRobotGamePieceVisualization;
+import frc.robot.SimRobotGamePiece;
 
 public class ArmVisualizer {
     private final String name;
@@ -80,7 +80,7 @@ public class ArmVisualizer {
         if(hasGamePiece) {
             Pose3d coralPose = armWristPose.plus(ArmConstants.ShoulderConstants.wristToCoral);
             Transform3d coralTransform = new Transform3d(coralPose.getTranslation(), coralPose.getRotation());
-            SimRobotGamePieceVisualization.setCoralTransform(coralTransform);
+            SimRobotGamePiece.setCoralTransform(coralTransform);
         }
     }
 }

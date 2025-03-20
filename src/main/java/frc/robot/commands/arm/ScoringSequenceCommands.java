@@ -7,6 +7,7 @@ import edu.wpi.first.math.util.Units;
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import frc.robot.Constants;
 import frc.robot.FieldConstants.ReefLevel;
 import frc.robot.commands.drive.DriveCommands;
 import frc.robot.subsystems.arm.Arm;
@@ -148,7 +149,7 @@ public class ScoringSequenceCommands {
         ArmState startState = getStartingState(level);
         ArmState scoreDownState = new ArmState(startState.pitch(),
             startState.height().minus(Inches.of(elevatorScoreHeightReduction.get())), startState.wristRotation(),
-            EndEffectorState.hold());
+            Constants.isSim ? EndEffectorState.velocity(gamePieceEjectVelocity.get()) : EndEffectorState.hold());
         ArmState scoreDownState2 = new ArmState(startState.pitch().minus(Rotation2d.fromDegrees(15)),
             startState.height().minus(Inches.of(elevatorScoreHeightReduction.get())), startState.wristRotation(),
             EndEffectorState.velocity(gamePieceEjectVelocity.get()));

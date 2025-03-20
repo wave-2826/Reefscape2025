@@ -22,6 +22,8 @@ public class IntakeCommands {
     public static Command getPieceFromIntake(Intake intake, Arm arm) {
         // @formatter:off
         return Commands.sequence(
+            Commands.waitUntil(() -> !AutoScoreCommands.autoScoreRunning),
+            
             arm.goToStateCommand(ArmConstants.restingState).withTimeout(0.5),
             intake.setTransportOverrideSpeedCommand(1.0),
 
@@ -30,9 +32,7 @@ public class IntakeCommands {
             intake.setTransportOverrideSpeedCommand(0.0),
 
             getPiece(arm)
-        )
-        // HACK
-        .unless(() -> AutoScoreCommands.autoScoreRunning).until(() -> AutoScoreCommands.autoScoreRunning);
+        ).withName("GetPieceFromIntake");
         // @formatter:on
     }
 
@@ -62,7 +62,6 @@ public class IntakeCommands {
             intake.setIntakePitchCommand(Rotation2d.fromDegrees(80)).schedule();
         })
         // HACK
-        .unless(() -> AutoScoreCommands.autoScoreRunning).until(() -> AutoScoreCommands.autoScoreRunning)
         .withName("IntakeSequence");
         // @formatter:on
     }

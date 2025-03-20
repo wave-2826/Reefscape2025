@@ -119,7 +119,8 @@ public class RobotContainer {
                         driveSimulation::getSimulatedDriveTrainPose));
                 pieceVision = new PieceVision(new PieceVisionIOSim(driveSimulation::getSimulatedDriveTrainPose),
                     drive::getChassisSpeeds, drive::getPose);
-                arm = new Arm(new ArmIOSim());
+                arm = new Arm(new ArmIOSim(driveSimulation::getSimulatedDriveTrainPose,
+                    driveSimulation::getDriveTrainSimulatedChassisSpeedsFieldRelative));
                 climber = new Climber(new ClimberIOSim());
                 intake = new Intake(new IntakeIOSim(driveSimulation));
 
@@ -206,7 +207,7 @@ public class RobotContainer {
         Logger.recordOutput("FieldSimulation/Coral", SimulatedArena.getInstance().getGamePiecesArrayByType("Coral"));
         Logger.recordOutput("FieldSimulation/Algae", SimulatedArena.getInstance().getGamePiecesArrayByType("Algae"));
 
-        SimRobotGamePieceVisualization.update(driveSimulation.getSimulatedDriveTrainPose());
+        SimRobotGamePiece.update(driveSimulation.getSimulatedDriveTrainPose());
 
         if(!VisionConstants.enableVisionSimulation) {
             drive.addVisionMeasurement(driveSimulation.getSimulatedDriveTrainPose(), Timer.getTimestamp(),

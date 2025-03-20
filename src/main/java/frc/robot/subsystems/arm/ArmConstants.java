@@ -95,7 +95,7 @@ public class ArmConstants {
          */
         public static final Translation3d elevatorOrigin = new Translation3d(Units.inchesToMeters(8), // Forward is +X
             0, // Left is +Y
-            Units.inchesToMeters(0.75) // Upward is +Y
+            Units.inchesToMeters(2.0) // Upward is +Y
         );
         /**
          * The translation from the elevator origin to the passive (outer) stage when the stage is at its minimum
@@ -221,7 +221,7 @@ public class ArmConstants {
 
         public static final LoggedTunableSparkPID endEffectorPID = new LoggedTunableSparkPID("Arm/EndEffector")
             .addRealRobotGains(new PIDConstants(0.001, 0.0, 0.5, endEffectorReduction / 565, endEffectorVelocitySlot))
-            .addSimGains(new PIDConstants(0.001, 0.0, 0.5, endEffectorReduction / 565, endEffectorVelocitySlot))
+            .addSimGains(new PIDConstants(0.01, 0.0, 0.0, 0.04, endEffectorVelocitySlot))
             .addRealRobotGains(new PIDConstants(0.003, 0.0, 0.0, endEffectorPositionSlot))
             .addSimGains(new PIDConstants(0.003, 0.0, 0.0, endEffectorPositionSlot));
 

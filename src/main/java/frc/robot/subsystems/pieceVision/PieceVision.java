@@ -20,7 +20,9 @@ import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import frc.robot.subsystems.pieceVision.PieceVisionIO.PieceLocation;
 import frc.robot.util.LoggedTracer;
 
@@ -120,12 +122,21 @@ public class PieceVision extends SubsystemBase {
      */
     private final Supplier<Pose2d> positionSupplier;
 
+    private void resetPaths() {
+        lockedPiece = null;
+        targetPath = null;
+        Logger.recordOutput("PieceVision/TargetPath", new Pose2d[] {});
+    }
+
     public PieceVision(PieceVisionIO io, Supplier<ChassisSpeeds> speedSupplier, Supplier<Pose2d> positionSupplier) {
         this.io = io;
         this.speedSupplier = speedSupplier;
         this.positionSupplier = positionSupplier;
 
         io.setEnabled(false);
+
+        RobotModeTriggers.disabled().onTrue(Commands.runOnce(this::resetPaths));
+        RobotModeTriggers.autonomous().onTrue(Commands.runOnce(this::resetPaths));
     }
 
     private PieceLocation getBestPieceLocation() {
@@ -219,11 +230,6 @@ public class PieceVision extends SubsystemBase {
         if(isDisabled != wasDisabled) {
             io.setEnabled(!isDisabled);
             wasDisabled = isDisabled;
-
-            if(isDisabled) {
-                lockedPiece = null;
-                targetPath = null;
-            }
         }
 
         io.updateInputs(inputs);

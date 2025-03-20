@@ -46,8 +46,8 @@ public class IntakeIOReal implements IntakeIO {
             .feedbackSensor(FeedbackSensor.kAbsoluteEncoder);
         pitchConfig.absoluteEncoder.positionConversionFactor(IntakeConstants.pitchAbsolutePositionFactor)
             .velocityConversionFactor(IntakeConstants.pitchAbsoluteVelocityFactor)
-            .zeroOffset(Constants.currentMode == Constants.Mode.SIM ? 0 : IntakeConstants.intakeZeroAngle)
-            .zeroCentered(true).inverted(IntakeConstants.pitchEncoderInverted);
+            .zeroOffset(Constants.isSim ? 0 : IntakeConstants.intakeZeroAngle).zeroCentered(true)
+            .inverted(IntakeConstants.pitchEncoderInverted);
         pitchConfig.idleMode(IdleMode.kCoast).smartCurrentLimit(IntakeConstants.pitchMotorCurrentLimit)
             .voltageCompensation(Constants.voltageCompensation).inverted(IntakeConstants.pitchMotorInverted);
         pitchConfig.signals.apply(SparkUtil.defaultSignals) //
@@ -119,7 +119,7 @@ public class IntakeIOReal implements IntakeIO {
 
     @Override
     public void overridePitchPower(double power) {
-        pitchMotor.set(power);
+        pitchMotor.set(-power);
     }
 
     @Override

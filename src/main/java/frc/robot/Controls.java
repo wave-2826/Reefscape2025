@@ -36,7 +36,7 @@ import frc.robot.util.DriverStationInterface;
 import frc.robot.util.LoggedTunableNumber;
 
 public class Controls {
-    private static final double debounceTime = Constants.currentMode == Constants.Mode.SIM ? 0.15 : 0;
+    private static final double debounceTime = Constants.isSim ? 0.15 : 0;
 
     private final Alert driverDisconnectedAlert = new Alert("Driver controller disconnected (port 0)",
         AlertType.kWarning);
@@ -92,14 +92,13 @@ public class Controls {
                 }));
 
         // Reset gyro or odometry if in simulation
-        final Runnable resetGyro = Constants.currentMode == Constants.Mode.SIM
-            ? () -> drive.setPose(driveSimulation.getSimulatedDriveTrainPose()) // Reset odometry to actual robot pose during simulation
+        final Runnable resetGyro = Constants.isSim ? () -> drive.setPose(driveSimulation.getSimulatedDriveTrainPose()) // Reset odometry to actual robot pose during simulation
             : () -> drive.setPose(new Pose2d(drive.getPose().getTranslation(), Rotation2d.kZero)); // Zero gyro
 
         driver.start().onTrue(Commands.runOnce(resetGyro, drive).ignoringDisable(true));
 
         // Normal operator controls
-        operator.y().and(normalOperator).whileTrue(ClimbCommands.climbCommand(climber, operator::getRightY));
+        operator.y().and(normalOperator).whileTrue(ClimbCommands.climbCommand(climber, operator::getLeftY));
 
         operator.rightBumper().and(normalOperator).whileTrue(IntakeCommands.intakeCommand(intake, arm));
 
@@ -205,7 +204,7 @@ public class Controls {
         }, arm).withName("ArmOverrideControls"));
 
         // Simulation-specific controls
-        if(Constants.currentMode == Constants.Mode.SIM) {
+        if(Constants.isSim) {
             // TODO
         }
 

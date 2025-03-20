@@ -147,9 +147,8 @@ public class ArmIOReal implements ArmIO {
         armPitchConfig.absoluteEncoder
             .positionConversionFactor(ArmConstants.ShoulderConstants.pitchAbsolutePositionFactor)
             .velocityConversionFactor(ArmConstants.ShoulderConstants.pitchAbsoluteVelocityFactor)
-            .zeroOffset(
-                Constants.currentMode == Constants.Mode.SIM ? 0 : ArmConstants.ShoulderConstants.pitchZeroOffset)
-            .zeroCentered(true).inverted(ArmConstants.ShoulderConstants.pitchEncoderInverted);
+            .zeroOffset(Constants.isSim ? 0 : ArmConstants.ShoulderConstants.pitchZeroOffset).zeroCentered(true)
+            .inverted(ArmConstants.ShoulderConstants.pitchEncoderInverted);
         armPitchConfig.idleMode(IdleMode.kBrake)
             .smartCurrentLimit(ArmConstants.ShoulderConstants.pitchMotorCurrentLimit)
             .voltageCompensation(Constants.voltageCompensation)
@@ -170,9 +169,7 @@ public class ArmIOReal implements ArmIO {
         armWristConfig.absoluteEncoder
             .positionConversionFactor(ArmConstants.ShoulderConstants.wristAbsolutePositionFactor)
             .velocityConversionFactor(ArmConstants.ShoulderConstants.wristAbsoluteVelocityFactor)
-            .zeroOffset(
-                Constants.currentMode == Constants.Mode.SIM ? 0 : ArmConstants.ShoulderConstants.wristZeroOffset)
-            .zeroCentered(true);
+            .zeroOffset(Constants.isSim ? 0 : ArmConstants.ShoulderConstants.wristZeroOffset).zeroCentered(true);
         armWristConfig.idleMode(IdleMode.kBrake)
             .smartCurrentLimit(ArmConstants.ShoulderConstants.wristMotorCurrentLimit)
             .voltageCompensation(Constants.voltageCompensation)
@@ -368,8 +365,7 @@ public class ArmIOReal implements ArmIO {
             endEffectorWasHolding = true;
 
             // We don't simulate the coaxial coupling in simulation, so we turn it off.
-            double couplingFactor = Constants.currentMode == Constants.Mode.SIM ? 0
-                : ArmConstants.EndEffectorConstants.endEffectorCouplingFactor;
+            double couplingFactor = Constants.isSim ? 0 : ArmConstants.EndEffectorConstants.endEffectorCouplingFactor;
             double holdPositionRad = startHoldEndEffectorPosition.getRadians()
                 - (armWristRelativeEncoder.getPosition() - startHoldWristPosition.getRadians()) * couplingFactor;
             endEffectorController.setReference(holdPositionRad, ControlType.kPosition,

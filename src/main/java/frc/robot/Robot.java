@@ -15,6 +15,7 @@ import frc.robot.util.LoggedTunableSparkPID;
 import frc.robot.util.NTClientLogger;
 import frc.robot.util.Pn532;
 import frc.robot.util.RioAlerts;
+import frc.robot.util.SimControls;
 import frc.robot.util.ThreadPriorityDummyLogReceiver;
 
 import java.lang.reflect.Field;
@@ -156,8 +157,8 @@ public class Robot extends LoggedRobot {
         }
 
         // Configure the driver station in simulation
-        if(Constants.currentMode == Constants.Mode.SIM) {
-            DriverStationSim.setAllianceStationId(AllianceStationID.Blue3);
+        if(Constants.isSim) {
+            DriverStationSim.setAllianceStationId(AllianceStationID.Red3);
             DriverStationSim.notifyNewData();
         }
 
@@ -268,6 +269,11 @@ public class Robot extends LoggedRobot {
     @Override
     public void autonomousPeriodic() {
         // Stop the default "override me" alert
+    }
+
+    @Override
+    public void simulationInit() {
+        SimControls.getInstance().configureControls();
     }
 
     /** This function is called periodically whilst in simulation. */

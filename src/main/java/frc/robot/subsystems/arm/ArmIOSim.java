@@ -1,11 +1,19 @@
 package frc.robot.subsystems.arm;
 
 import static edu.wpi.first.units.Units.Meters;
+import static edu.wpi.first.units.Units.MetersPerSecond;
+
+import java.util.function.Supplier;
+
+import org.ironmaple.simulation.SimulatedArena;
 
 import com.revrobotics.sim.SparkAbsoluteEncoderSim;
 import com.revrobotics.sim.SparkMaxSim;
 
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Transform3d;
+import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.math.system.plant.LinearSystemId;
 import edu.wpi.first.math.util.Units;
@@ -13,6 +21,8 @@ import edu.wpi.first.wpilibj.simulation.DCMotorSim;
 import edu.wpi.first.wpilibj.simulation.ElevatorSim;
 import edu.wpi.first.wpilibj.simulation.RoboRioSim;
 import edu.wpi.first.wpilibj.simulation.SingleJointedArmSim;
+import frc.robot.SimRobotGamePiece;
+import frc.robot.subsystems.intake.IntakeIOSim;
 import frc.robot.util.sim.LaserCanSim;
 
 public class ArmIOSim extends ArmIOReal {
@@ -50,7 +60,10 @@ public class ArmIOSim extends ArmIOReal {
     /** Whether there's currently a game piece in the end effector. */
     private static boolean gamePieceInEndEffector = false;
 
-    public ArmIOSim() {
+    private Supplier<Pose2d> drivetrainPoseSupplier;
+    private Supplier<ChassisSpeeds> robotSpeedSupplier;
+
+    public ArmIOSim(Supplier<Pose2d> drivetrainPoseSupplier, Supplier<ChassisSpeeds> robotSpeedSupplier) {
         super(
             // Override the elevator height sensor with a simulated one.
             new LaserCanSim(ArmConstants.ElevatorConstants.elevatorHeightSensorId));
@@ -81,6 +94,9 @@ public class ArmIOSim extends ArmIOReal {
 
         endEffectorSim = new DCMotorSim(LinearSystemId.createDCMotorSystem(endEffectorMotors, endEffectorMOI,
             ArmConstants.EndEffectorConstants.endEffectorReduction), endEffectorMotors);
+
+        this.drivetrainPoseSupplier = drivetrainPoseSupplier;
+        this.robotSpeedSupplier = robotSpeedSupplier;
     }
 
     @Override
@@ -88,7 +104,8 @@ public class ArmIOSim extends ArmIOReal {
         // TODO: Update Vin with battery simulation
         double vinVoltage = RoboRioSim.getVInVoltage();
 
-        double simDt = 0.002;
+        // double simDt = 0.002;
+        double simDt = 0.008;
 
         for(double t = 0; t < 0.02; t += simDt) {
             elevatorSim.setInputVoltage(elevatorMotorSim.getAppliedOutput() * vinVoltage);
@@ -129,31 +146,29 @@ public class ArmIOSim extends ArmIOReal {
             needsToReset = false;
         }
 
-        // if(inputs.absoluteHeightMeters < Units.inchesToMeters(25) && inputs.armPitchPosition.getDegrees() < -80
-        //     && inputs.endEffectorVelocity < -0.1 && IntakeIOSim.takeCoral()) {
-        //     gamePieceInEndEffector = true;
-        // } else if(inputs.endEffectorVelocity > 0.1) {
-        //     gamePieceInEndEffector = false;
-        //     // TODO
-        //     // SimulatedArena.getInstance().addGamePieceProjectile(new ReefscapeCoralOnFly(
-        //     //     // Obtain robot position from drive simulation
-        //     //     driveSimulation.getSimulatedDriveTrainPose().getTranslation(),
-        //     //     // The scoring mechanism is installed at (0.46, 0) (meters) on the robot
-        //     //     new Translation2d(0.35, 0),
-        //     //     // Obtain robot speed from drive simulation
-        //     //     driveSimulation.getDriveTrainSimulatedChassisSpeedsFieldRelative(),
-        //     //     // Obtain robot facing from drive simulation
-        //     //     driveSimulation.getSimulatedDriveTrainPose().getRotation(),
-        //     //     // The height at which the coral is ejected
-        //     //     Meters.of(1.28),
-        //     //     // The initial speed of the coral
-        //     //     MetersPerSecond.of(2),
-        //     //     // The coral is ejected at a 35-degree slope
-        //     //     Degrees.of(-35)));
-        // }
+        if(inputs.absoluteHeightMeters < Units.inchesToMeters(25) && inputs.armPitchPosition.getDegrees() < -80
+            && inputs.endEffectorVelocity < -0.1 && IntakeIOSim.takeCoral()) {
+            gamePieceInEndEffector = true;
+        } else if(gamePieceInEndEffector && inputs.endEffectorVelocity > 5.0) {
+            gamePieceInEndEffector = false;
 
-        // TEMPORARY
-        gamePieceInEndEffector = true;
+            Pose2d drivetrainPose = drivetrainPoseSupplier.get();
+            Transform3d coralTransform = SimRobotGamePiece.getCoralTransform();
+            if(coralTransform != null) {
+                ReefscapeCoralFromTransform coral = new ReefscapeCoralFromTransform(
+                    // Obtain robot position from drive simulation
+                    drivetrainPose.getTranslation(), coralTransform, robotSpeedSupplier.get(),
+                    drivetrainPose.getRotation(),
+                    // The height at which the coral is ejected
+                    coralTransform.getMeasureZ(),
+                    // The initial speed of the coral
+                    MetersPerSecond.of(0.5),
+                    // The pitch of the ejected coral
+                    inputs.armPitchPosition.getMeasure());
+
+                SimulatedArena.getInstance().addGamePieceProjectile(coral);
+            }
+        }
 
         inputs.gamePiecePresent = gamePieceInEndEffector;
     }
