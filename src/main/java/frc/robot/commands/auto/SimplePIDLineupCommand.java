@@ -10,7 +10,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.util.LoggedTunableNumber;
 
-public class SimplePDILineupCommand extends Command {
+public class SimplePIDLineupCommand extends Command {
     private final Drive drive;
 
     private final PIDController xController, yController;
@@ -47,7 +47,7 @@ public class SimplePDILineupCommand extends Command {
         thetaRotationTolerance.initDefault(Units.degreesToRadians(20));
     }
 
-    public SimplePDILineupCommand(Drive drive, Pose2d pose) {
+    public SimplePIDLineupCommand(Drive drive, Pose2d pose) {
         this.drive = drive;
         xController = new PIDController(translationKp.get(), translationKi.get(), translationKd.get());
         yController = new PIDController(translationKp.get(), translationKi.get(), translationKd.get());

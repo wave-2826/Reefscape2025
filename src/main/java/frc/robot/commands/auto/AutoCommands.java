@@ -108,7 +108,7 @@ public class AutoCommands {
             GetCoralCommand.getCoral(pieceVision, drive, intake, arm, grabbingFailed),
 
             // Go back to our starting position
-            new SimplePDILineupCommand(drive, startPose.value),
+            new SimplePIDLineupCommand(drive, startPose.value),
 
             Commands.runOnce(() -> {
                 Logger.recordOutput("Auto/GrabbingCoral", false);

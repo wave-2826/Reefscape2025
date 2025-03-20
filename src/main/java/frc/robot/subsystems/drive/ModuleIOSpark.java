@@ -92,7 +92,7 @@ public class ModuleIOSpark implements ModuleIO {
             .positionWrappingInputRange(turnPIDMinInput, turnPIDMaxInput).pidf(turnKp, 0.0, turnKd, 0.0);
         // TODO: Compare odometry accuracy
         turnConfig.signals.analogPositionAlwaysOn(true)
-            .analogPositionPeriodMs((int) (1.0 / DriveConstants.odometryFrequency)).analogVelocityAlwaysOn(true)
+            .analogPositionPeriodMs((int) (1000.0 / DriveConstants.odometryFrequency)).analogVelocityAlwaysOn(true)
             .analogVelocityPeriodMs(20).primaryEncoderPositionAlwaysOn(true).primaryEncoderPositionPeriodMs(20)
             .primaryEncoderVelocityAlwaysOn(true).primaryEncoderVelocityPeriodMs(20).appliedOutputPeriodMs(20)
             .busVoltagePeriodMs(20).outputCurrentPeriodMs(20);
