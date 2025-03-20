@@ -145,7 +145,7 @@ public class AutoScoreCommands {
             // Commands.waitUntil(() -> !finishEarly.getAsBoolean()),
             Commands.runOnce(() -> Logger.recordOutput("AutoScore/RunningCloseLineup", true)),
             Commands.parallel(
-                closeLineupCommand.withTimeout(0.75), // Run during final adjustment
+                closeLineupCommand.withTimeout(2.0), // Run during final adjustment
                 // TODO: Fully line up before finishing if the finish sequence button is held
                 new CloseLineupCommand(drive, vision, reefFace.getAprilTagID(), tagRelativeOffset, getFieldRelativeOffset, finishSequence, lineupFeedback) // Final adjustment
             )
