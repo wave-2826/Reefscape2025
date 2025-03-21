@@ -45,7 +45,7 @@ public class ScoringSequenceCommands {
         L1ScoreHeight.initDefault(13);
         L2ScoreHeight.initDefault(10);
         L3ScoreHeight.initDefault(26);
-        L4ScoreHeightFromTop.initDefault(11);
+        L4ScoreHeightFromTop.initDefault(10);
 
         preScoreElevatorHeight.initDefault(15.5);
     }

@@ -58,10 +58,10 @@ public class Arm extends SubsystemBase {
     }
 
     public Command goToStateCommand(ArmState state) {
-        return Commands.run(() -> {
+        return this.run(() -> {
             targetState = state;
             adjustedTarget = getAdjustedTarget();
-        }, this).until(this::isAtTarget).withName("ArmGoToState").withTimeout(1.0);
+        }).until(this::isAtTarget).withName("ArmGoToState").withTimeout(1.0);
     }
 
     public Command goToStateCommand(Supplier<ArmState> state) {
@@ -69,7 +69,7 @@ public class Arm extends SubsystemBase {
     }
 
     public Command setTargetStateCommand(Supplier<ArmState> state) {
-        return Commands.run(() -> {
+        return this.run(() -> {
             targetState = state.get();
         });
     }
