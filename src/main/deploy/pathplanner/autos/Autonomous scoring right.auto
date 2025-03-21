@@ -13,19 +13,13 @@
         {
           "type": "named",
           "data": {
-            "name": "Score F L4"
+            "name": "Score F L1"
           }
         },
         {
           "type": "path",
           "data": {
             "pathName": "Auto vision coral right.1"
-          }
-        },
-        {
-          "type": "named",
-          "data": {
-            "name": "Score Until Failure"
           }
         },
         {

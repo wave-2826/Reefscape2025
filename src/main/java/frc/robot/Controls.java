@@ -97,11 +97,15 @@ public class Controls {
 
         driver.start().onTrue(Commands.runOnce(resetGyro, drive).ignoringDisable(true));
 
-        // TODO: outtake
-        intake.setDefaultCommand(IntakeCommands.intakeCommand(intake, arm, driver.rightTrigger(0.3)));
+        intake.setDefaultCommand(IntakeCommands.intakeCommand(intake, arm, // 
+            driver.rightTrigger(0.3).or(operator.rightBumper().and(normalOperator)), // Intake
+            driver.leftTrigger(0.3).or(operator.leftBumper().and(normalOperator)) // Outtake
+        ));
 
         // Normal operator controls
         configureNormalOperatorControls(drive, driveSimulation, arm, intake, vision, climber);
+        configureManualOperatorControls(climber, arm, intake);
+        configureOverrideOperatorControls(climber, arm, intake);
 
         // Override and manual mode enable
         operator.start().and(operator.back().negate()).debounce(0.05).onTrue(Commands.runOnce(() -> {
@@ -117,9 +121,6 @@ public class Controls {
             controllerRumbleWhileRunning(false, true, RumbleType.kRightRumble).withName("ManualOperatorControls"));
         operatorOverride.whileTrue(
             controllerRumbleWhileRunning(false, true, RumbleType.kLeftRumble).withName("OverrideOperatorControls"));
-
-        configureManualOperatorControls(climber, arm, intake);
-        configureOverrideOperatorControls(climber, arm, intake);
 
         // Automatic mode actions
         RobotModeTriggers.teleop().onTrue(ClimbCommands.resetClimbPosition());
@@ -141,7 +142,7 @@ public class Controls {
         operator.y().and(normalOperator).whileTrue(ClimbCommands.climbCommand(climber, operator::getLeftY));
 
         // Backup for if the arm misses the piece somehow
-        operator.leftBumper().and(normalOperator).onTrue(IntakeCommands.getPieceFromIntake(arm));
+        operator.leftTrigger(0.3).and(normalOperator).onTrue(IntakeCommands.getPieceFromIntake(arm));
 
         operator.b().and(normalOperator).onTrue(arm.goToStateCommand(ArmConstants.restingState));
 

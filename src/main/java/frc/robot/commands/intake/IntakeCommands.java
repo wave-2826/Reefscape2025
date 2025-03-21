@@ -1,5 +1,6 @@
 package frc.robot.commands.intake;
 
+import java.security.interfaces.EdECKey;
 import java.util.function.BooleanSupplier;
 import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
@@ -21,29 +22,29 @@ public class IntakeCommands {
 
     private static boolean canTake = false;
 
-    public static Command intakeCommand(Intake intake, Arm arm, BooleanSupplier down
+    public static Command intakeCommand(Intake intake, Arm arm, BooleanSupplier shouldIntake,
+        BooleanSupplier shouldOuttake
     // DoubleSupplier overrideSpeed,
     //     DoubleSupplier overridePitch, Supplier<OperatorMode> operatorMode
     ) {
         // @formatter:off
         return intake.run(() -> {
-            // var mode = operatorMode.get();
-
             if(intake.intakeSensorTriggered()) {
                 canTake = true;
             }
 
-            // if(mode == OperatorMode.Normal) {
-                intake.setIntakeState(down.getAsBoolean() ? IntakeState.Down : IntakeState.Up);
-
-                if(intake.pieceWaitingForArm() && canTake) {
-                    getPieceFromIntake(arm).schedule();
-                    canTake = false;
-                }
-            // } else {
-            //     intake.overrideIntakeSpeed(overrideSpeed.getAsDouble());
-            //     intake.overridePitchPower(overridePitch.getAsDouble());
-            // }
+            if(shouldIntake.getAsBoolean()) {
+                intake.setIntakeState(IntakeState.IntakeDown);
+            } else if(shouldOuttake.getAsBoolean()) {
+                intake.setIntakeState(IntakeState.OuttakeDown);
+            } else {
+                intake.setIntakeState(IntakeState.Up);
+            }
+            
+            if(intake.pieceWaitingForArm() && canTake) {
+                getPieceFromIntake(arm).schedule();
+                canTake = false;
+            }
         }).withName("IntakeSequence");
     }
 }

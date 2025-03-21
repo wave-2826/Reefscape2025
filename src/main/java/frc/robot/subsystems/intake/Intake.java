@@ -25,7 +25,8 @@ public class Intake extends SubsystemBase {
     private IntakeVisualizer visualizer = new IntakeVisualizer("intake");
 
     public enum IntakeState {
-        Down(Rotation2d.kZero, 1.0, false), Up(Rotation2d.fromDegrees(80.0), 0.0, true);
+        IntakeDown(Rotation2d.kZero, 1.0, true), OuttakeDown(Rotation2d.kZero, -1.0,
+            true), Up(Rotation2d.fromDegrees(80.0), 0.0, false);
 
         public final Rotation2d pitch;
         public final double speed;
