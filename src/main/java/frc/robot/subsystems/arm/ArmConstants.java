@@ -24,7 +24,7 @@ public class ArmConstants {
     public static final ArmState restingState = new ArmState(Rotation2d.fromRadians(-1.65), Meters.of(0.533),
         WristRotation.Horizontal, EndEffectorState.hold());
     /** The state the arm is in when getting a piece. */
-    public static final ArmState getPieceState = new ArmState(Rotation2d.fromRadians(-1.82), Meters.of(0.103),
+    public static final ArmState getPieceState = new ArmState(Rotation2d.fromRadians(-1.82), Meters.of(0.107),
         WristRotation.Horizontal, EndEffectorState.velocity(-10));
 
     public class ElevatorConstants {
@@ -221,7 +221,7 @@ public class ArmConstants {
         public static final double endEffectorPositionConversionFactor = 2 * Math.PI / endEffectorReduction;
         /** The conversion factor from wrist motor RPM to radians per second. */
         public static final double endEffectorVelocityConversionFactor = endEffectorPositionConversionFactor / 60.;
-        public static final int endEffectorMotorCurrentLimit = 25;
+        public static final int endEffectorMotorCurrentLimit = 40;
         public static final boolean endEffectorMotorInverted = true;
     }
 }

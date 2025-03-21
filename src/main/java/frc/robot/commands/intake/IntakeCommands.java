@@ -13,7 +13,7 @@ import frc.robot.subsystems.intake.Intake.IntakeState;
 public class IntakeCommands {
     public static Command getPieceFromIntake(Arm arm) {
         return Commands.sequence(arm.goToStateCommand(ArmConstants.restingState),
-            arm.goToStateCommand(ArmConstants.getPieceState), Commands.waitSeconds(0.25),
+            arm.goToStateCommand(ArmConstants.getPieceState), Commands.waitSeconds(0.1),
             arm.goToStateCommand(ArmConstants.restingState));
     }
 
