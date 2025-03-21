@@ -198,9 +198,11 @@ public class Controls {
 
         operatorManual.onTrue(Commands.runOnce(() -> {
             var armState = arm.getCurrentTargetState();
-            height.value = armState.height().in(Meters);
-            pitch.value = armState.pitch().getDegrees();
-            wristRotation.value = armState.wristRotation();
+            if(armState != null) {
+                height.value = armState.height().in(Meters);
+                pitch.value = armState.pitch().getDegrees();
+                wristRotation.value = armState.wristRotation();
+            }
         }));
 
         operator.leftBumper().and(operatorManual).onTrue(Commands.runOnce(() -> {
