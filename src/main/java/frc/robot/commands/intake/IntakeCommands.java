@@ -21,14 +21,13 @@ public class IntakeCommands {
 
     public static Command intakeCommand(Intake intake, Arm arm, BooleanSupplier down) {
         // @formatter:off
-        Debouncer debounce = new Debouncer(0.2);
         return Commands.run(() -> {
             intake.setIntakeState(down.getAsBoolean() ? IntakeState.Down : IntakeState.Up);
 
             if(intake.intakeSensorTriggered()) {
                 canTake = true;
             }
-            if(debounce.calculate(intake.pieceWaitingForArm())) {
+            if(intake.pieceWaitingForArm() && canTake) {
                 getPieceFromIntake(arm).schedule();
                 canTake = false;
             }
