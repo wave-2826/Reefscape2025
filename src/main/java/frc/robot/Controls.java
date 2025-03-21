@@ -97,6 +97,9 @@ public class Controls {
 
         driver.start().onTrue(Commands.runOnce(resetGyro, drive).ignoringDisable(true));
 
+        // TODO: outtake
+        intake.setDefaultCommand(IntakeCommands.intakeCommand(intake, arm, driver.rightBumper()));
+
         // Normal operator controls
         configureNormalOperatorControls(drive, driveSimulation, arm, intake, vision, climber);
 
@@ -117,9 +120,6 @@ public class Controls {
 
         configureManualOperatorControls(climber, arm, intake);
         configureOverrideOperatorControls(climber, arm, intake);
-
-        intake.setDefaultCommand(IntakeCommands.intakeCommand(intake, arm, operator.rightBumper(), operator::getLeftY,
-            operator::getRightY, () -> operatorMode));
 
         // Automatic mode actions
         RobotModeTriggers.teleop().onTrue(ClimbCommands.resetClimbPosition());

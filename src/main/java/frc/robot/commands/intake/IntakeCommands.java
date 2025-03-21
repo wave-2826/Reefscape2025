@@ -21,27 +21,29 @@ public class IntakeCommands {
 
     private static boolean canTake = false;
 
-    public static Command intakeCommand(Intake intake, Arm arm, BooleanSupplier down, DoubleSupplier overrideSpeed,
-        DoubleSupplier overridePitch, Supplier<OperatorMode> operatorMode) {
+    public static Command intakeCommand(Intake intake, Arm arm, BooleanSupplier down
+    // DoubleSupplier overrideSpeed,
+    //     DoubleSupplier overridePitch, Supplier<OperatorMode> operatorMode
+    ) {
         // @formatter:off
         return intake.run(() -> {
-            var mode = operatorMode.get();
+            // var mode = operatorMode.get();
 
             if(intake.intakeSensorTriggered()) {
                 canTake = true;
             }
 
-            if(mode == OperatorMode.Normal) {
+            // if(mode == OperatorMode.Normal) {
                 intake.setIntakeState(down.getAsBoolean() ? IntakeState.Down : IntakeState.Up);
 
                 if(intake.pieceWaitingForArm() && canTake) {
                     getPieceFromIntake(arm).schedule();
                     canTake = false;
                 }
-            } else {
-                // intake.overrideIntakeSpeed(overrideSpeed.getAsDouble());
-                // intake.overridePitchPower(overridePitch.getAsDouble());
-            }
+            // } else {
+            //     intake.overrideIntakeSpeed(overrideSpeed.getAsDouble());
+            //     intake.overridePitchPower(overridePitch.getAsDouble());
+            // }
         }).withName("IntakeSequence");
     }
 }
