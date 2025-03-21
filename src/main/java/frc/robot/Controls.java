@@ -143,11 +143,6 @@ public class Controls {
         Intake intake, Vision vision, Climber climber) {
         operator.y().and(normalOperator).whileTrue(ClimbCommands.climbCommand(climber, operator::getLeftY));
 
-        // Backup to stop the transport if the piece gets stuck somehow
-        operator.povLeft().and(normalOperator)
-            .whileTrue(Commands.sequence(intake.runOnce(() -> intake.overrideIntakeSpeed(0.0)),
-                arm.setTargetStateCommand(() -> ArmConstants.restingState)));
-
         // Backup for if the arm misses the piece somehow
         operator.leftBumper().and(normalOperator).onTrue(IntakeCommands.getPieceFromIntake(arm));
 
@@ -160,6 +155,12 @@ public class Controls {
             return ScoringSequenceCommands
                 .getStartingState(DriverStationInterface.getInstance().getReefTarget().level());
         }));
+
+        operator.povUp().and(normalOperator).onTrue(arm.goToStateCommand(ArmConstants.sourceIntakeState))
+            .onFalse(arm.goToStateCommand(ArmConstants.sourceIntakeStoppedState));
+        operator.povLeft().and(normalOperator)
+            .whileTrue(Commands.sequence(intake.runOnce(() -> intake.overrideIntakeSpeed(0.0)),
+                arm.setTargetStateCommand(() -> ArmConstants.restingState)));
     }
 
     private void configureOverrideOperatorControls(Climber climber, Arm arm, Intake intake) {

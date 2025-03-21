@@ -27,6 +27,13 @@ public class ArmConstants {
     public static final ArmState getPieceState = new ArmState(Rotation2d.fromRadians(-1.82), Meters.of(0.107),
         WristRotation.Horizontal, EndEffectorState.velocity(-10));
 
+    /** The state when the arm is intaking from the source. */
+    public static final ArmState sourceIntakeState = new ArmState(Rotation2d.fromDegrees(80), Inches.of(5),
+        WristRotation.Vertical, EndEffectorState.velocity(-18));
+    /** The state when the arm is intaking from the source but stopped. */
+    public static final ArmState sourceIntakeStoppedState = new ArmState(Rotation2d.fromDegrees(80), Inches.of(5),
+        WristRotation.Vertical, EndEffectorState.hold());
+
     public class ElevatorConstants {
         public static final int elevatorHeightMotor1Id = 50;
         public static final int elevatorHeightMotor2Id = 51;

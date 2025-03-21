@@ -21,7 +21,7 @@ public class IntakeCommands {
 
     public static Command intakeCommand(Intake intake, Arm arm, BooleanSupplier down) {
         // @formatter:off
-        return Commands.run(() -> {
+        return intake.run(() -> {
             intake.setIntakeState(down.getAsBoolean() ? IntakeState.Down : IntakeState.Up);
 
             if(intake.intakeSensorTriggered()) {
@@ -31,6 +31,6 @@ public class IntakeCommands {
                 getPieceFromIntake(arm).schedule();
                 canTake = false;
             }
-        }, intake).withName("IntakeSequence");
+        }).withName("IntakeSequence");
     }
 }

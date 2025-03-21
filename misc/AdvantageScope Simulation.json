@@ -1,10 +1,10 @@
 {
     "hubs": [
         {
-            "x": 2580,
-            "y": 229,
-            "width": 1560,
-            "height": 820,
+            "x": 200,
+            "y": 200,
+            "width": 1200,
+            "height": 800,
             "state": {
                 "sidebar": {
                     "width": 366,
@@ -66,13 +66,84 @@
                             "controller": {
                                 "sources": [
                                     {
-                                        "type": "ghost",
+                                        "type": "robot",
                                         "logKey": "/RealOutputs/Odometry/Robot",
                                         "logType": "Pose2d",
+                                        "visible": true,
+                                        "options": {
+                                            "model": "Wave2025"
+                                        }
+                                    },
+                                    {
+                                        "type": "swerveStates",
+                                        "logKey": "/RealOutputs/SwerveStates/Setpoints",
+                                        "logType": "SwerveModuleState[]",
+                                        "visible": true,
+                                        "options": {
+                                            "color": "#00ff00",
+                                            "arrangement": "0,1,2,3"
+                                        }
+                                    },
+                                    {
+                                        "type": "swerveStates",
+                                        "logKey": "/RealOutputs/SwerveStates/Measured",
+                                        "logType": "SwerveModuleState[]",
+                                        "visible": true,
+                                        "options": {
+                                            "color": "#ff8c00",
+                                            "arrangement": "0,1,2,3"
+                                        }
+                                    },
+                                    {
+                                        "type": "component",
+                                        "logKey": "/RealOutputs/Mechanism3d/intake/Intake",
+                                        "logType": "Pose3d",
+                                        "visible": true,
+                                        "options": {}
+                                    },
+                                    {
+                                        "type": "component",
+                                        "logKey": "/RealOutputs/Mechanism3d/climber/Climber",
+                                        "logType": "Pose3d",
+                                        "visible": true,
+                                        "options": {}
+                                    },
+                                    {
+                                        "type": "component",
+                                        "logKey": "/RealOutputs/Mechanism3d/arm/Arm/0",
+                                        "logType": "Pose3d",
+                                        "visible": true,
+                                        "options": {}
+                                    },
+                                    {
+                                        "type": "component",
+                                        "logKey": "/RealOutputs/Mechanism3d/arm/Arm/1",
+                                        "logType": "Pose3d",
+                                        "visible": true,
+                                        "options": {}
+                                    },
+                                    {
+                                        "type": "component",
+                                        "logKey": "/RealOutputs/Mechanism3d/arm/Arm/2",
+                                        "logType": "Pose3d",
+                                        "visible": true,
+                                        "options": {}
+                                    },
+                                    {
+                                        "type": "component",
+                                        "logKey": "/RealOutputs/Mechanism3d/arm/Arm/3",
+                                        "logType": "Pose3d",
+                                        "visible": true,
+                                        "options": {}
+                                    },
+                                    {
+                                        "type": "vision",
+                                        "logKey": "/RealOutputs/PieceVision/EstimatedFieldLocations",
+                                        "logType": "Pose3d[]",
                                         "visible": false,
                                         "options": {
-                                            "model": "Wave2025",
-                                            "color": "#00ff00"
+                                            "color": "#00ff00",
+                                            "size": "normal"
                                         }
                                     },
                                     {

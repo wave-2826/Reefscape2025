@@ -1,7 +1,9 @@
 package frc.robot;
 
 import edu.wpi.first.hal.AllianceStationID;
+import edu.wpi.first.net.WebServer;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.Filesystem;
 import edu.wpi.first.wpilibj.IterativeRobotBase;
 import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.Threads;
@@ -167,6 +169,8 @@ public class Robot extends LoggedRobot {
         robotContainer = new RobotContainer();
 
         robotContainer.resetSimulatedRobot();
+
+        WebServer.start(5800, Filesystem.getDeployDirectory().getPath());
 
         if(Constants.currentMode == Constants.Mode.REAL && Constants.useSuperDangerousRTThreadPriority) {
             // Switch the thread to high priority to improve loop timing.
