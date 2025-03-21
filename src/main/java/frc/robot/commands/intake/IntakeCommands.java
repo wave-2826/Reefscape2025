@@ -2,6 +2,7 @@ package frc.robot.commands.intake;
 
 import java.util.function.BooleanSupplier;
 
+import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.subsystems.arm.Arm;
@@ -16,17 +17,21 @@ public class IntakeCommands {
             arm.goToStateCommand(ArmConstants.restingState));
     }
 
-    private static boolean oldPieceWaitingForArm = false;
+    private static boolean canTake = false;
 
     public static Command intakeCommand(Intake intake, Arm arm, BooleanSupplier down) {
         // @formatter:off
+        Debouncer debounce = new Debouncer(0.2);
         return Commands.run(() -> {
             intake.setIntakeState(down.getAsBoolean() ? IntakeState.Down : IntakeState.Up);
 
-            if(intake.pieceWaitingForArm() && !oldPieceWaitingForArm) {
-                getPieceFromIntake(arm).schedule();
+            if(intake.intakeSensorTriggered()) {
+                canTake = true;
             }
-            oldPieceWaitingForArm = intake.pieceWaitingForArm();
+            if(debounce.calculate(intake.pieceWaitingForArm())) {
+                getPieceFromIntake(arm).schedule();
+                canTake = false;
+            }
         }, intake).withName("IntakeSequence");
     }
 }
