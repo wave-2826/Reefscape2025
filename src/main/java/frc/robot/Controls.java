@@ -120,7 +120,9 @@ public class Controls {
         configureOverrideOperatorControls(climber, arm, intake);
 
         configureDefaultOperatorCommands(intake, IntakeCommands.intakeCommand(intake, arm, operator.rightBumper()),
-            Commands.none(), Commands.none());
+            intake.run(() -> {
+            }), intake.run(() -> {
+            }));
 
         // Automatic mode actions
         RobotModeTriggers.teleop().onTrue(ClimbCommands.resetClimbPosition());

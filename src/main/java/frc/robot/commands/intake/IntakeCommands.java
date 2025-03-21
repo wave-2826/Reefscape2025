@@ -12,7 +12,8 @@ import frc.robot.subsystems.intake.Intake.IntakeState;
 public class IntakeCommands {
     public static Command getPieceFromIntake(Arm arm) {
         return Commands.sequence(arm.goToStateCommand(ArmConstants.restingState),
-            arm.goToStateCommand(ArmConstants.getPieceState), arm.goToStateCommand(ArmConstants.restingState));
+            arm.goToStateCommand(ArmConstants.getPieceState), Commands.waitSeconds(0.25),
+            arm.goToStateCommand(ArmConstants.restingState));
     }
 
     private static boolean oldPieceWaitingForArm = false;
@@ -26,6 +27,6 @@ public class IntakeCommands {
                 getPieceFromIntake(arm).schedule();
             }
             oldPieceWaitingForArm = intake.pieceWaitingForArm();
-        }, intake, arm).withName("IntakeSequence");
+        }, intake).withName("IntakeSequence");
     }
 }

@@ -61,7 +61,7 @@ public class Arm extends SubsystemBase {
         return Commands.run(() -> {
             targetState = state;
             adjustedTarget = getAdjustedTarget();
-        }, this).until(this::isAtTarget).withName("ArmGoToState");
+        }, this).until(this::isAtTarget).withName("ArmGoToState").withTimeout(1.0);
     }
 
     public Command goToStateCommand(Supplier<ArmState> state) {
@@ -74,7 +74,7 @@ public class Arm extends SubsystemBase {
         });
     }
 
-    private static final double TARGET_HEIGHT_TOLERANCE_METERS = Units.inchesToMeters(0.25);
+    private static final double TARGET_HEIGHT_TOLERANCE_METERS = Units.inchesToMeters(0.5);
     private static final double TARGET_PITCH_TOLERANCE_DEGREES = 2.0;
     private static final double TARGET_WRIST_TOLERANCE_DEGREES = 2.0;
 

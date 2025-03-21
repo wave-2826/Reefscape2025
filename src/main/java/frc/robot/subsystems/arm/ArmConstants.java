@@ -114,7 +114,7 @@ public class ArmConstants {
         /** The wrist absolute encoder zero offset, in radians. */
         public static final double wristZeroOffset = 0.0087384;
         /** The pitch absolute encoder zero offset, in radians. */
-        public static final double pitchZeroOffset = 0.3618647;
+        public static final double pitchZeroOffset = 0.3511382;
 
         /** The highest soft stop for the arm pitch. */
         public static final Rotation2d maximumPitch = Rotation2d.fromDegrees(90.);
