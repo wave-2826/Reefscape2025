@@ -3,7 +3,7 @@ package frc.robot.subsystems.arm;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.units.measure.Distance;
 
-public record ArmState(Rotation2d pitch, Distance height, WristRotation wristRotation,
+public record ArmState(Rotation2d pitch, Distance heightMeters, WristRotation wristRotation,
     EndEffectorState endEffectorState) {
     /** The rotation of the wrist. The coral is 90 degrees offset from this. */
     public enum WristRotation {
@@ -44,10 +44,10 @@ public record ArmState(Rotation2d pitch, Distance height, WristRotation wristRot
     }
 
     public ArmState withPitch(Rotation2d newPitch) {
-        return new ArmState(newPitch, height, wristRotation, endEffectorState);
+        return new ArmState(newPitch, heightMeters, wristRotation, endEffectorState);
     }
 
     public ArmState withEndEffector(EndEffectorState newEndEffectorState) {
-        return new ArmState(pitch, height, wristRotation, newEndEffectorState);
+        return new ArmState(pitch, heightMeters, wristRotation, newEndEffectorState);
     }
 }

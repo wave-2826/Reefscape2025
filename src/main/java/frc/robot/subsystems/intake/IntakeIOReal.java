@@ -26,8 +26,9 @@ public class IntakeIOReal implements IntakeIO {
     protected final SparkMax transportMotor;
     protected final SparkFlex powerMotor;
 
-    protected final DigitalInput transportSensor;
     protected final DigitalInput intakeSensor;
+    protected final DigitalInput middleSensor;
+    protected final DigitalInput endSensor;
 
     protected final SparkClosedLoopController pitchController;
     protected final SparkClosedLoopController powerController;
@@ -98,13 +99,14 @@ public class IntakeIOReal implements IntakeIO {
         powerEncoder = powerMotor.getEncoder();
 
         intakeSensor = new DigitalInput(IntakeConstants.intakeSensorDIOPort);
-        transportSensor = new DigitalInput(IntakeConstants.transportSensorDIOPort);
+        middleSensor = new DigitalInput(IntakeConstants.middleSensorDIOPort);
+        endSensor = new DigitalInput(IntakeConstants.endSensorDIOPort);
     }
 
     @Override
     public void runVelocity(double intakePower, double transportPower) {
-        powerController.setReference(intakePower * 3500., ControlType.kVelocity);
-        transportController.setReference(transportPower * 5000., ControlType.kVelocity);
+        powerController.setReference(intakePower * 2800., ControlType.kVelocity);
+        transportController.setReference(transportPower * 8000., ControlType.kVelocity);
     }
 
     @Override
@@ -125,7 +127,8 @@ public class IntakeIOReal implements IntakeIO {
     @Override
     public void updateInputs(IntakeIOInputs inputs) {
         inputs.intakeSensorTriggered = !intakeSensor.get();
-        inputs.transortSensorTriggered = !transportSensor.get();
+        // inputs.middleSensorTriggered = !middleSensor.get();
+        inputs.endSensorTriggered = !endSensor.get();
         inputs.intakePitch = Rotation2d.fromRadians(absolutePitchSensor.getPosition());
         inputs.intakeWheelSpeed = powerEncoder.getVelocity();
     }

@@ -78,6 +78,10 @@ public class Arm extends SubsystemBase {
     private static final double TARGET_PITCH_TOLERANCE_DEGREES = 2.0;
     private static final double TARGET_WRIST_TOLERANCE_DEGREES = 2.0;
 
+    public ArmState getCurrentTargetState() {
+        return adjustedTarget;
+    }
+
     private boolean atTargetPitch() {
         if(adjustedTarget == null) return false;
         return Math.abs(
@@ -87,8 +91,8 @@ public class Arm extends SubsystemBase {
 
     private boolean atTargetHeight() {
         if(adjustedTarget == null) return false;
-        return Math
-            .abs(inputs.elevatorHeightMeters - adjustedTarget.height().in(Meters)) < TARGET_HEIGHT_TOLERANCE_METERS;
+        return Math.abs(
+            inputs.elevatorHeightMeters - adjustedTarget.heightMeters().in(Meters)) < TARGET_HEIGHT_TOLERANCE_METERS;
     }
 
     private boolean atTargetWrist() {
@@ -140,7 +144,7 @@ public class Arm extends SubsystemBase {
             targetEndEffector = EndEffectorState.velocity(-6 * degreesOff / 90.);
         }
 
-        return new ArmState(targetState.pitch(), targetState.height(), targetWrist, targetEndEffector);
+        return new ArmState(targetState.pitch(), targetState.heightMeters(), targetWrist, targetEndEffector);
     }
 
     @Override
@@ -151,13 +155,13 @@ public class Arm extends SubsystemBase {
         if(targetState != null) {
             adjustedTarget = getAdjustedTarget();
 
-            io.setElevatorHeight(adjustedTarget.height().in(Meters), elevatorKg.get());
+            io.setElevatorHeight(adjustedTarget.heightMeters().in(Meters), elevatorKg.get());
             io.setArmPitchPosition(adjustedTarget.pitch(),
                 Math.abs(Math.cos(inputs.armPitchPosition.getRadians())) * armPitchKg.get());
             io.setWristRotation(adjustedTarget.wristRotation());
             io.setEndEffectorState(adjustedTarget.endEffectorState());
 
-            Logger.recordOutput("Arm/TargetHeight", adjustedTarget.height().in(Meters));
+            Logger.recordOutput("Arm/TargetHeight", adjustedTarget.heightMeters().in(Meters));
             Logger.recordOutput("Arm/TargetPitch", adjustedTarget.pitch().getRadians());
             Logger.recordOutput("Arm/TargetWrist", adjustedTarget.wristRotation().rotation.getRadians());
             Logger.recordOutput("Arm/TargetEndEffector",

@@ -84,7 +84,7 @@ public class IntakeIOSim extends IntakeIOReal {
         pitchEncoderSim.setPosition(pitchSim.getAngleRads());
 
         intakeDIOSim = new DIOSim(intakeSensor);
-        transportDIOSim = new DIOSim(transportSensor);
+        transportDIOSim = new DIOSim(endSensor);
 
         powerSim = new DCMotorSim(
             LinearSystemId.createDCMotorSystem(IntakeConstants.intakePowerMotor, intakePowerMOI, intakePowerGearing),

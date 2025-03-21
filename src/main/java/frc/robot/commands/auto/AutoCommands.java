@@ -18,7 +18,6 @@ import frc.robot.FieldConstants;
 import frc.robot.FieldConstants.ReefBranch;
 import frc.robot.FieldConstants.ReefLevel;
 import frc.robot.commands.AutoScoreCommands;
-import frc.robot.commands.intake.IntakeCommands;
 import frc.robot.subsystems.arm.Arm;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.intake.Intake;
@@ -50,7 +49,7 @@ public class AutoCommands {
             Commands.defer(() -> scoreUntilFailure(drive, vision, arm, pieceVision, intake),
                 Set.of(drive, vision, arm, pieceVision, intake)));
 
-        NamedCommands.registerCommand("Start intake", IntakeCommands.intakeCommand(intake, arm));
+        // NamedCommands.registerCommand("Start intake", IntakeCommands.intakeCommand(intake, arm));
     }
 
     /**

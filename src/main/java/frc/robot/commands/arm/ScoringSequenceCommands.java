@@ -132,8 +132,8 @@ public class ScoringSequenceCommands {
         if(level == ReefLevel.L4) {
             ArmState startState = getStartingState(level);
             ArmState scoreDownState = new ArmState(startState.pitch().minus(Rotation2d.fromDegrees(40)),
-                startState.height().minus(Inches.of(elevatorScoreHeightReduction.get())), startState.wristRotation(),
-                EndEffectorState.velocity(gamePieceEjectVelocity.get()));
+                startState.heightMeters().minus(Inches.of(elevatorScoreHeightReduction.get())),
+                startState.wristRotation(), EndEffectorState.velocity(gamePieceEjectVelocity.get()));
 
             // @formatter:off
             return Commands.sequence(
@@ -148,10 +148,10 @@ public class ScoringSequenceCommands {
 
         ArmState startState = getStartingState(level);
         ArmState scoreDownState = new ArmState(startState.pitch(),
-            startState.height().minus(Inches.of(elevatorScoreHeightReduction.get())), startState.wristRotation(),
+            startState.heightMeters().minus(Inches.of(elevatorScoreHeightReduction.get())), startState.wristRotation(),
             Constants.isSim ? EndEffectorState.velocity(gamePieceEjectVelocity.get()) : EndEffectorState.hold());
         ArmState scoreDownState2 = new ArmState(startState.pitch().minus(Rotation2d.fromDegrees(15)),
-            startState.height().minus(Inches.of(elevatorScoreHeightReduction.get())), startState.wristRotation(),
+            startState.heightMeters().minus(Inches.of(elevatorScoreHeightReduction.get())), startState.wristRotation(),
             EndEffectorState.velocity(gamePieceEjectVelocity.get()));
 
         // @formatter:off

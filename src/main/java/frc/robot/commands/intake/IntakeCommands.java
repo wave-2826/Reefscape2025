@@ -1,66 +1,31 @@
 package frc.robot.commands.intake;
 
-import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.GenericHID.RumbleType;
+import java.util.function.BooleanSupplier;
+
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
-import frc.robot.Controls;
 import frc.robot.subsystems.arm.Arm;
 import frc.robot.subsystems.arm.ArmConstants;
 import frc.robot.subsystems.intake.Intake;
+import frc.robot.subsystems.intake.Intake.IntakeState;
 
 public class IntakeCommands {
-    public static Command getPiece(Arm arm) {
+    public static Command getPieceFromIntake(Arm arm) {
         return Commands.sequence(arm.goToStateCommand(ArmConstants.restingState),
-            arm.goToStateCommand(ArmConstants.getPieceState), arm.goToStateCommand(ArmConstants.restingState))
-            .withTimeout(1.0);
+            arm.goToStateCommand(ArmConstants.getPieceState), arm.goToStateCommand(ArmConstants.restingState));
     }
 
-    public static Command getPieceFromIntake(Intake intake, Arm arm) {
+    private static boolean oldPieceWaitingForArm = false;
+
+    public static Command intakeCommand(Intake intake, Arm arm, BooleanSupplier down) {
         // @formatter:off
-        return Commands.sequence(
-            arm.goToStateCommand(ArmConstants.restingState),
-            intake.setTransportOverrideSpeedCommand(1.0),
+        return Commands.run(() -> {
+            intake.setIntakeState(down.getAsBoolean() ? IntakeState.Down : IntakeState.Up);
 
-            Commands.waitUntil(intake::transportSensorTriggered),
-            Commands.waitSeconds(0.15),
-            intake.setTransportOverrideSpeedCommand(0.0),
-
-            getPiece(arm)
-        ).withName("GetPieceFromIntake").withTimeout(2.5).finallyDo(() -> {
-            intake.setTransportOverrideSpeed(0.0);
-        });
-        // @formatter:on
-    }
-
-    public static Command intakeCommand(Intake intake, Arm arm) {
-        // @formatter:off
-        return Commands.sequence(
-            Commands.sequence(
-                intake.runIntakeOpenLoopCommand(1.0),
-                intake.setIntakePitchCommand(Rotation2d.kZero),
-                intake.setIntakeCoast(),
-
-                Commands.waitUntil(intake::intakeSensorTriggered)
-            ).onlyIf(() -> !intake.intakeSensorTriggered()),
-
-            Commands.runOnce(() -> {
-                // This is kind of sketchy
-                getPieceFromIntake(intake, arm).schedule();
-            }),
-
-            Controls.getInstance().controllerRumbleWhileRunning(true, true, RumbleType.kBothRumble)
-                .withTimeout(0.1)
-                .andThen(Commands.waitSeconds(0.05))
-                .repeatedly().withTimeout(0.4)
-                .onlyIf(DriverStation::isTeleop)
-        ).finallyDo(() -> {
-            intake.runIntakeOpenLoop(0.0);
-            intake.setIntakePitchCommand(Rotation2d.fromDegrees(80)).schedule();
-        })
-        // HACK
-        .withName("IntakeSequence");
-        // @formatter:on
+            if(intake.pieceWaitingForArm() && !oldPieceWaitingForArm) {
+                getPieceFromIntake(arm).schedule();
+            }
+            oldPieceWaitingForArm = intake.pieceWaitingForArm();
+        }, intake, arm).withName("IntakeSequence");
     }
 }
