@@ -85,7 +85,7 @@ public class ArmIOReal implements ArmIO {
      * If we have reset to absolute. If we can't immediately reset to an absolute position because we have invalid data,
      * we attempt to repeatedly until it works.
      */
-    protected boolean needsToReset = true;
+    protected boolean needsToReset = false;
 
     public ArmIOReal() {
         this(null);
@@ -224,6 +224,11 @@ public class ArmIOReal implements ArmIO {
         armWristRelativeEncoder = armWristMotor.getEncoder();
 
         endEffectorEncoder = endEffectorMotor.getEncoder();
+
+        tryUntilOk(elevatorHeightMotorLeader, 2,
+            () -> leaderElevatorHeightEncoder.setPosition(ArmConstants.ElevatorConstants.elevatorStartingHeightMeters));
+        tryUntilOk(elevatorHeightMotorFollower, 2, () -> followerElevatorHeightEncoder
+            .setPosition(ArmConstants.ElevatorConstants.elevatorStartingHeightMeters));
 
         if(overrideLaserCan != null) {
             elevatorHeightSensor = overrideLaserCan;

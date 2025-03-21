@@ -35,6 +35,8 @@ public class ArmConstants {
         WristRotation.Vertical, EndEffectorState.hold());
 
     public class ElevatorConstants {
+        public static final double elevatorStartingHeightMeters = 1.535;
+
         public static final int elevatorHeightMotor1Id = 50;
         public static final int elevatorHeightMotor2Id = 51;
         public static final int elevatorHeightSensorId = 54;
