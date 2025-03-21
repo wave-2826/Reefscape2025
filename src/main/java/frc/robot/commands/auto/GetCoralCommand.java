@@ -17,6 +17,7 @@ import frc.robot.subsystems.drive.DriveConstants;
 import frc.robot.subsystems.intake.Intake;
 import frc.robot.util.Container;
 import frc.robot.FieldConstants;
+import frc.robot.Controls.OperatorMode;
 import frc.robot.commands.intake.IntakeCommands;
 
 public class GetCoralCommand {
@@ -120,7 +121,7 @@ public class GetCoralCommand {
                 }).finallyDo(() -> {
                     drive.stop();
                 }) //
-            ), IntakeCommands.intakeCommand(intake, arm, () -> true));
+            ), IntakeCommands.intakeCommand(intake, arm, () -> true, () -> 0, () -> 0, () -> OperatorMode.Normal));
         }
     }
 }

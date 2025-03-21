@@ -85,7 +85,6 @@ public class Intake extends SubsystemBase {
     /**
      * The mappings from intake state sensors to our target state.
      */
-
     public Intake(IntakeIO io) {
         this.io = io;
 
@@ -110,12 +109,12 @@ public class Intake extends SubsystemBase {
      * @param power The desired power for the intake, from 0 to 1.
      */
     public void overrideIntakeSpeed(double power) {
-        usingClosedLoopControl = false;
+        // usingClosedLoopControl = false;
         io.runVelocity(power, power);
     }
 
     public void overridePitchPower(double power) {
-        usingClosedLoopControl = false;
+        // usingClosedLoopControl = false;
         io.overridePitchPower(power);
     }
 
@@ -149,8 +148,9 @@ public class Intake extends SubsystemBase {
                 io.setIntakePitch(targetIntakeState.pitch);
             }
 
-            TransportTarget target = getTransportTarget();
-            io.runVelocity(targetIntakeState.speed, target.speed == 0 ? targetIntakeState.speed : target.speed);
+            TransportTarget transportTarget = getTransportTarget();
+            io.runVelocity(targetIntakeState.speed,
+                transportTarget.speed == 0 ? targetIntakeState.speed : transportTarget.speed);
         }
 
         visualizer.update(inputs.intakePitch);

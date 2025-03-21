@@ -96,7 +96,7 @@ public class ClimberIOReal implements ClimberIO {
 
     @Override
     public void runClimberOpenLoop(double power) {
-        climberMotor.set(power);
+        climberMotorController.setReference(power, ControlType.kDutyCycle);
     }
 
     @Override

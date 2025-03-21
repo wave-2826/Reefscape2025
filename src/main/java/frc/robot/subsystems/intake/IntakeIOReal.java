@@ -121,7 +121,7 @@ public class IntakeIOReal implements IntakeIO {
 
     @Override
     public void overridePitchPower(double power) {
-        pitchMotor.set(-power);
+        pitchController.setReference(-power, ControlType.kDutyCycle);
     }
 
     @Override

@@ -336,15 +336,15 @@ public class ArmIOReal implements ArmIO {
     }
 
     public void overridePitchPower(double power) {
-        armPitchMotor.set(power);
+        armPitchController.setReference(power, ControlType.kDutyCycle);
     }
 
     public void overrideWristPower(double power) {
-        armWristMotor.set(power);
+        armWristController.setReference(power, ControlType.kDutyCycle);
     }
 
     public void overrideEndEffectorPower(double power) {
-        endEffectorMotor.set(power);
+        endEffectorController.setReference(power, ControlType.kDutyCycle);
     }
 
     @Override

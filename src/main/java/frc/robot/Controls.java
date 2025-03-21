@@ -14,7 +14,6 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.GenericHID.RumbleType;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
-import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
@@ -54,7 +53,7 @@ public class Controls {
     private final Trigger operatorOverride;
     private final Trigger operatorManual;
 
-    private static enum OperatorMode {
+    public static enum OperatorMode {
         Normal, Manual, Override
     };
 
@@ -119,10 +118,8 @@ public class Controls {
         configureManualOperatorControls(climber, arm, intake);
         configureOverrideOperatorControls(climber, arm, intake);
 
-        configureDefaultOperatorCommands(intake, IntakeCommands.intakeCommand(intake, arm, operator.rightBumper()),
-            intake.run(() -> {
-            }), intake.run(() -> {
-            }));
+        intake.setDefaultCommand(IntakeCommands.intakeCommand(intake, arm, operator.rightBumper(), operator::getLeftY,
+            operator::getRightY, () -> operatorMode));
 
         // Automatic mode actions
         RobotModeTriggers.teleop().onTrue(ClimbCommands.resetClimbPosition());
@@ -239,21 +236,6 @@ public class Controls {
             return new ArmState(Rotation2d.fromDegrees(pitch.value), Meters.of(height.value), wristRotation.value,
                 endEffectorState);
         }).withName("ArmManualControls"));
-    }
-
-    private void configureDefaultOperatorCommands(SubsystemBase subsystem, Command normalDefault, Command manualDefault,
-        Command overrideDefault) {
-        subsystem.setDefaultCommand(normalDefault);
-
-        normalOperator.onTrue(Commands.runOnce(() -> {
-            subsystem.setDefaultCommand(normalDefault);
-        }));
-        operatorManual.onTrue(Commands.runOnce(() -> {
-            subsystem.setDefaultCommand(manualDefault);
-        }));
-        operatorOverride.onTrue(Commands.runOnce(() -> {
-            subsystem.setDefaultCommand(overrideDefault);
-        }));
     }
 
     private HashMap<Integer, Double> driverRumbleCommands = new HashMap<>();
