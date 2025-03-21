@@ -158,7 +158,7 @@ public class Controls {
             .onFalse(arm.goToStateCommand(ArmConstants.sourceIntakeStoppedState));
         operator.povLeft().and(normalOperator)
             .whileTrue(Commands.sequence(intake.runOnce(() -> intake.overrideIntakeSpeed(0.0)),
-                arm.setTargetStateCommand(() -> ArmConstants.restingState)));
+                arm.setTargetStateCommand(() -> ArmConstants.restingState), intake.reset()));
     }
 
     private void configureOverrideOperatorControls(Climber climber, Arm arm, Intake intake) {

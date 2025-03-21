@@ -8,10 +8,12 @@ import org.littletonrobotics.junction.Logger;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.GenericHID.RumbleType;
+import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Controls;
+import frc.robot.subsystems.arm.ArmConstants;
 import frc.robot.util.LoggedTracer;
 
 /**
@@ -81,6 +83,12 @@ public class Intake extends SubsystemBase {
         if(inputs.endSensorTriggered) key |= 0b001;
 
         return transportTargetMap.get(key);
+    }
+
+    public Command reset() {
+        return runOnce(() -> {
+            pieceMoving = false;
+        });
     }
 
     /**
