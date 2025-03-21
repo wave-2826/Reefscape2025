@@ -30,7 +30,7 @@ public class IntakeCommands {
             if(intake.intakeSensorTriggered()) {
                 canTake = true;
             }
-            
+
             if(mode == OperatorMode.Normal) {
                 intake.setIntakeState(down.getAsBoolean() ? IntakeState.Down : IntakeState.Up);
 
@@ -39,8 +39,8 @@ public class IntakeCommands {
                     canTake = false;
                 }
             } else {
-                intake.overrideIntakeSpeed(overrideSpeed.getAsDouble());
-                intake.overridePitchPower(overridePitch.getAsDouble());
+                // intake.overrideIntakeSpeed(overrideSpeed.getAsDouble());
+                // intake.overridePitchPower(overridePitch.getAsDouble());
             }
         }).withName("IntakeSequence");
     }
