@@ -198,7 +198,7 @@ public class Controls {
 
         operatorManual.onTrue(Commands.runOnce(() -> {
             var armState = arm.getCurrentTargetState();
-            height.value = armState.heightMeters().in(Meters);
+            height.value = armState.height().in(Meters);
             pitch.value = armState.pitch().getDegrees();
             wristRotation.value = armState.wristRotation();
         }));
@@ -241,14 +241,15 @@ public class Controls {
     private void configureDefaultOperatorCommands(SubsystemBase subsystem, Command normalDefault, Command manualDefault,
         Command overrideDefault) {
         subsystem.setDefaultCommand(normalDefault);
+
+        normalOperator.onTrue(Commands.runOnce(() -> {
+            subsystem.setDefaultCommand(normalDefault);
+        }));
         operatorManual.onTrue(Commands.runOnce(() -> {
             subsystem.setDefaultCommand(manualDefault);
         }));
         operatorOverride.onTrue(Commands.runOnce(() -> {
             subsystem.setDefaultCommand(overrideDefault);
-        }));
-        normalOperator.onTrue(Commands.runOnce(() -> {
-            subsystem.setDefaultCommand(normalDefault);
         }));
     }
 

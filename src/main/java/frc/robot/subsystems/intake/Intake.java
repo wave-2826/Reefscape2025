@@ -96,7 +96,7 @@ public class Intake extends SubsystemBase {
                     .andThen(Commands.waitSeconds(0.05)).repeatedly().withTimeout(0.4)
                     .onlyIf(DriverStation::isTeleop)));
         new Trigger(() -> inputs.endSensorTriggered)
-            .onTrue(Commands.sequence(Commands.waitSeconds(0.4), Commands.runOnce(() -> pieceMoving = false)));
+            .onTrue(Commands.sequence(Commands.waitSeconds(0.3), Commands.runOnce(() -> pieceMoving = false)));
     }
 
     @AutoLogOutput(key = "Intake/AtPitchSetpoint")

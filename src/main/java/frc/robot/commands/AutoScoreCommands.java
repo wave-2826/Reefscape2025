@@ -38,26 +38,32 @@ public class AutoScoreCommands {
     /**
      * The distance from the reef branch to the center of the robot when lining up to score L1 in meters.
      */
-    private static final LoggedTunableNumber robotReefLineupL1Distance = new LoggedTunableNumber(
-        "AutoScore/L1ReefLineupDistance", 0.83);
+    private static final LoggedTunableNumber robotReefLineupL1Distance = new LoggedTunableNumber(//
+        "AutoScore/L1ReefLineupDistance", 31.89);
 
     /**
      * The distance from the reef branch to the center of the robot when lining up to score L2-L4 in meters.
      */
-    private static final LoggedTunableNumber robotReefLineupBranchDistance = new LoggedTunableNumber(
-        "AutoScore/BranchReefLineupDistance", 0.62);
+    private static final LoggedTunableNumber robotReefLineupBranchDistance = new LoggedTunableNumber(//
+        "AutoScore/BranchReefLineupDistance", 24.40);
 
     /**
      * The distance from the reef branch to the center of the robot when lining up to score L4 in meters.
      */
-    private static final LoggedTunableNumber robotReefLineupL4Distance = new LoggedTunableNumber(
-        "AutoScore/L4ReefLineupDistance", 0.58);
+    private static final LoggedTunableNumber robotReefLineupL4Distance = new LoggedTunableNumber(//
+        "AutoScore/L4ReefLineupDistance", 22.05);
 
     /**
      * The amount the driver can tweak the auto lineup position, in inches.
      */
-    private static final LoggedTunableNumber autoAlignTweakAmount = new LoggedTunableNumber(
+    private static final LoggedTunableNumber autoAlignTweakAmount = new LoggedTunableNumber(//
         "AutoScore/AutoAlignTweakInches", 4.0);
+
+    /**
+     * A tweaking factor added to our horizontal lineup distance from the center between two branches.
+     */
+    private static final LoggedTunableNumber centerDistanceTweak = new LoggedTunableNumber(//
+        "AutoScore/CenterDistanceTweak", -0.15);
 
     /**
      * Gets a command that pathfinds to the target pose and precisely aligns to it. Because PathPlanner's default
@@ -91,18 +97,19 @@ public class AutoScoreCommands {
 
         boolean isLeft = target.branch().isLeft;
 
-        double distanceAway;
+        double distanceAwayInches;
         if(target.level() == ReefLevel.L1) {
-            distanceAway = robotReefLineupL1Distance.get();
+            distanceAwayInches = robotReefLineupL1Distance.get();
         } else if(target.level() == ReefLevel.L4) {
-            distanceAway = robotReefLineupL4Distance.get();
+            distanceAwayInches = robotReefLineupL4Distance.get();
         } else {
-            distanceAway = robotReefLineupBranchDistance.get();
+            distanceAwayInches = robotReefLineupBranchDistance.get();
         }
 
+        double centerDistance = FieldConstants.reefBranchSeparation.in(Meters) / 2.
+            + Units.inchesToMeters(centerDistanceTweak.get());
         Transform2d tagRelativeOffset = new Transform2d(
-            new Translation2d(distanceAway, isLeft ? -FieldConstants.reefBranchSeparation.in(Meters) / 2.
-                : FieldConstants.reefBranchSeparation.in(Meters) / 2.),
+            new Translation2d(Units.inchesToMeters(distanceAwayInches), isLeft ? -centerDistance : centerDistance),
             Rotation2d.k180deg);
 
         ReefFace reefFace = target.branch().face;

@@ -35,7 +35,7 @@ public class ArmConstants {
         // PID constants for the elevator position PID
         public static final LoggedTunableSparkPID elevatorPID = new LoggedTunableSparkPID("Arm/Elevator")
             // .addRealRobotGains(new PIDConstants(7.0, 0.0, 7.0)) //
-            .addRealRobotGains(new PIDConstants(5.0, 0.005, 5.0).iZone(Units.inchesToMeters(1.5))) //
+            .addRealRobotGains(new PIDConstants(6.0, 0.005, 6.0).iZone(Units.inchesToMeters(1.5))) //
             .addSimGains(new PIDConstants(40.0, 0.0, 0.0));
 
         // Feedforward constants for the elevator
@@ -43,7 +43,7 @@ public class ArmConstants {
         public static final double elevatorKgReal = 0.3;
         public static final double elevatorKgSim = 0.3;
 
-        public static final int elevatorMotorCurrentLimit = 35;
+        public static final int elevatorMotorCurrentLimit = 45;
         public static final boolean elevatorMotorInverted = true;
 
         public static final double elevatorReduction = 5.;
@@ -141,7 +141,7 @@ public class ArmConstants {
         /** The conversion factor from pitch absolute encoder RPM to radians per second. */
         public static final double pitchAbsoluteVelocityFactor = pitchAbsolutePositionFactor / 60.;
 
-        public static final int pitchMotorCurrentLimit = 35;
+        public static final int pitchMotorCurrentLimit = 38;
         public static final boolean pitchMotorInverted = true;
         public static final boolean pitchEncoderInverted = true;
 
