@@ -98,7 +98,7 @@ public class Controls {
         driver.start().onTrue(Commands.runOnce(resetGyro, drive).ignoringDisable(true));
 
         // TODO: outtake
-        intake.setDefaultCommand(IntakeCommands.intakeCommand(intake, arm, driver.rightBumper()));
+        intake.setDefaultCommand(IntakeCommands.intakeCommand(intake, arm, driver.rightTrigger(0.3)));
 
         // Normal operator controls
         configureNormalOperatorControls(drive, driveSimulation, arm, intake, vision, climber);
