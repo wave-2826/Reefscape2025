@@ -1,0 +1,887 @@
+{
+  "version": 1.0,
+  "grid_size": 115,
+  "tabs": [
+    {
+      "name": "Teleoperated",
+      "grid_layout": {
+        "layouts": [],
+        "containers": [
+          {
+            "title": "FMSInfo",
+            "x": 0.0,
+            "y": 0.0,
+            "width": 460.0,
+            "height": 230.0,
+            "type": "FMSInfo",
+            "properties": {
+              "topic": "/FMSInfo",
+              "period": 0.06
+            }
+          },
+          {
+            "title": "Alerts",
+            "x": 1150.0,
+            "y": 115.0,
+            "width": 345.0,
+            "height": 460.0,
+            "type": "Alerts",
+            "properties": {
+              "topic": "/SmartDashboard/Alerts",
+              "period": 0.06
+            }
+          },
+          {
+            "title": "ReefBranch",
+            "x": 575.0,
+            "y": 0.0,
+            "width": 345.0,
+            "height": 115.0,
+            "type": "Text Display",
+            "properties": {
+              "topic": "/DriverStationInterface/ReefBranch",
+              "period": 0.06,
+              "data_type": "string",
+              "show_submit_button": false
+            }
+          },
+          {
+            "title": "ReefLevel",
+            "x": 575.0,
+            "y": 115.0,
+            "width": 345.0,
+            "height": 115.0,
+            "type": "Text Display",
+            "properties": {
+              "topic": "/DriverStationInterface/ReefLevel",
+              "period": 0.06,
+              "data_type": "string",
+              "show_submit_button": false
+            }
+          },
+          {
+            "title": "2826_OV9281_Ben",
+            "x": 0.0,
+            "y": 230.0,
+            "width": 690.0,
+            "height": 460.0,
+            "type": "Camera Stream",
+            "properties": {
+              "topic": "/CameraPublisher/2826_OV9281_Ben",
+              "period": 0.06,
+              "rotation_turns": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "Autonomous",
+      "grid_layout": {
+        "layouts": [],
+        "containers": [
+          {
+            "title": "Alerts",
+            "x": 920.0,
+            "y": 115.0,
+            "width": 345.0,
+            "height": 460.0,
+            "type": "Alerts",
+            "properties": {
+              "topic": "/SmartDashboard/Alerts",
+              "period": 0.06
+            }
+          },
+          {
+            "title": "Auto Choices",
+            "x": 920.0,
+            "y": 0.0,
+            "width": 345.0,
+            "height": 115.0,
+            "type": "ComboBox Chooser",
+            "properties": {
+              "topic": "/SmartDashboard/Auto Choices",
+              "period": 0.06,
+              "sort_options": false
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "Tuning",
+      "grid_layout": {
+        "layouts": [],
+        "containers": [
+          {
+            "title": "DriveP",
+            "x": 0.0,
+            "y": 0.0,
+            "width": 230.0,
+            "height": 115.0,
+            "type": "Text Display",
+            "properties": {
+              "topic": "/Tuning/Drive/DriveP",
+              "period": 0.06,
+              "data_type": "double",
+              "show_submit_button": true
+            }
+          },
+          {
+            "title": "DriveD",
+            "x": 0.0,
+            "y": 115.0,
+            "width": 230.0,
+            "height": 115.0,
+            "type": "Text Display",
+            "properties": {
+              "topic": "/Tuning/Drive/DriveD",
+              "period": 0.06,
+              "data_type": "double",
+              "show_submit_button": true
+            }
+          },
+          {
+            "title": "DriveV",
+            "x": 230.0,
+            "y": 0.0,
+            "width": 230.0,
+            "height": 115.0,
+            "type": "Text Display",
+            "properties": {
+              "topic": "/Tuning/Drive/DriveV",
+              "period": 0.06,
+              "data_type": "double",
+              "show_submit_button": true
+            }
+          },
+          {
+            "title": "DriveS",
+            "x": 230.0,
+            "y": 115.0,
+            "width": 230.0,
+            "height": 115.0,
+            "type": "Text Display",
+            "properties": {
+              "topic": "/Tuning/Drive/DriveS",
+              "period": 0.06,
+              "data_type": "double",
+              "show_submit_button": true
+            }
+          },
+          {
+            "title": "elevatorKg",
+            "x": 1265.0,
+            "y": 0.0,
+            "width": 230.0,
+            "height": 115.0,
+            "type": "Text Display",
+            "properties": {
+              "topic": "/Tuning/Arm/elevatorKg",
+              "period": 0.06,
+              "data_type": "double",
+              "show_submit_button": true
+            }
+          },
+          {
+            "title": "ElevatorkSlot0D",
+            "x": 805.0,
+            "y": 0.0,
+            "width": 230.0,
+            "height": 115.0,
+            "type": "Text Display",
+            "properties": {
+              "topic": "/Tuning/Arm/ElevatorkSlot0D",
+              "period": 0.06,
+              "data_type": "double",
+              "show_submit_button": true
+            }
+          },
+          {
+            "title": "ElevatorkSlot0P",
+            "x": 575.0,
+            "y": 0.0,
+            "width": 230.0,
+            "height": 115.0,
+            "type": "Text Display",
+            "properties": {
+              "topic": "/Tuning/Arm/ElevatorkSlot0P",
+              "period": 0.06,
+              "data_type": "double",
+              "show_submit_button": true
+            }
+          },
+          {
+            "title": "ElevatorkSlot0I",
+            "x": 1035.0,
+            "y": 0.0,
+            "width": 230.0,
+            "height": 115.0,
+            "type": "Text Display",
+            "properties": {
+              "topic": "/Tuning/Arm/ElevatorkSlot0I",
+              "period": 0.06,
+              "data_type": "double",
+              "show_submit_button": true
+            }
+          },
+          {
+            "title": "PitchkSlot0P",
+            "x": 575.0,
+            "y": 115.0,
+            "width": 230.0,
+            "height": 115.0,
+            "type": "Text Display",
+            "properties": {
+              "topic": "/Tuning/Arm/PitchkSlot0P",
+              "period": 0.06,
+              "data_type": "double",
+              "show_submit_button": true
+            }
+          },
+          {
+            "title": "PitchkSlot0I",
+            "x": 805.0,
+            "y": 115.0,
+            "width": 230.0,
+            "height": 115.0,
+            "type": "Text Display",
+            "properties": {
+              "topic": "/Tuning/Arm/PitchkSlot0I",
+              "period": 0.06,
+              "data_type": "double",
+              "show_submit_button": true
+            }
+          },
+          {
+            "title": "PitchkSlot0D",
+            "x": 1035.0,
+            "y": 115.0,
+            "width": 230.0,
+            "height": 115.0,
+            "type": "Text Display",
+            "properties": {
+              "topic": "/Tuning/Arm/PitchkSlot0D",
+              "period": 0.06,
+              "data_type": "double",
+              "show_submit_button": true
+            }
+          },
+          {
+            "title": "pitchKg",
+            "x": 1265.0,
+            "y": 115.0,
+            "width": 230.0,
+            "height": 115.0,
+            "type": "Text Display",
+            "properties": {
+              "topic": "/Tuning/Arm/pitchKg",
+              "period": 0.06,
+              "data_type": "double",
+              "show_submit_button": true
+            }
+          },
+          {
+            "title": "EndEffectorkSlot1D",
+            "x": 1035.0,
+            "y": 230.0,
+            "width": 230.0,
+            "height": 115.0,
+            "type": "Text Display",
+            "properties": {
+              "topic": "/Tuning/Arm/EndEffectorkSlot1D",
+              "period": 0.06,
+              "data_type": "double",
+              "show_submit_button": false
+            }
+          },
+          {
+            "title": "EndEffectorkSlot0P",
+            "x": 575.0,
+            "y": 230.0,
+            "width": 230.0,
+            "height": 115.0,
+            "type": "Text Display",
+            "properties": {
+              "topic": "/Tuning/Arm/EndEffectorkSlot0P",
+              "period": 0.06,
+              "data_type": "double",
+              "show_submit_button": false
+            }
+          },
+          {
+            "title": "EndEffectorkSlot0I",
+            "x": 805.0,
+            "y": 230.0,
+            "width": 230.0,
+            "height": 115.0,
+            "type": "Text Display",
+            "properties": {
+              "topic": "/Tuning/Arm/EndEffectorkSlot0I",
+              "period": 0.06,
+              "data_type": "double",
+              "show_submit_button": false
+            }
+          },
+          {
+            "title": "EndEffectorkSlot1P",
+            "x": 575.0,
+            "y": 345.0,
+            "width": 230.0,
+            "height": 115.0,
+            "type": "Text Display",
+            "properties": {
+              "topic": "/Tuning/Arm/EndEffectorkSlot1P",
+              "period": 0.06,
+              "data_type": "double",
+              "show_submit_button": false
+            }
+          },
+          {
+            "title": "EndEffectorkSlot1I",
+            "x": 805.0,
+            "y": 345.0,
+            "width": 230.0,
+            "height": 115.0,
+            "type": "Text Display",
+            "properties": {
+              "topic": "/Tuning/Arm/EndEffectorkSlot1I",
+              "period": 0.06,
+              "data_type": "double",
+              "show_submit_button": false
+            }
+          },
+          {
+            "title": "EndEffectorkSlot1D",
+            "x": 1035.0,
+            "y": 345.0,
+            "width": 230.0,
+            "height": 115.0,
+            "type": "Text Display",
+            "properties": {
+              "topic": "/Tuning/Arm/EndEffectorkSlot1D",
+              "period": 0.06,
+              "data_type": "double",
+              "show_submit_button": false
+            }
+          },
+          {
+            "title": "EndEffectorkSlot1F",
+            "x": 1265.0,
+            "y": 345.0,
+            "width": 230.0,
+            "height": 115.0,
+            "type": "Text Display",
+            "properties": {
+              "topic": "/Tuning/Arm/EndEffectorkSlot1F",
+              "period": 0.06,
+              "data_type": "double",
+              "show_submit_button": false
+            }
+          },
+          {
+            "title": "translationKp",
+            "x": 575.0,
+            "y": 575.0,
+            "width": 230.0,
+            "height": 115.0,
+            "type": "Text Display",
+            "properties": {
+              "topic": "/Tuning/CloseLineup/translationKp",
+              "period": 0.06,
+              "data_type": "double",
+              "show_submit_button": false
+            }
+          },
+          {
+            "title": "translationKd",
+            "x": 805.0,
+            "y": 575.0,
+            "width": 230.0,
+            "height": 115.0,
+            "type": "Text Display",
+            "properties": {
+              "topic": "/Tuning/CloseLineup/translationKd",
+              "period": 0.06,
+              "data_type": "double",
+              "show_submit_button": false
+            }
+          },
+          {
+            "title": "thetaRotationKp",
+            "x": 1035.0,
+            "y": 575.0,
+            "width": 230.0,
+            "height": 115.0,
+            "type": "Text Display",
+            "properties": {
+              "topic": "/Tuning/CloseLineup/thetaRotationKp",
+              "period": 0.06,
+              "data_type": "double",
+              "show_submit_button": false
+            }
+          },
+          {
+            "title": "thetaRotationKd",
+            "x": 1265.0,
+            "y": 575.0,
+            "width": 230.0,
+            "height": 115.0,
+            "type": "Text Display",
+            "properties": {
+              "topic": "/Tuning/CloseLineup/thetaRotationKd",
+              "period": 0.06,
+              "data_type": "double",
+              "show_submit_button": false
+            }
+          },
+          {
+            "title": "WristkSlot0P",
+            "x": 575.0,
+            "y": 460.0,
+            "width": 230.0,
+            "height": 115.0,
+            "type": "Text Display",
+            "properties": {
+              "topic": "/Tuning/Arm/WristkSlot0P",
+              "period": 0.06,
+              "data_type": "double",
+              "show_submit_button": false
+            }
+          },
+          {
+            "title": "WristkSlot0D",
+            "x": 1035.0,
+            "y": 460.0,
+            "width": 230.0,
+            "height": 115.0,
+            "type": "Text Display",
+            "properties": {
+              "topic": "/Tuning/Arm/WristkSlot0D",
+              "period": 0.06,
+              "data_type": "double",
+              "show_submit_button": false
+            }
+          },
+          {
+            "title": "WristkSlot0I",
+            "x": 805.0,
+            "y": 460.0,
+            "width": 230.0,
+            "height": 115.0,
+            "type": "Text Display",
+            "properties": {
+              "topic": "/Tuning/Arm/WristkSlot0I",
+              "period": 0.06,
+              "data_type": "double",
+              "show_submit_button": false
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "Tuning 2",
+      "grid_layout": {
+        "layouts": [],
+        "containers": [
+          {
+            "title": "PitchkSlot0D",
+            "x": 1265.0,
+            "y": 0.0,
+            "width": 230.0,
+            "height": 115.0,
+            "type": "Text Display",
+            "properties": {
+              "topic": "/Tuning/Intake/PitchkSlot0D",
+              "period": 0.06,
+              "data_type": "double",
+              "show_submit_button": false
+            }
+          },
+          {
+            "title": "PitchkSlot0I",
+            "x": 1035.0,
+            "y": 0.0,
+            "width": 230.0,
+            "height": 115.0,
+            "type": "Text Display",
+            "properties": {
+              "topic": "/Tuning/Intake/PitchkSlot0I",
+              "period": 0.06,
+              "data_type": "double",
+              "show_submit_button": false
+            }
+          },
+          {
+            "title": "PitchkSlot0P",
+            "x": 805.0,
+            "y": 0.0,
+            "width": 230.0,
+            "height": 115.0,
+            "type": "Text Display",
+            "properties": {
+              "topic": "/Tuning/Intake/PitchkSlot0P",
+              "period": 0.06,
+              "data_type": "double",
+              "show_submit_button": false
+            }
+          },
+          {
+            "title": "BranchReefLineupDistance",
+            "x": 230.0,
+            "y": 0.0,
+            "width": 230.0,
+            "height": 115.0,
+            "type": "Text Display",
+            "properties": {
+              "topic": "/Tuning/AutoScore/BranchReefLineupDistance",
+              "period": 0.06,
+              "data_type": "double",
+              "show_submit_button": false
+            }
+          },
+          {
+            "title": "L1ReefLineupDistance",
+            "x": 0.0,
+            "y": 0.0,
+            "width": 230.0,
+            "height": 115.0,
+            "type": "Text Display",
+            "properties": {
+              "topic": "/Tuning/AutoScore/L1ReefLineupDistance",
+              "period": 0.06,
+              "data_type": "double",
+              "show_submit_button": false
+            }
+          },
+          {
+            "title": "L1ScoreHeight",
+            "x": 0.0,
+            "y": 230.0,
+            "width": 230.0,
+            "height": 115.0,
+            "type": "Text Display",
+            "properties": {
+              "topic": "/Tuning/AutoScore/L1ScoreHeight",
+              "period": 0.06,
+              "data_type": "double",
+              "show_submit_button": false
+            }
+          },
+          {
+            "title": "L2ScoreHeight",
+            "x": 230.0,
+            "y": 230.0,
+            "width": 230.0,
+            "height": 115.0,
+            "type": "Text Display",
+            "properties": {
+              "topic": "/Tuning/AutoScore/L2ScoreHeight",
+              "period": 0.06,
+              "data_type": "double",
+              "show_submit_button": false
+            }
+          },
+          {
+            "title": "L3ScoreHeight",
+            "x": 0.0,
+            "y": 345.0,
+            "width": 230.0,
+            "height": 115.0,
+            "type": "Text Display",
+            "properties": {
+              "topic": "/Tuning/AutoScore/L3ScoreHeight",
+              "period": 0.06,
+              "data_type": "double",
+              "show_submit_button": false
+            }
+          },
+          {
+            "title": "L4ScoreHeightFromTop",
+            "x": 230.0,
+            "y": 345.0,
+            "width": 230.0,
+            "height": 115.0,
+            "type": "Text Display",
+            "properties": {
+              "topic": "/Tuning/AutoScore/L4ScoreHeightFromTop",
+              "period": 0.06,
+              "data_type": "double",
+              "show_submit_button": false
+            }
+          },
+          {
+            "title": "L4ReefLineupDistance",
+            "x": 460.0,
+            "y": 575.0,
+            "width": 230.0,
+            "height": 115.0,
+            "type": "Text Display",
+            "properties": {
+              "topic": "/Tuning/AutoScore/L4ReefLineupDistance",
+              "period": 0.06,
+              "data_type": "double",
+              "show_submit_button": false
+            }
+          },
+          {
+            "title": "L1ReefLineupDistance",
+            "x": 0.0,
+            "y": 575.0,
+            "width": 230.0,
+            "height": 115.0,
+            "type": "Text Display",
+            "properties": {
+              "topic": "/Tuning/AutoScore/L1ReefLineupDistance",
+              "period": 0.06,
+              "data_type": "double",
+              "show_submit_button": false
+            }
+          },
+          {
+            "title": "BranchReefLineupDistance",
+            "x": 230.0,
+            "y": 575.0,
+            "width": 230.0,
+            "height": 115.0,
+            "type": "Text Display",
+            "properties": {
+              "topic": "/Tuning/AutoScore/BranchReefLineupDistance",
+              "period": 0.06,
+              "data_type": "double",
+              "show_submit_button": false
+            }
+          },
+          {
+            "title": "translationKp",
+            "x": 575.0,
+            "y": 230.0,
+            "width": 230.0,
+            "height": 115.0,
+            "type": "Text Display",
+            "properties": {
+              "topic": "/Tuning/CloseLineup/translationKp",
+              "period": 0.06,
+              "data_type": "double",
+              "show_submit_button": false
+            }
+          },
+          {
+            "title": "translationKd",
+            "x": 805.0,
+            "y": 230.0,
+            "width": 230.0,
+            "height": 115.0,
+            "type": "Text Display",
+            "properties": {
+              "topic": "/Tuning/CloseLineup/translationKd",
+              "period": 0.06,
+              "data_type": "double",
+              "show_submit_button": false
+            }
+          },
+          {
+            "title": "thetaRotationKp",
+            "x": 575.0,
+            "y": 345.0,
+            "width": 230.0,
+            "height": 115.0,
+            "type": "Text Display",
+            "properties": {
+              "topic": "/Tuning/CloseLineup/thetaRotationKp",
+              "period": 0.06,
+              "data_type": "double",
+              "show_submit_button": false
+            }
+          },
+          {
+            "title": "thetaRotationKd",
+            "x": 805.0,
+            "y": 345.0,
+            "width": 230.0,
+            "height": 115.0,
+            "type": "Text Display",
+            "properties": {
+              "topic": "/Tuning/CloseLineup/thetaRotationKd",
+              "period": 0.06,
+              "data_type": "double",
+              "show_submit_button": false
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "PhotonVision Simulation",
+      "grid_layout": {
+        "layouts": [],
+        "containers": [
+          {
+            "title": "frontLeftCamera-raw",
+            "x": 0.0,
+            "y": 0.0,
+            "width": 460.0,
+            "height": 345.0,
+            "type": "Camera Stream",
+            "properties": {
+              "topic": "/CameraPublisher/frontLeftCamera-raw",
+              "period": 0.06,
+              "rotation_turns": 0
+            }
+          },
+          {
+            "title": "frontRightCamera-raw",
+            "x": 460.0,
+            "y": 0.0,
+            "width": 460.0,
+            "height": 345.0,
+            "type": "Camera Stream",
+            "properties": {
+              "topic": "/CameraPublisher/frontRightCamera-raw",
+              "period": 0.06,
+              "rotation_turns": 0
+            }
+          },
+          {
+            "title": "backLeftCamera-raw",
+            "x": 0.0,
+            "y": 345.0,
+            "width": 460.0,
+            "height": 345.0,
+            "type": "Camera Stream",
+            "properties": {
+              "topic": "/CameraPublisher/backLeftCamera-raw",
+              "period": 0.06,
+              "rotation_turns": 0
+            }
+          },
+          {
+            "title": "backRightCamera-raw",
+            "x": 460.0,
+            "y": 345.0,
+            "width": 460.0,
+            "height": 345.0,
+            "type": "Camera Stream",
+            "properties": {
+              "topic": "/CameraPublisher/backRightCamera-raw",
+              "period": 0.06,
+              "rotation_turns": 0
+            }
+          },
+          {
+            "title": "Sim Field",
+            "x": 920.0,
+            "y": 0.0,
+            "width": 345.0,
+            "height": 690.0,
+            "type": "Field",
+            "properties": {
+              "topic": "/SmartDashboard/VisionSystemSim-main/Sim Field",
+              "period": 0.06,
+              "field_game": "Reefscape",
+              "robot_width": 0.85,
+              "robot_length": 0.85,
+              "show_other_objects": true,
+              "show_trajectories": false,
+              "field_rotation": -90.0,
+              "robot_color": 4294198070,
+              "trajectory_color": 4294967295
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "Testing",
+      "grid_layout": {
+        "layouts": [],
+        "containers": [
+          {
+            "title": "RobotRotation",
+            "x": 690.0,
+            "y": 0.0,
+            "width": 345.0,
+            "height": 115.0,
+            "type": "Text Display",
+            "properties": {
+              "topic": "/DriverStationInterface/RobotRotation",
+              "period": 0.06,
+              "data_type": "double",
+              "show_submit_button": false
+            }
+          },
+          {
+            "title": "RobotX",
+            "x": 690.0,
+            "y": 115.0,
+            "width": 345.0,
+            "height": 115.0,
+            "type": "Text Display",
+            "properties": {
+              "topic": "/DriverStationInterface/RobotX",
+              "period": 0.06,
+              "data_type": "double",
+              "show_submit_button": false
+            }
+          },
+          {
+            "title": "RobotY",
+            "x": 690.0,
+            "y": 230.0,
+            "width": 345.0,
+            "height": 115.0,
+            "type": "Text Display",
+            "properties": {
+              "topic": "/DriverStationInterface/RobotY",
+              "period": 0.06,
+              "data_type": "double",
+              "show_submit_button": false
+            }
+          },
+          {
+            "title": "SimLEDs",
+            "x": 0.0,
+            "y": 575.0,
+            "width": 1495.0,
+            "height": 115.0,
+            "type": "Multi Color View",
+            "properties": {
+              "topic": "/AdvantageKit/RealOutputs/LEDs/SimLEDs",
+              "period": 0.06,
+              "data_type": "string[]"
+            }
+          },
+          {
+            "title": "SimLEDs",
+            "x": 115.0,
+            "y": 230.0,
+            "width": 230.0,
+            "height": 230.0,
+            "type": "Text Display",
+            "properties": {
+              "topic": "/AdvantageKit/RealOutputs/LEDs/SimLEDs",
+              "period": 0.06,
+              "data_type": "string[]",
+              "show_submit_button": false
+            }
+          },
+          {
+            "title": "ActiveStates",
+            "x": 460.0,
+            "y": 460.0,
+            "width": 345.0,
+            "height": 115.0,
+            "type": "Text Display",
+            "properties": {
+              "topic": "/AdvantageKit/RealOutputs/LEDs/ActiveStates",
+              "period": 0.06,
+              "data_type": "string",
+              "show_submit_button": false
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

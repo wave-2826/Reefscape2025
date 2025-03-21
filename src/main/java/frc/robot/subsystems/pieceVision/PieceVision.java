@@ -164,7 +164,7 @@ public class PieceVision extends SubsystemBase {
         if(lockedPiece == null) { return; }
 
         // Clamp the value just in case something strange happens.
-        double latencySeconds = Math.min(observationTimestamp - Timer.getTimestamp(), PIECE_TRACKING_TIMEOUT);
+        double latencySeconds = Math.min(Timer.getTimestamp() - observationTimestamp, PIECE_TRACKING_TIMEOUT);
         Logger.recordOutput("PieceVision/Latency", latencySeconds);
 
         // Correct for our current robot velocity.
