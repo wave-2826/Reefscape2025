@@ -1,6 +1,7 @@
 package frc.robot.subsystems.arm;
 
 import static edu.wpi.first.units.Units.Inches;
+import static edu.wpi.first.units.Units.Meters;
 
 import com.revrobotics.spark.ClosedLoopSlot;
 
@@ -20,11 +21,11 @@ import frc.robot.util.GearRatios.UltraPlanetaryRatio;
  */
 public class ArmConstants {
     /** The state that the arm rests in while waiting for a game piece. */
-    public static final ArmState restingState = new ArmState(Rotation2d.fromDegrees(-95), Inches.of(16.5),
+    public static final ArmState restingState = new ArmState(Rotation2d.fromDegrees(-90), Meters.of(0.533),
         WristRotation.Horizontal, EndEffectorState.hold());
     /** The state the arm is in when getting a piece. */
-    public static final ArmState getPieceState = new ArmState(Rotation2d.fromDegrees(-95), Inches.of(14.25),
-        WristRotation.Horizontal, EndEffectorState.velocity(-8));
+    public static final ArmState getPieceState = new ArmState(Rotation2d.fromRadians(-1.63), Meters.of(0.1),
+        WristRotation.Horizontal, EndEffectorState.velocity(-10));
 
     public class ElevatorConstants {
         public static final int elevatorHeightMotor1Id = 50;
