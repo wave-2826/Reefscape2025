@@ -14,6 +14,7 @@ import com.pathplanner.lib.util.FlippingUtil;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.ScheduleCommand;
 import frc.robot.FieldConstants;
 import frc.robot.FieldConstants.ReefBranch;
 import frc.robot.FieldConstants.ReefLevel;
@@ -50,7 +51,7 @@ public class AutoCommands {
         //     Commands.defer(() -> scoreUntilFailure(drive, vision, arm, pieceVision, intake),
         //         Set.of(drive, vision, arm, pieceVision, intake)));
 
-        NamedCommands.registerCommand("Start intake", IntakeCommands.autoIntake(intake, arm));
+        NamedCommands.registerCommand("Start intake", new ScheduleCommand(IntakeCommands.autoIntake(intake, arm)));
     }
 
     /**
