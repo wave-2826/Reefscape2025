@@ -29,7 +29,7 @@ public class ClimbCommands {
 
             // climber.runClimber(climberRotation.value);
             if(climber.getPitch().getDegrees() < Units.degreesToRadians(10)) {
-                climbSpeed = Math.max(0, climbSpeed);
+                climbSpeed = Math.min(0, climbSpeed);
             }
 
             climber.runClimberOpenLoop(climbSpeed);
