@@ -19,7 +19,6 @@ public class IntakeCommands {
     private static boolean canTake = false;
 
     public static Command autoIntake(Intake intake, Arm arm) {
-
         return intake.startRun(() -> {
             intake.setIntakeState(IntakeState.IntakeDown);
         }, () -> {
@@ -43,7 +42,7 @@ public class IntakeCommands {
     ) {
         // @formatter:off
         return intake.run(() -> {
-            if(intake.intakeSensorTriggered()) {
+            if(intake.intakeSensorTriggered() && !shouldOuttake.getAsBoolean() && !shouldOuttakeTrough.getAsBoolean()) {
                 canTake = true;
             }
 

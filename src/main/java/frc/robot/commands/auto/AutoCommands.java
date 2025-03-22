@@ -32,11 +32,11 @@ public class AutoCommands {
 
     public static void registerNamedCommands(Drive drive, Vision vision, PieceVision pieceVision, Arm arm,
         Intake intake) {
+        // NamedCommands.registerCommand("Auto Coral", Commands
+        //     .defer(() -> grabCoral(drive, pieceVision, intake, arm, null), Set.of(drive, pieceVision, intake, arm)));
+
         // TODO: Compute these ahead of time and don't use deferred commands
         // It seems this requires fixing some issues with the commands referencing alliances before they're run
-        NamedCommands.registerCommand("Auto Coral", Commands
-            .defer(() -> grabCoral(drive, pieceVision, intake, arm, null), Set.of(drive, pieceVision, intake, arm)));
-
         for(var branch : ReefBranch.values()) {
             for(var level : ReefLevel.values()) {
                 ReefTarget target = new ReefTarget(branch, level);

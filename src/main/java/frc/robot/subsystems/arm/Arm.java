@@ -75,8 +75,8 @@ public class Arm extends SubsystemBase {
     }
 
     private static final double TARGET_HEIGHT_TOLERANCE_METERS = Units.inchesToMeters(0.4);
-    private static final double TARGET_PITCH_TOLERANCE_DEGREES = 2.0;
-    private static final double TARGET_WRIST_TOLERANCE_DEGREES = 2.0;
+    private static final double TARGET_PITCH_TOLERANCE_DEGREES = 3.0;
+    private static final double TARGET_WRIST_TOLERANCE_DEGREES = 3.0;
 
     public ArmState getCurrentTargetState() {
         return adjustedTarget;

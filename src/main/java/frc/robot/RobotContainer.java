@@ -182,7 +182,7 @@ public class RobotContainer {
         VisionTuningCommands.addTuningCommandsToAutoChooser(vision, autoChooser);
 
         autoChooser.addOption("omg why is auto not working",
-            DriveCommands.driveStraightCommand(drive, Units.metersToFeet(1), 2));
+            DriveCommands.driveStraightCommand(drive, Units.feetToMeters(1), 2));
 
         // Configure the button bindings
         Controls.getInstance().configureControls(drive, driveSimulation, arm, intake, vision, climber);
