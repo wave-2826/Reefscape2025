@@ -97,8 +97,10 @@ public class Controls {
 
         driver.start().onTrue(Commands.runOnce(resetGyro, drive).ignoringDisable(true));
 
+        var intakeTrigger = driver.rightTrigger(0.3).or(operator.rightBumper().and(normalOperator));
+        intakeTrigger.onTrue(arm.goToStateCommand(ArmConstants.restingState));
         intake.setDefaultCommand(IntakeCommands.intakeCommand(intake, arm, // 
-            driver.rightTrigger(0.3).or(operator.rightBumper().and(normalOperator)), // Intake
+            intakeTrigger, // Intake
             driver.leftTrigger(0.3).or(operator.leftBumper().and(normalOperator)), // Outtake
             operator.povRight().and(normalOperator) // Outtake trough
         ));
