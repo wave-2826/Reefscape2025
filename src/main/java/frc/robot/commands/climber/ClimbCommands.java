@@ -4,6 +4,7 @@ import java.util.function.DoubleSupplier;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.subsystems.climber.Climber;
@@ -22,12 +23,16 @@ public class ClimbCommands {
 
     public static Command climbCommand(Climber climber, DoubleSupplier climbSupplier) {
         return climber.run(() -> {
-            double climbSpeed = MathUtil.applyDeadband(climbSupplier.getAsDouble(), 0.2);
+            double climbSpeed = -MathUtil.applyDeadband(climbSupplier.getAsDouble(), 0.2);
             // climberRotation.value = climberRotation.value
             //     .plus(Rotation2d.fromDegrees(climbSpeed * CLIMB_SPEED_DEGREES * 0.02));
 
             // climber.runClimber(climberRotation.value);
-            climber.runClimberOpenLoop(-climbSpeed);
+            if(climber.getPitch().getDegrees() < Units.degreesToRadians(10)) {
+                climbSpeed = Math.max(0, climbSpeed);
+            }
+
+            climber.runClimberOpenLoop(climbSpeed);
         }).finallyDo(() -> climber.runClimberOpenLoop(0));
     }
 }
