@@ -13,7 +13,6 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Controls;
-import frc.robot.subsystems.arm.ArmConstants;
 import frc.robot.util.LoggedTracer;
 
 /**
@@ -28,7 +27,7 @@ public class Intake extends SubsystemBase {
 
     public enum IntakeState {
         IntakeDown(Rotation2d.kZero, 1.0, true), OuttakeDown(Rotation2d.kZero, -1.0,
-            true), Up(Rotation2d.fromDegrees(80.0), 0.0, false);
+            true), Up(Rotation2d.fromDegrees(80.0), 0.0, false), OuttakeUp(Rotation2d.fromDegrees(50), -1.0, false);
 
         public final Rotation2d pitch;
         public final double speed;

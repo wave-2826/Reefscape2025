@@ -110,7 +110,10 @@ public class PieceVisionIOSim implements PieceVisionIO {
 
     @Override
     public void updateInputs(PieceVisionIOInputs inputs) {
-        if(!shouldRenderFrame()) { return; }
+        if(!shouldRenderFrame()) {
+            inputs.locations = null;
+            return;
+        }
 
         inputs.connected = true;
         inputs.cpuTemp = 25;

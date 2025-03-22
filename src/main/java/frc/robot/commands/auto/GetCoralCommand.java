@@ -120,7 +120,7 @@ public class GetCoralCommand {
                 }).finallyDo(() -> {
                     drive.stop();
                 }) //
-            ), IntakeCommands.intakeCommand(intake, arm, () -> true, () -> false));
+            ), IntakeCommands.intakeCommand(intake, arm, () -> true, () -> false, () -> false));
         }
     }
 }

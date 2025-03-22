@@ -99,7 +99,8 @@ public class Controls {
 
         intake.setDefaultCommand(IntakeCommands.intakeCommand(intake, arm, // 
             driver.rightTrigger(0.3).or(operator.rightBumper().and(normalOperator)), // Intake
-            driver.leftTrigger(0.3).or(operator.leftBumper().and(normalOperator)) // Outtake
+            driver.leftTrigger(0.3).or(operator.leftBumper().and(normalOperator)), // Outtake
+            operator.povRight().and(normalOperator) // Outtake trough
         ));
 
         // Normal operator controls

@@ -15,7 +15,7 @@ public interface PieceVisionIO {
          * The latest set of piece locations. Will be null if there's no new update. This is used to represent the
          * locations of pieces in the field of view of the camera.
          */
-        public PieceLocation[] locations = null;
+        public PieceLocation[] locations = new PieceLocation[] {};
 
         /**
          * The timestamp is the time the image was taken in seconds, and should be matched with our local time base.
