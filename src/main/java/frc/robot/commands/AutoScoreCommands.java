@@ -39,7 +39,7 @@ public class AutoScoreCommands {
      * The distance from the reef branch to the center of the robot when lining up to score L1 in meters.
      */
     private static final LoggedTunableNumber robotReefLineupL1Distance = new LoggedTunableNumber(//
-        "AutoScore/L1ReefLineupDistance", 38.5);
+        "AutoScore/L1ReefLineupDistance", 35.5);
 
     /**
      * The distance from the reef branch to the center of the robot when lining up to score L2-L4 in meters.
