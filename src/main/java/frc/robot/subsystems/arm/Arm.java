@@ -57,11 +57,15 @@ public class Arm extends SubsystemBase {
         this.inputs = new ArmIOInputsAutoLogged();
     }
 
-    public Command goToStateCommand(ArmState state) {
+    public Command goToStateCommand(ArmState state, double timeoutSeconds) {
         return this.run(() -> {
             targetState = state;
             adjustedTarget = getAdjustedTarget();
-        }).until(this::isAtTarget).withName("ArmGoToState").withTimeout(1.0);
+        }).until(this::isAtTarget).withName("ArmGoToState").withTimeout(timeoutSeconds);
+    }
+
+    public Command goToStateCommand(ArmState state) {
+        return goToStateCommand(state, 1.0);
     }
 
     public Command goToStateCommand(Supplier<ArmState> state) {

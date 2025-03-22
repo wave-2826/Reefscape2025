@@ -78,7 +78,7 @@ public class DriveCommands {
      * forward.
      */
     public static Command driveStraightCommand(Drive drive, double speedMetersPerSecond, double timeSeconds) {
-        return driveStraightCommand(drive, speedMetersPerSecond).raceWith(Commands.waitSeconds(timeSeconds));
+        return driveStraightCommand(drive, speedMetersPerSecond).withTimeout(timeSeconds);
     }
 
     /**

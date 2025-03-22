@@ -137,15 +137,15 @@ public class Drive extends SubsystemBase {
         });
         PathPlannerLogging.setLogTargetPoseCallback((targetPose) -> {
             // HACK: what is pathplanner doing
-            boolean isRed = DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red;
-            if(isRed && targetPose.getX() < FieldConstants.fieldLength / 2) {
-                // omg wtf
-                CommandScheduler.getInstance().cancelAll();
-            }
-            if(!isRed && targetPose.getX() > FieldConstants.fieldLength / 2) {
-                // omg wtf
-                CommandScheduler.getInstance().cancelAll();
-            }
+            // boolean isRed = DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red;
+            // if(isRed && targetPose.getX() < FieldConstants.fieldLength / 2) {
+            //     // omg wtf
+            //     CommandScheduler.getInstance().cancelAll();
+            // }
+            // if(!isRed && targetPose.getX() > FieldConstants.fieldLength / 2) {
+            //     // omg wtf
+            //     CommandScheduler.getInstance().cancelAll();
+            // }
 
             Logger.recordOutput("Odometry/TrajectorySetpoint", targetPose);
         });

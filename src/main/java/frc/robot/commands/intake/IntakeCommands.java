@@ -12,8 +12,8 @@ import frc.robot.subsystems.intake.Intake.IntakeState;
 public class IntakeCommands {
     public static Command getPieceFromIntake(Arm arm) {
         return Commands.sequence(arm.goToStateCommand(ArmConstants.restingState),
-            arm.goToStateCommand(ArmConstants.getPieceState), Commands.waitSeconds(0.1),
-            arm.goToStateCommand(ArmConstants.restingState));
+            arm.goToStateCommand(ArmConstants.getPieceState, 0.3), Commands.waitSeconds(0.2),
+            arm.goToStateCommand(ArmConstants.restingState, 0.5));
     }
 
     private static boolean canTake = false;
