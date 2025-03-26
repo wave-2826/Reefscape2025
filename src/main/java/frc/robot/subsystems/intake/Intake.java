@@ -160,7 +160,9 @@ public class Intake extends SubsystemBase {
                 io.setIntakePitch(targetIntakeState.pitch);
             }
 
-            io.runVelocity(targetIntakeState.speed,
+            if(IntakeConstants.disableTransportSensors) io.runVelocity(targetIntakeState.speed,
+                targetIntakeState.speed);
+            else io.runVelocity(targetIntakeState.speed,
                 targetIntakeState.speed == 0 ? transportTarget.speed : targetIntakeState.speed);
         }
 
