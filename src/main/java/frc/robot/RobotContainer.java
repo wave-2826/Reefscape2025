@@ -4,9 +4,11 @@ import com.pathplanner.lib.auto.AutoBuilder;
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.commands.auto.AutoCommands;
+import frc.robot.commands.drive.DriveCommands;
 import frc.robot.commands.drive.DriveTuningCommands;
 import frc.robot.commands.vision.VisionTuningCommands;
 import frc.robot.subsystems.arm.Arm;
@@ -119,7 +121,8 @@ public class RobotContainer {
                         driveSimulation::getSimulatedDriveTrainPose));
                 pieceVision = new PieceVision(new PieceVisionIOSim(driveSimulation::getSimulatedDriveTrainPose),
                     drive::getChassisSpeeds, drive::getPose);
-                arm = new Arm(new ArmIOSim());
+                arm = new Arm(new ArmIOSim(driveSimulation::getSimulatedDriveTrainPose,
+                    driveSimulation::getDriveTrainSimulatedChassisSpeedsFieldRelative));
                 climber = new Climber(new ClimberIOSim());
                 intake = new Intake(new IntakeIOSim(driveSimulation));
 
@@ -178,6 +181,9 @@ public class RobotContainer {
         DriveTuningCommands.addTuningCommandsToAutoChooser(drive, autoChooser);
         VisionTuningCommands.addTuningCommandsToAutoChooser(vision, autoChooser);
 
+        autoChooser.addOption("omg why is auto not working",
+            DriveCommands.driveStraightCommand(drive, Units.feetToMeters(1), 2));
+
         // Configure the button bindings
         Controls.getInstance().configureControls(drive, driveSimulation, arm, intake, vision, climber);
     }
@@ -206,7 +212,7 @@ public class RobotContainer {
         Logger.recordOutput("FieldSimulation/Coral", SimulatedArena.getInstance().getGamePiecesArrayByType("Coral"));
         Logger.recordOutput("FieldSimulation/Algae", SimulatedArena.getInstance().getGamePiecesArrayByType("Algae"));
 
-        SimRobotGamePieceVisualization.update(driveSimulation.getSimulatedDriveTrainPose());
+        SimRobotGamePiece.update(driveSimulation.getSimulatedDriveTrainPose());
 
         if(!VisionConstants.enableVisionSimulation) {
             drive.addVisionMeasurement(driveSimulation.getSimulatedDriveTrainPose(), Timer.getTimestamp(),

@@ -1,69 +1,68 @@
 package frc.robot.commands.intake;
 
-import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.GenericHID.RumbleType;
+import java.util.function.BooleanSupplier;
+
+import org.littletonrobotics.junction.AutoLogOutput;
+
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
-import frc.robot.Controls;
-import frc.robot.commands.AutoScoreCommands;
 import frc.robot.subsystems.arm.Arm;
 import frc.robot.subsystems.arm.ArmConstants;
 import frc.robot.subsystems.intake.Intake;
+import frc.robot.subsystems.intake.Intake.IntakeState;
 
 public class IntakeCommands {
-    public static Command getPiece(Arm arm) {
-        return Commands.sequence(arm.goToStateCommand(ArmConstants.getPieceState).withTimeout(0.5),
-            Commands.waitSeconds(0.3), arm.goToStateCommand(ArmConstants.getPieceState2).withTimeout(0.25),
-            Commands.waitSeconds(0.2), arm.goToStateCommand(ArmConstants.getPieceState),
-            arm.goToStateCommand(ArmConstants.restingState).withTimeout(0.25));
+    public static Command getPieceFromIntake(Arm arm) {
+        return Commands.sequence(arm.goToStateCommand(ArmConstants.restingState),
+            arm.goToStateCommand(ArmConstants.getPieceState, 0.3), Commands.waitSeconds(0.2),
+            arm.goToStateCommand(ArmConstants.restingState, 0.5));
     }
 
-    public static Command getPieceFromIntake(Intake intake, Arm arm) {
-        // @formatter:off
-        return Commands.sequence(
-            arm.goToStateCommand(ArmConstants.restingState).withTimeout(0.5),
-            intake.setTransportOverrideSpeedCommand(1.0),
+    @AutoLogOutput(key = "Intake/CanTake")
+    private static boolean canTake = false;
 
-            Commands.waitUntil(intake::transportSensorTriggered),
-            Commands.waitSeconds(0.15),
-            intake.setTransportOverrideSpeedCommand(0.0),
+    public static Command autoIntake(Intake intake, Arm arm) {
+        return intake.startRun(() -> {
+            intake.setIntakeState(IntakeState.IntakeDown);
+        }, () -> {
+            if(intake.intakeSensorTriggered()) {
+                canTake = true;
+            }
 
-            getPiece(arm)
-        )
-        // HACK
-        .unless(() -> AutoScoreCommands.autoScoreRunning).until(() -> AutoScoreCommands.autoScoreRunning);
-        // @formatter:on
+            if(intake.pieceWaitingForArm() && canTake) {
+                getPieceFromIntake(arm).schedule();
+                canTake = false;
+            }
+        }).withName("AutoIntakeSequence").finallyDo(() -> {
+            intake.setIntakeState(IntakeState.Up);
+        });
     }
 
-    public static Command intakeCommand(Intake intake, Arm arm) {
+    public static Command intakeCommand(Intake intake, Arm arm, BooleanSupplier shouldIntake,
+        BooleanSupplier shouldOuttake, BooleanSupplier shouldOuttakeTrough
+    // DoubleSupplier overrideSpeed,
+    //     DoubleSupplier overridePitch, Supplier<OperatorMode> operatorMode
+    ) {
         // @formatter:off
-        return Commands.sequence(
-            Commands.sequence(
-                intake.runIntakeOpenLoopCommand(1.0),
-                intake.setIntakePitchCommand(Rotation2d.kZero),
-                intake.setIntakeCoast(),
+        return intake.run(() -> {
+            if(intake.intakeSensorTriggered() && !shouldOuttake.getAsBoolean() && !shouldOuttakeTrough.getAsBoolean()) {
+                canTake = true;
+            }
 
-                Commands.waitUntil(intake::intakeSensorTriggered)
-            ).onlyIf(() -> !intake.intakeSensorTriggered()),
-
-            Commands.runOnce(() -> {
-                // This is kind of sketchy
-                getPieceFromIntake(intake, arm).schedule();
-            }),
-
-            Controls.getInstance().controllerRumbleWhileRunning(true, true, RumbleType.kBothRumble)
-                .withTimeout(0.1)
-                .andThen(Commands.waitSeconds(0.05))
-                .repeatedly().withTimeout(0.4)
-                .onlyIf(DriverStation::isTeleop)
-        ).finallyDo(() -> {
-            intake.runIntakeOpenLoop(0.0);
-            intake.setIntakePitchCommand(Rotation2d.fromDegrees(80)).schedule();
-        })
-        // HACK
-        .unless(() -> AutoScoreCommands.autoScoreRunning).until(() -> AutoScoreCommands.autoScoreRunning)
-        .withName("IntakeSequence");
-        // @formatter:on
+            if(shouldIntake.getAsBoolean()) {
+                intake.setIntakeState(IntakeState.IntakeDown);
+            } else if(shouldOuttake.getAsBoolean()) {
+                intake.setIntakeState(IntakeState.OuttakeDown);
+            } else if(shouldOuttakeTrough.getAsBoolean()) {
+                intake.setIntakeState(IntakeState.OuttakeUp);
+            } else {
+                intake.setIntakeState(IntakeState.Up);
+            }
+            
+            if(intake.pieceWaitingForArm() && canTake) {
+                getPieceFromIntake(arm).schedule();
+                canTake = false;
+            }
+        }).withName("IntakeSequence");
     }
 }

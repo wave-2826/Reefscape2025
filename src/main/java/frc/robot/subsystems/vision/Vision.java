@@ -74,7 +74,7 @@ public class Vision extends SubsystemBase {
     @Override
     @SuppressWarnings("unused")
     public void periodic() {
-        if(Constants.currentMode == Constants.Mode.SIM && !VisionConstants.enableVisionSimulation) { return; }
+        if(Constants.isSim && !VisionConstants.enableVisionSimulation) { return; }
 
         for(int i = 0; i < io.length; i++) {
             io[i].updateInputs(inputs[i]);

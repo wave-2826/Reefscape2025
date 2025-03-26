@@ -8,7 +8,8 @@ public interface IntakeIO {
     @AutoLog
     public static class IntakeIOInputs {
         public boolean intakeSensorTriggered = false;
-        public boolean transortSensorTriggered = false;
+        // public boolean middleSensorTriggered = false;
+        public boolean endSensorTriggered = false;
         /** The pitch of the intake. 0 degrees is straight outward. */
         public Rotation2d intakePitch = Rotation2d.kZero;
         /** The speed of the intake wheels, in radians per second. */
@@ -21,6 +22,7 @@ public interface IntakeIO {
     public default void setIntakePitch(Rotation2d pitch) {
     }
 
+    /** Sets the intake to stop running closed-loop position control until setIntakePitch is called again. */
     public default void setIntakeCoast() {
     }
 

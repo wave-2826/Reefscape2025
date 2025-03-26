@@ -62,6 +62,7 @@ public class PieceVisionIOLimelight implements PieceVisionIO {
     public void updateInputs(PieceVisionIOInputs inputs) {
         // Update connection status based on whether an update has been seen in the last 250ms
         inputs.connected = ((RobotController.getFPGATime() - pipelineLatencySubscriber.getLastChange()) / 1000) < 250;
+        if(!inputs.connected) { return; }
 
         var hardwareMetrics = hardwareMetricsSubscruber.get();
         if(hardwareMetrics.length == 0) {

@@ -1,6 +1,7 @@
 package frc.robot.subsystems.arm;
 
 import static edu.wpi.first.units.Units.Inches;
+import static edu.wpi.first.units.Units.Meters;
 
 import com.revrobotics.spark.ClosedLoopSlot;
 
@@ -20,22 +21,22 @@ import frc.robot.util.GearRatios.UltraPlanetaryRatio;
  */
 public class ArmConstants {
     /** The state that the arm rests in while waiting for a game piece. */
-    public static final ArmState restingState = new ArmState(Rotation2d.fromDegrees(-55), Inches.of(19.5),
+    public static final ArmState restingState = new ArmState(Rotation2d.fromRadians(-1.62), Meters.of(0.533),
         WristRotation.Horizontal, EndEffectorState.hold());
     /** The state the arm is in when getting a piece. */
-    public static final ArmState getPieceState = new ArmState(Rotation2d.fromDegrees(-100), Inches.of(14.75),
-        WristRotation.Horizontal, EndEffectorState.velocity(-5));
-    /** The second state the arm is in when getting a piece. */
-    public static final ArmState getPieceState2 = new ArmState(Rotation2d.fromDegrees(-100), Inches.of(14.25),
-        WristRotation.Horizontal, EndEffectorState.velocity(-15));
-    /** The state used during intaking to make sure the passive stage clears the transport. */
-    public static final ArmState intakeClearanceState = new ArmState(Rotation2d.fromDegrees(-90), Inches.of(30.0),
-        WristRotation.Horizontal, EndEffectorState.hold());
-    /** The state used for source intaking. */
+    public static final ArmState getPieceState = new ArmState(Rotation2d.fromRadians(-1.8), Meters.of(0.11),
+        WristRotation.Horizontal, EndEffectorState.velocity(-10));
+
+    /** The state when the arm is intaking from the source. */
     public static final ArmState sourceIntakeState = new ArmState(Rotation2d.fromDegrees(80), Inches.of(5),
         WristRotation.Vertical, EndEffectorState.velocity(-18));
+    /** The state when the arm is intaking from the source but stopped. */
+    public static final ArmState sourceIntakeStoppedState = new ArmState(Rotation2d.fromDegrees(80), Inches.of(5),
+        WristRotation.Vertical, EndEffectorState.hold());
 
     public class ElevatorConstants {
+        public static final double elevatorStartingHeightMeters = 0.352;
+
         public static final int elevatorHeightMotor1Id = 50;
         public static final int elevatorHeightMotor2Id = 51;
         public static final int elevatorHeightSensorId = 54;
@@ -43,7 +44,7 @@ public class ArmConstants {
         // PID constants for the elevator position PID
         public static final LoggedTunableSparkPID elevatorPID = new LoggedTunableSparkPID("Arm/Elevator")
             // .addRealRobotGains(new PIDConstants(7.0, 0.0, 7.0)) //
-            .addRealRobotGains(new PIDConstants(5.0, 0.005, 5.0).iZone(Units.inchesToMeters(1.5))) //
+            .addRealRobotGains(new PIDConstants(6.0, 0.005, 6.0).iZone(Units.inchesToMeters(1.5))) //
             .addSimGains(new PIDConstants(40.0, 0.0, 0.0));
 
         // Feedforward constants for the elevator
@@ -51,7 +52,7 @@ public class ArmConstants {
         public static final double elevatorKgReal = 0.3;
         public static final double elevatorKgSim = 0.3;
 
-        public static final int elevatorMotorCurrentLimit = 35;
+        public static final int elevatorMotorCurrentLimit = 45;
         public static final boolean elevatorMotorInverted = true;
 
         public static final double elevatorReduction = 5.;
@@ -95,7 +96,7 @@ public class ArmConstants {
          */
         public static final Translation3d elevatorOrigin = new Translation3d(Units.inchesToMeters(8), // Forward is +X
             0, // Left is +Y
-            Units.inchesToMeters(0.75) // Upward is +Y
+            Units.inchesToMeters(2.0) // Upward is +Y
         );
         /**
          * The translation from the elevator origin to the passive (outer) stage when the stage is at its minimum
@@ -120,9 +121,9 @@ public class ArmConstants {
         public static final int armWristMotorId = 53;
 
         /** The wrist absolute encoder zero offset, in radians. */
-        public static final double wristZeroOffset = 0.7912476;
+        public static final double wristZeroOffset = 0.0087384;
         /** The pitch absolute encoder zero offset, in radians. */
-        public static final double pitchZeroOffset = 0.3618647;
+        public static final double pitchZeroOffset = 0.3511382;
 
         /** The highest soft stop for the arm pitch. */
         public static final Rotation2d maximumPitch = Rotation2d.fromDegrees(90.);
@@ -135,7 +136,7 @@ public class ArmConstants {
 
         public static final LoggedTunableSparkPID armPitchPID = new LoggedTunableSparkPID("Arm/Pitch")
             // .addRealRobotGains(new PIDConstants(0.8, 0.001, 0.9).iZone(Units.degreesToRadians(5)))
-            .addRealRobotGains(new PIDConstants(0.6, 0.001, 0.7).iZone(Units.degreesToRadians(5)))
+            .addRealRobotGains(new PIDConstants(0.5, 0.001, 0.8).iZone(Units.degreesToRadians(5)))
             .addSimGains(new PIDConstants(25., 0.001, 0.3).iZone(Units.degreesToRadians(5)));
 
         public static final double armPitchReduction = 9 * (36 / 12);
@@ -149,7 +150,7 @@ public class ArmConstants {
         /** The conversion factor from pitch absolute encoder RPM to radians per second. */
         public static final double pitchAbsoluteVelocityFactor = pitchAbsolutePositionFactor / 60.;
 
-        public static final int pitchMotorCurrentLimit = 35;
+        public static final int pitchMotorCurrentLimit = 38;
         public static final boolean pitchMotorInverted = true;
         public static final boolean pitchEncoderInverted = true;
 
@@ -221,7 +222,7 @@ public class ArmConstants {
 
         public static final LoggedTunableSparkPID endEffectorPID = new LoggedTunableSparkPID("Arm/EndEffector")
             .addRealRobotGains(new PIDConstants(0.001, 0.0, 0.5, endEffectorReduction / 565, endEffectorVelocitySlot))
-            .addSimGains(new PIDConstants(0.001, 0.0, 0.5, endEffectorReduction / 565, endEffectorVelocitySlot))
+            .addSimGains(new PIDConstants(0.01, 0.0, 0.0, 0.04, endEffectorVelocitySlot))
             .addRealRobotGains(new PIDConstants(0.003, 0.0, 0.0, endEffectorPositionSlot))
             .addSimGains(new PIDConstants(0.003, 0.0, 0.0, endEffectorPositionSlot));
 
@@ -229,7 +230,7 @@ public class ArmConstants {
         public static final double endEffectorPositionConversionFactor = 2 * Math.PI / endEffectorReduction;
         /** The conversion factor from wrist motor RPM to radians per second. */
         public static final double endEffectorVelocityConversionFactor = endEffectorPositionConversionFactor / 60.;
-        public static final int endEffectorMotorCurrentLimit = 25;
+        public static final int endEffectorMotorCurrentLimit = 40;
         public static final boolean endEffectorMotorInverted = true;
     }
 }

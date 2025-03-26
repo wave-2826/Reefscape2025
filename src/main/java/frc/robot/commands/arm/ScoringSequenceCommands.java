@@ -5,8 +5,10 @@ import static edu.wpi.first.units.Units.Inches;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.units.measure.Distance;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import frc.robot.Constants;
 import frc.robot.FieldConstants.ReefLevel;
 import frc.robot.commands.drive.DriveCommands;
 import frc.robot.subsystems.arm.Arm;
@@ -21,33 +23,24 @@ import frc.robot.util.LoggedTunableNumber;
  * This is a disaster... hopefully I rarely ever have to touch this.
  */
 public class ScoringSequenceCommands {
-    private static LoggedTunableNumber elevatorScoreHeightReduction = new LoggedTunableNumber(
-        "AutoScore/ScoreHeightReduction");
-    private static LoggedTunableNumber gamePieceEjectVelocity = new LoggedTunableNumber(
-        "AutoScore/GamePieceEjectVelocity");
-    private static LoggedTunableNumber branchScorePitch = new LoggedTunableNumber("AutoScore/BranchScorePitch");
-    private static LoggedTunableNumber L4ScorePitch = new LoggedTunableNumber("AutoScore/L4ScorePitch");
-    private static LoggedTunableNumber L4ScoreHeightFromTop = new LoggedTunableNumber("AutoScore/L4ScoreHeightFromTop");
-    private static LoggedTunableNumber L3ScoreHeight = new LoggedTunableNumber("AutoScore/L3ScoreHeight");
-    private static LoggedTunableNumber L2ScoreHeight = new LoggedTunableNumber("AutoScore/L2ScoreHeight");
-    private static LoggedTunableNumber L1ScoreHeight = new LoggedTunableNumber("AutoScore/L1ScoreHeight");
-    private static LoggedTunableNumber preScoreElevatorHeight = new LoggedTunableNumber(
-        "AutoScore/PreScoreElevatorHeight");
-
-    static {
-        elevatorScoreHeightReduction.initDefault(6);
-        gamePieceEjectVelocity.initDefault(12);
-
-        branchScorePitch.initDefault(65.);
-        L4ScorePitch.initDefault(55.);
-
-        L1ScoreHeight.initDefault(13);
-        L2ScoreHeight.initDefault(10);
-        L3ScoreHeight.initDefault(26);
-        L4ScoreHeightFromTop.initDefault(11);
-
-        preScoreElevatorHeight.initDefault(15.5);
-    }
+    private static LoggedTunableNumber elevatorScoreHeightReduction = new LoggedTunableNumber(//
+        "AutoScore/ScoreHeightReduction", 6);
+    private static LoggedTunableNumber gamePieceEjectVelocity = new LoggedTunableNumber(//
+        "AutoScore/GamePieceEjectVelocity", 12);
+    private static LoggedTunableNumber branchScorePitch = new LoggedTunableNumber(//
+        "AutoScore/BranchScorePitch", 65.);
+    private static LoggedTunableNumber L4ScorePitch = new LoggedTunableNumber(//
+        "AutoScore/L4ScorePitch", 55.);
+    private static LoggedTunableNumber L1ScoreHeight = new LoggedTunableNumber(//
+        "AutoScore/L1ScoreHeight", 14);
+    private static LoggedTunableNumber L2ScoreHeight = new LoggedTunableNumber(//
+        "AutoScore/L2ScoreHeight", 10);
+    private static LoggedTunableNumber L3ScoreHeight = new LoggedTunableNumber(//
+        "AutoScore/L3ScoreHeight", 26);
+    private static LoggedTunableNumber L4ScoreHeightFromTop = new LoggedTunableNumber(//
+        "AutoScore/L4ScoreHeightFromTop", 10);
+    private static LoggedTunableNumber preScoreElevatorHeight = new LoggedTunableNumber(//
+        "AutoScore/PreScoreElevatorHeight", 15.5);
 
     /**
      * Gets the starting state for scoring at level 1.
@@ -94,6 +87,11 @@ public class ScoringSequenceCommands {
     public static Command prepForScoring(ReefLevel level, Arm arm) {
         if(level == ReefLevel.L1) { return arm.goToStateCommand(getL1StartingState()); }
 
+        if(DriverStation.isAutonomous()) {
+            // TEMPORARY
+            return arm.goToStateCommand(new ArmState(Rotation2d.fromDegrees(80), getStartingState(level).height(),
+                WristRotation.Horizontal, EndEffectorState.hold()));
+        }
         return arm.goToStateCommand(new ArmState(Rotation2d.fromDegrees(80), Inches.of(preScoreElevatorHeight.get()),
             WristRotation.Horizontal, EndEffectorState.hold()));
     }
@@ -148,7 +146,7 @@ public class ScoringSequenceCommands {
         ArmState startState = getStartingState(level);
         ArmState scoreDownState = new ArmState(startState.pitch(),
             startState.height().minus(Inches.of(elevatorScoreHeightReduction.get())), startState.wristRotation(),
-            EndEffectorState.hold());
+            Constants.isSim ? EndEffectorState.velocity(gamePieceEjectVelocity.get()) : EndEffectorState.hold());
         ArmState scoreDownState2 = new ArmState(startState.pitch().minus(Rotation2d.fromDegrees(15)),
             startState.height().minus(Inches.of(elevatorScoreHeightReduction.get())), startState.wristRotation(),
             EndEffectorState.velocity(gamePieceEjectVelocity.get()));

@@ -20,7 +20,9 @@ import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import frc.robot.subsystems.pieceVision.PieceVisionIO.PieceLocation;
 import frc.robot.util.LoggedTracer;
 
@@ -120,19 +122,30 @@ public class PieceVision extends SubsystemBase {
      */
     private final Supplier<Pose2d> positionSupplier;
 
+    private void resetPaths() {
+        lockedPiece = null;
+        targetPath = null;
+        Logger.recordOutput("PieceVision/TargetPath", new Pose2d[] {});
+    }
+
     public PieceVision(PieceVisionIO io, Supplier<ChassisSpeeds> speedSupplier, Supplier<Pose2d> positionSupplier) {
         this.io = io;
         this.speedSupplier = speedSupplier;
         this.positionSupplier = positionSupplier;
 
         io.setEnabled(false);
+
+        RobotModeTriggers.disabled().onTrue(Commands.runOnce(this::resetPaths));
+        RobotModeTriggers.autonomous().onTrue(Commands.runOnce(this::resetPaths));
     }
 
     private PieceLocation getBestPieceLocation() {
-        if(inputs.locations == null || inputs.locations.length == 0) { return null; }
+        if(inputs.locations == null) { return null; }
+        var locations = inputs.locations;
+        if(locations.length == 0) { return null; }
 
-        PieceLocation best = inputs.locations[0];
-        for(PieceLocation location : inputs.locations) {
+        PieceLocation best = locations[0];
+        for(PieceLocation location : locations) {
             if(location.area() > 0.5) {
                 // Discard pieces that are too large.
                 continue;
@@ -153,7 +166,7 @@ public class PieceVision extends SubsystemBase {
         if(lockedPiece == null) { return; }
 
         // Clamp the value just in case something strange happens.
-        double latencySeconds = Math.min(observationTimestamp - Timer.getTimestamp(), PIECE_TRACKING_TIMEOUT);
+        double latencySeconds = Math.min(Timer.getTimestamp() - observationTimestamp, PIECE_TRACKING_TIMEOUT);
         Logger.recordOutput("PieceVision/Latency", latencySeconds);
 
         // Correct for our current robot velocity.
@@ -182,11 +195,12 @@ public class PieceVision extends SubsystemBase {
      */
     private void trackExistingPiece() {
         if(inputs.locations == null) { return; }
+        var locations = inputs.locations;
 
         // Filter only pieces that are within a certain number of degrees of our last observation.
-        PieceLocation[] nearbyPieces = new PieceLocation[inputs.locations.length];
+        PieceLocation[] nearbyPieces = new PieceLocation[locations.length];
         int nearbyPiecesCount = 0;
-        for(PieceLocation location : inputs.locations) {
+        for(PieceLocation location : locations) {
             if(Math.abs(location.theta().minus(lockedPiece.theta()).getDegrees()) < PIECE_TRACKING_ANGLE_THRESHOLD) {
                 nearbyPieces[nearbyPiecesCount++] = location;
             }
@@ -219,11 +233,6 @@ public class PieceVision extends SubsystemBase {
         if(isDisabled != wasDisabled) {
             io.setEnabled(!isDisabled);
             wasDisabled = isDisabled;
-
-            if(isDisabled) {
-                lockedPiece = null;
-                targetPath = null;
-            }
         }
 
         io.updateInputs(inputs);
@@ -232,6 +241,8 @@ public class PieceVision extends SubsystemBase {
         disconnectedAlert.set(!inputs.connected);
 
         if(inputs.locations != null) {
+            var locations = inputs.locations;
+
             if(lockedPiece == null) {
                 // Step 2: Pick the best piece to track.
                 lockedPiece = getBestPieceLocation();
@@ -247,9 +258,9 @@ public class PieceVision extends SubsystemBase {
             Pose3d cameraOnRobot = robotPose3d.plus(PieceVisionConstants.cameraTransform);
 
             List<Pose3d> estimatedFieldLocations = new ArrayList<>();
-            for(int i = 0; i < inputs.locations.length; i++) {
+            for(int i = 0; i < locations.length; i++) {
                 // Project the pitch and yaw of the observation onto the field plane (plus half a coral height) to estimate the location of the piece.
-                var location = inputs.locations[i];
+                var location = locations[i];
                 var pose = cameraOnRobot.transformBy(new Transform3d(new Translation3d(),
                     new Rotation3d(0, -location.pitch().getRadians(), location.theta().getRadians())));
 

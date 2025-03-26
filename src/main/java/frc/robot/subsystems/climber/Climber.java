@@ -21,6 +21,14 @@ public class Climber extends SubsystemBase {
 
     private final Alert climberDisconnectedAlert = new Alert("Climber motor disconnected!", AlertType.kError);
 
+    /**
+     * The pitch of the climber. 0 is fully back and positive numbers move outward.
+     * @return
+     */
+    public Rotation2d getPitch() {
+        return inputs.climberAbsolutePosition;
+    }
+
     public Climber(ClimberIO io) {
         this.io = io;
 

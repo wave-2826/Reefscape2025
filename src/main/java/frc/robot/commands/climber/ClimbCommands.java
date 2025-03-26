@@ -4,13 +4,14 @@ import java.util.function.DoubleSupplier;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.subsystems.climber.Climber;
 import frc.robot.util.Container;
 
 public class ClimbCommands {
-    private static final double CLIMB_SPEED_DEGREES = 20.;
+    // private static final double CLIMB_SPEED_DEGREES = 20.;
     private static Container<Rotation2d> climberRotation = new Container<Rotation2d>(Rotation2d.kZero);
 
     private ClimbCommands() {
@@ -27,7 +28,11 @@ public class ClimbCommands {
             //     .plus(Rotation2d.fromDegrees(climbSpeed * CLIMB_SPEED_DEGREES * 0.02));
 
             // climber.runClimber(climberRotation.value);
-            climber.runClimberOpenLoop(-climbSpeed);
-        });
+            if(climber.getPitch().getDegrees() < Units.degreesToRadians(10)) {
+                climbSpeed = Math.min(0, climbSpeed);
+            }
+
+            climber.runClimberOpenLoop(climbSpeed);
+        }).finallyDo(() -> climber.runClimberOpenLoop(0));
     }
 }

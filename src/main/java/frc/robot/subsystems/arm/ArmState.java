@@ -3,8 +3,11 @@ package frc.robot.subsystems.arm;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.units.measure.Distance;
 
-public record ArmState(Rotation2d pitch, Distance height, WristRotation wristRotation,
-    EndEffectorState endEffectorState) {
+public record ArmState(Rotation2d pitch, Distance height, WristRotation wristRotation, EndEffectorState endEffectorState
+// /**
+//  * If nonzero, creates a motion profile to transition to this state with the given maximum pitch speed.
+//  */ double maxSpeedDegreesPerSecond
+) {
     /** The rotation of the wrist. The coral is 90 degrees offset from this. */
     public enum WristRotation {
         /**

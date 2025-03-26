@@ -1,0 +1,43 @@
+{
+  "version": "2025.0",
+  "command": {
+    "type": "sequential",
+    "data": {
+      "commands": [
+        {
+          "type": "path",
+          "data": {
+            "pathName": "No vision coral left.0"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Score L L1"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Start intake"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "No vision coral left.1"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Score K L3"
+          }
+        }
+      ]
+    }
+  },
+  "resetOdom": true,
+  "folder": null,
+  "choreoAuto": true
+}

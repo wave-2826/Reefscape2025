@@ -32,8 +32,10 @@ import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
+import frc.robot.FieldConstants;
 import frc.robot.Constants.Mode;
 import frc.robot.subsystems.leds.LEDs;
 import frc.robot.util.DriverStationInterface;
@@ -126,14 +128,27 @@ public class Drive extends SubsystemBase {
 
         // Configure AutoBuilder for PathPlanner
         AutoBuilder.configure(this::getPose, this::setPose, this::getChassisSpeeds, this::runVelocityWithFeedforward,
-            Constants.currentMode == Constants.Mode.SIM ? DriveConstants.simHolonomicDriveController
-                : DriveConstants.realHolonomicDriveController,
+            Constants.isSim ? DriveConstants.simHolonomicDriveController : DriveConstants.realHolonomicDriveController,
+            // TODO: WHY DOESN'T THIS FLIP ON THE FMS?? ahghghghhhh
             pathplannerConfig, () -> DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red, this);
         Pathfinding.setPathfinder(new LocalADStarAK());
         PathPlannerLogging.setLogActivePathCallback((activePath) -> {
             Logger.recordOutput("Odometry/Trajectory", activePath.toArray(new Pose2d[activePath.size()]));
         });
         PathPlannerLogging.setLogTargetPoseCallback((targetPose) -> {
+            // HACK: what is pathplanner doing
+            boolean isRed = DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red;
+            if(isRed && targetPose.getX() < FieldConstants.fieldLength / 2) {
+                // omg wtf
+                CommandScheduler.getInstance().cancelAll();
+                System.out.println("Stopping auto; PathPlanner is trying to destroy the robot again");
+            }
+            if(!isRed && targetPose.getX() > FieldConstants.fieldLength / 2) {
+                // omg wtf
+                CommandScheduler.getInstance().cancelAll();
+                System.out.println("Stopping auto; PathPlanner is trying to destroy the robot again");
+            }
+
             Logger.recordOutput("Odometry/TrajectorySetpoint", targetPose);
         });
 

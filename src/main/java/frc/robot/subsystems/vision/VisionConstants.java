@@ -13,7 +13,7 @@ public class VisionConstants {
      * If we should enable vision simulation. Turning off vision sim can dramatically improve loop times, but it's
      * obviously far less representative of real robot odometry.
      */
-    public static final boolean enableVisionSimulation = true;
+    public static final boolean enableVisionSimulation = false;
 
     /**
      * Enable drawing a wireframe visualization of the field to the camera streams in simulation mode. This is extremely
@@ -49,11 +49,11 @@ public class VisionConstants {
     }
 
     // Robot to camera transforms
-    // Front right camera
+    // Front left camera
     public static final Transform3d robotToCamera0 = new Transform3d(
         new Translation3d(0.26525768557776486, 0.26320120237709405, 0.3043617686719239),
         new Rotation3d(0.007378789833927616, 0.2800075151914144, -0.5520122181237939));
-    // Front left camera
+    // Front right camera
     public static final Transform3d robotToCamera1 = new Transform3d(
         new Translation3d(0.2725368549785328, -0.26320120237709405, 0.30627972254109814),
         new Rotation3d(0.013917894786869571, 0.2646770752290893, 0.5746210307152744));

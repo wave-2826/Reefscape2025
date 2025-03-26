@@ -15,7 +15,7 @@ import frc.robot.util.PIDConstants;
 public class ClimberConstants {
     public static final int climberMotorId = 36;
     /** The climber encoder zero angle, in radians. */
-    public static final double climberZeroAngle = 0.3248305;
+    public static final double climberZeroAngle = 0.5668083;
     public static final boolean invertClimber = false;
     public static final LoggedTunableSparkPID climberPID = new LoggedTunableSparkPID("Climber")
         .addRealRobotGains(new PIDConstants(6.0, 0.0, 2.0)).addSimGains(new PIDConstants(0.5, 0.0, 0.0));

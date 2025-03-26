@@ -36,7 +36,7 @@ import frc.robot.util.DriverStationInterface;
 import frc.robot.util.LoggedTunableNumber;
 
 public class Controls {
-    private static final double debounceTime = Constants.currentMode == Constants.Mode.SIM ? 0.15 : 0;
+    private static final double debounceTime = Constants.isSim ? 0.15 : 0;
 
     private final Alert driverDisconnectedAlert = new Alert("Driver controller disconnected (port 0)",
         AlertType.kWarning);
@@ -53,7 +53,7 @@ public class Controls {
     private final Trigger operatorOverride;
     private final Trigger operatorManual;
 
-    private static enum OperatorMode {
+    public static enum OperatorMode {
         Normal, Manual, Override
     };
 
@@ -92,36 +92,23 @@ public class Controls {
                 }));
 
         // Reset gyro or odometry if in simulation
-        final Runnable resetGyro = Constants.currentMode == Constants.Mode.SIM
-            ? () -> drive.setPose(driveSimulation.getSimulatedDriveTrainPose()) // Reset odometry to actual robot pose during simulation
+        final Runnable resetGyro = Constants.isSim ? () -> drive.setPose(driveSimulation.getSimulatedDriveTrainPose()) // Reset odometry to actual robot pose during simulation
             : () -> drive.setPose(new Pose2d(drive.getPose().getTranslation(), Rotation2d.kZero)); // Zero gyro
 
         driver.start().onTrue(Commands.runOnce(resetGyro, drive).ignoringDisable(true));
 
+        var intakeTrigger = driver.rightTrigger(0.3).or(operator.rightBumper().and(normalOperator));
+        intakeTrigger.onTrue(arm.goToStateCommand(ArmConstants.restingState));
+        intake.setDefaultCommand(IntakeCommands.intakeCommand(intake, arm, // 
+            intakeTrigger, // Intake
+            driver.leftTrigger(0.3).or(operator.leftBumper().and(normalOperator)), // Outtake
+            operator.povRight().and(normalOperator) // Outtake trough
+        ));
+
         // Normal operator controls
-        operator.y().and(normalOperator).whileTrue(ClimbCommands.climbCommand(climber, operator::getRightY));
-
-        operator.rightBumper().and(normalOperator).whileTrue(IntakeCommands.intakeCommand(intake, arm));
-
-        // Backup to stop the transport if the piece gets stuck somehow
-        operator.povLeft().and(normalOperator).whileTrue(Commands.sequence(intake.setTransportOverrideSpeedCommand(0.0),
-            arm.setTargetStateCommand(() -> ArmConstants.restingState)));
-
-        // Backup for if the arm misses the piece somehow
-        operator.leftBumper().and(normalOperator).onTrue(IntakeCommands.getPieceFromIntake(intake, arm));
-
-        operator.b().and(normalOperator).onTrue(arm.goToStateCommand(ArmConstants.restingState));
-
-        operator.povUp().and(normalOperator).onTrue(arm.goToStateCommand(ArmConstants.sourceIntakeState))
-            .onFalse(arm.goToStateCommand(ArmConstants.sourceIntakeState.withEndEffector(EndEffectorState.hold())));
-
-        operator.back().and(normalOperator).onTrue(Commands.runOnce(arm::resetToAbsolute));
-
-        // Go to active scoring position
-        operator.a().and(normalOperator).whileTrue(arm.goToStateCommand(() -> {
-            return ScoringSequenceCommands
-                .getStartingState(DriverStationInterface.getInstance().getReefTarget().level());
-        }));
+        configureNormalOperatorControls(drive, driveSimulation, arm, intake, vision, climber);
+        configureManualOperatorControls(climber, arm, intake);
+        configureOverrideOperatorControls(climber, arm, intake);
 
         // Override and manual mode enable
         operator.start().and(operator.back().negate()).debounce(0.05).onTrue(Commands.runOnce(() -> {
@@ -138,10 +125,87 @@ public class Controls {
         operatorOverride.whileTrue(
             controllerRumbleWhileRunning(false, true, RumbleType.kLeftRumble).withName("OverrideOperatorControls"));
 
-        // Manual operator controls
-        Container<Double> height = new Container<Double>(0.525);
-        Container<Double> pitch = new Container<Double>(0.0);
+        // Automatic mode actions
+        RobotModeTriggers.teleop().onTrue(ClimbCommands.resetClimbPosition());
+        RobotModeTriggers.disabled().onFalse(Commands.runOnce(() -> operatorMode = OperatorMode.Normal));
+
+        // Endgame Alerts
+        Trigger endgameAlert1Trigger = new Trigger(() -> DriverStation.isTeleopEnabled()
+            && DriverStation.getMatchTime() > 0 && DriverStation.getMatchTime() <= endgameAlert1Time.get());
+        Trigger endgameAlert2Trigger = new Trigger(() -> DriverStation.isTeleopEnabled()
+            && DriverStation.getMatchTime() > 0 && DriverStation.getMatchTime() <= endgameAlert2Time.get());
+
+        endgameAlert1Trigger.onTrue(controllerRumbleWhileRunning(true, false, RumbleType.kLeftRumble).withTimeout(0.5));
+        endgameAlert2Trigger.onTrue(controllerRumbleWhileRunning(true, false, RumbleType.kLeftRumble).withTimeout(0.2)
+            .andThen(Commands.waitSeconds(0.1)).repeatedly().withTimeout(0.9)); // Rumble three times
+    }
+
+    private void configureNormalOperatorControls(Drive drive, SwerveDriveSimulation driveSimulation, Arm arm,
+        Intake intake, Vision vision, Climber climber) {
+        operator.y().and(normalOperator).whileTrue(ClimbCommands.climbCommand(climber, operator::getLeftY));
+
+        // Backup for if the arm misses the piece somehow
+        operator.leftTrigger(0.3).and(normalOperator).onTrue(IntakeCommands.getPieceFromIntake(arm));
+
+        operator.b().and(normalOperator).onTrue(arm.goToStateCommand(ArmConstants.restingState));
+
+        operator.back().and(normalOperator).onTrue(Commands.runOnce(arm::resetToAbsolute));
+
+        // Go to active scoring position
+        operator.a().and(normalOperator).whileTrue(arm.goToStateCommand(() -> {
+            return ScoringSequenceCommands
+                .getStartingState(DriverStationInterface.getInstance().getReefTarget().level());
+        }));
+
+        operator.povUp().and(normalOperator).onTrue(arm.goToStateCommand(ArmConstants.sourceIntakeState))
+            .onFalse(arm.goToStateCommand(ArmConstants.sourceIntakeStoppedState));
+        operator.povLeft().and(normalOperator)
+            .onTrue(Commands.sequence(intake.reset(), arm.setTargetStateCommand(() -> ArmConstants.restingState)));
+    }
+
+    private void configureOverrideOperatorControls(Climber climber, Arm arm, Intake intake) {
+        var intakeOverride = operator.b().and(operatorOverride);
+        var climberOverride = operator.y().and(operatorOverride);
+        intakeOverride.whileTrue(intake.run(() -> {
+            intake.overridePitchPower(MathUtil.applyDeadband(operator.getRightY(), 0.2));
+            intake.overrideIntakeSpeed(MathUtil.applyDeadband(operator.getLeftY(), 0.2) * 0.4);
+        }).withName("PitchOverrideControls"));
+        climberOverride.whileTrue(climber.run(() -> {
+            climber.runClimberOpenLoop(MathUtil.applyDeadband(operator.getLeftY(), 0.2));
+        }).withName("ClimberOverrideControls"));
+
+        operatorOverride.and(intakeOverride.negate()).and(climberOverride.negate()).whileTrue(arm.run(() -> {
+            // Arm control mode
+            arm.overrideHeightPower(-MathUtil.applyDeadband(operator.getLeftY(), 0.2) * 0.3);
+            arm.overridePitchPower(-MathUtil.applyDeadband(operator.getRightY(), 0.2) * 0.3);
+
+            if(operator.leftBumper().getAsBoolean()) {
+                arm.overrideWristPower(-0.25);
+            } else if(operator.rightBumper().getAsBoolean()) {
+                arm.overrideWristPower(0.25);
+            } else {
+                arm.overrideWristPower(0.0);
+            }
+
+            arm.overrideEndEffectorPower(
+                MathUtil.applyDeadband(operator.getLeftTriggerAxis() - operator.getRightTriggerAxis(), 0.2) * 0.4);
+        }).withName("ArmOverrideControls"));
+    }
+
+    private void configureManualOperatorControls(Climber climber, Arm arm, Intake intake) {
+        Container<Double> height = new Container<Double>(0.525); // Height in meters
+        Container<Double> pitch = new Container<Double>(0.0); // Pitch in degrees
         Container<WristRotation> wristRotation = new Container<WristRotation>(WristRotation.Horizontal);
+
+        operatorManual.onTrue(Commands.runOnce(() -> {
+            var armState = arm.getCurrentTargetState();
+            if(armState != null) {
+                height.value = armState.height().in(Meters);
+                pitch.value = armState.pitch().getDegrees();
+                wristRotation.value = armState.wristRotation();
+            }
+        }));
+
         operator.leftBumper().and(operatorManual).onTrue(Commands.runOnce(() -> {
             wristRotation.value = wristRotation.value.previous();
         }));
@@ -150,11 +214,11 @@ public class Controls {
         }));
 
         var intakeManualOverride = operator.b().and(operatorManual);
-        intakeManualOverride.whileTrue(Commands.run(() -> {
+        intakeManualOverride.whileTrue(intake.run(() -> {
             // TODO: SEVEN RIVERS - Change to closed loop control here
             intake.overridePitchPower(MathUtil.applyDeadband(operator.getRightY(), 0.2));
-            intake.runIntakeOpenLoop(MathUtil.applyDeadband(operator.getLeftY(), 0.2) * 0.4);
-        }, intake).withName("IntakeManualControls"));
+            intake.overrideIntakeSpeed(MathUtil.applyDeadband(operator.getLeftY(), 0.2) * 0.4);
+        }).withName("IntakeManualControls"));
 
         operatorManual.and(intakeManualOverride.negate()).whileTrue(arm.setTargetStateCommand(() -> {
             double eeSpeed = MathUtil.applyDeadband(operator.getLeftTriggerAxis() - operator.getRightTriggerAxis(), 0.2)
@@ -175,52 +239,6 @@ public class Controls {
             return new ArmState(Rotation2d.fromDegrees(pitch.value), Meters.of(height.value), wristRotation.value,
                 endEffectorState);
         }).withName("ArmManualControls"));
-
-        // Override operator controls
-        var intakeOverride = operator.b().and(operatorOverride);
-        var climberOverride = operator.y().and(operatorOverride);
-        intakeOverride.whileTrue(Commands.run(() -> {
-            intake.overridePitchPower(MathUtil.applyDeadband(operator.getRightY(), 0.2));
-            intake.runIntakeOpenLoop(MathUtil.applyDeadband(operator.getLeftY(), 0.2) * 0.4);
-        }, intake).withName("PitchOverrideControls"));
-        climberOverride.whileTrue(Commands.run(() -> {
-            climber.runClimberOpenLoop(MathUtil.applyDeadband(operator.getLeftY(), 0.2));
-        }, climber).withName("ClimberOverrideControls"));
-
-        operatorOverride.and(intakeOverride.negate()).and(climberOverride.negate()).whileTrue(Commands.run(() -> {
-            // Arm control mode
-            arm.overrideHeightPower(-MathUtil.applyDeadband(operator.getLeftY(), 0.2) * 0.3);
-            arm.overridePitchPower(-MathUtil.applyDeadband(operator.getRightY(), 0.2) * 0.3);
-
-            if(operator.leftBumper().getAsBoolean()) {
-                arm.overrideWristPower(-0.25);
-            } else if(operator.rightBumper().getAsBoolean()) {
-                arm.overrideWristPower(0.25);
-            } else {
-                arm.overrideWristPower(0.0);
-            }
-
-            arm.overrideEndEffectorPower(
-                MathUtil.applyDeadband(operator.getLeftTriggerAxis() - operator.getRightTriggerAxis(), 0.2) * 0.4);
-        }, arm).withName("ArmOverrideControls"));
-
-        // Simulation-specific controls
-        if(Constants.currentMode == Constants.Mode.SIM) {
-            // TODO
-        }
-
-        // Automatic mode actions
-        RobotModeTriggers.teleop().onTrue(ClimbCommands.resetClimbPosition());
-
-        // Endgame Alerts
-        Trigger endgameAlert1Trigger = new Trigger(() -> DriverStation.isTeleopEnabled()
-            && DriverStation.getMatchTime() > 0 && DriverStation.getMatchTime() <= endgameAlert1Time.get());
-        Trigger endgameAlert2Trigger = new Trigger(() -> DriverStation.isTeleopEnabled()
-            && DriverStation.getMatchTime() > 0 && DriverStation.getMatchTime() <= endgameAlert2Time.get());
-
-        endgameAlert1Trigger.onTrue(controllerRumbleWhileRunning(true, false, RumbleType.kLeftRumble).withTimeout(0.5));
-        endgameAlert2Trigger.onTrue(controllerRumbleWhileRunning(true, false, RumbleType.kLeftRumble).withTimeout(0.2)
-            .andThen(Commands.waitSeconds(0.1)).repeatedly().withTimeout(0.9)); // Rumble three times
     }
 
     private HashMap<Integer, Double> driverRumbleCommands = new HashMap<>();

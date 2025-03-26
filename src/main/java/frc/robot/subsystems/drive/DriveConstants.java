@@ -25,8 +25,7 @@ public class DriveConstants {
     public record SwerveModuleConfiguration(int driveMotorCanID, int turnMotorCanID, Rotation2d zeroOffset) {
     }
 
-    // TODO: Measure our effective maximum speed once robot is built
-    public static final double maxSpeedMetersPerSec = 4.5; // "Magic" number from max speed measurement
+    public static final double maxSpeedMetersPerSec = 4.0; // "Magic" number from max speed measurement
     public static final double odometryFrequency = 100.0; // Hz
     public static final double bumperSizeMeters = Units.inchesToMeters(37.625);
     public static final double trackWidth = Units.inchesToMeters(24.);
@@ -55,8 +54,8 @@ public class DriveConstants {
     public static final boolean USE_SETPOINT_GENERATOR = true;
 
     // Drive motor configuration
-    public static final int driveMotorCurrentLimit = 50; // "Magic" number from slip current measurement
-    public static final double wheelRadiusMeters = Units.inchesToMeters(1.961); // "Magic" number from wheel radius characterization
+    public static final int driveMotorCurrentLimit = 85; // "Magic" number from slip current measurement
+    public static final double wheelRadiusMeters = Units.inchesToMeters(1.874); // "Magic" number from wheel radius characterization
     public static final double driveMotorReduction = Mk4Reductions.L2.reduction;
     public static final DCMotor driveSimMotor = DCMotor.getNeoVortex(1);
 
@@ -68,9 +67,9 @@ public class DriveConstants {
     public static final double driveKp = 0.015;
     public static final double driveKd = 0.0;
     /** The static feedforward gain in volts. */
-    public static final double driveKs = 0.1261675; // "Magic" number from SysID
+    public static final double driveKs = 0.169; // "Magic" number from SysID
     /** The velocity gain in volts per (radian per second of wheel) */
-    public static final double driveKv = 0.11339; // "Magic" number from SysID
+    public static final double driveKv = 0.1114; // "Magic" number from SysID
     /** The torque gain in volts per Nm */
     public static final double driveKt = driveMotorReduction / driveSimMotor.KtNMPerAmp;
     /** The acceleration gain in volts per (radian per second per second of wheel) */
@@ -117,10 +116,10 @@ public class DriveConstants {
     public static final double turnPIDMaxInput = Math.PI; // Radians
 
     // PathPlanner configuration
-    public static final double robotMassKg = Units.lbsToKilograms(114.5);
+    public static final double robotMassKg = Units.lbsToKilograms(114.5 + 13 + 13);
     /** The moment of inertia of the robot, in KG*M^2 */
     public static final double robotMOIKgSqM = 9.442; // TODO: Estimate with angular SysID
-    public static final double wheelCOF = 1.6065; // "Magic" number from slip current measurement
+    public static final double wheelCOF = 1.355; // "Magic" number from slip current measurement
 
     public static final RobotConfig pathplannerConfig = new RobotConfig(robotMassKg, robotMOIKgSqM,
         new ModuleConfig(wheelRadiusMeters, maxSpeedMetersPerSec, wheelCOF,

@@ -1,5 +1,7 @@
 package frc.robot.commands.auto;
 
+import org.littletonrobotics.junction.Logger;
+
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.math.filter.Debouncer.DebounceType;
@@ -26,16 +28,24 @@ public class GetCoralCommand {
     private static final LoggedTunableNumber yControllerI = new LoggedTunableNumber("GetCoral/yControllerI");
     private static final LoggedTunableNumber yControllerD = new LoggedTunableNumber("GetCoral/yControllerD");
 
+    private static final LoggedTunableNumber thetaControllerP = new LoggedTunableNumber("GetCoral/thetaControllerP");
+    private static final LoggedTunableNumber thetaControllerI = new LoggedTunableNumber("GetCoral/thetaControllerI");
+    private static final LoggedTunableNumber thetaControllerD = new LoggedTunableNumber("GetCoral/thetaControllerD");
+
     private static final LoggedTunableNumber lineFollowSpeed = new LoggedTunableNumber("GetCoral/lineFollowSpeed");
 
     static {
-        xControllerP.initDefault(2.0);
+        xControllerP.initDefault(2.5);
         xControllerI.initDefault(0);
         xControllerD.initDefault(0);
 
-        yControllerP.initDefault(2.0);
+        yControllerP.initDefault(2.5);
         yControllerI.initDefault(0);
         yControllerD.initDefault(0);
+
+        thetaControllerP.initDefault(2.0);
+        thetaControllerI.initDefault(0);
+        thetaControllerD.initDefault(0);
 
         lineFollowSpeed.initDefault(DriveConstants.maxSpeedMetersPerSec * 0.7);
     }
@@ -44,7 +54,9 @@ public class GetCoralCommand {
         Runnable grabbingFailed) {
         // A PID controller for the X position of the robot relative to the line.
         try(PIDController xController = new PIDController(xControllerP.get(), xControllerI.get(), xControllerD.get());
-            PIDController yController = new PIDController(yControllerP.get(), yControllerI.get(), yControllerD.get())) {
+            PIDController yController = new PIDController(yControllerP.get(), yControllerI.get(), yControllerD.get());
+            PIDController thetaController = new PIDController(thetaControllerP.get(), thetaControllerI.get(),
+                thetaControllerD.get())) {
             Container<Double> startTime = new Container<>(0.0);
             Debouncer targetLineMissingDebouncer = new Debouncer(0.5, DebounceType.kRising);
 
@@ -52,9 +64,6 @@ public class GetCoralCommand {
                 Commands.runOnce(() -> {
                     xController.reset();
                     yController.reset();
-
-                    xController.setTolerance(0.1);
-                    yController.setTolerance(0.1);
 
                     xController.setSetpoint(0);
                     yController.setSetpoint(0);
@@ -71,20 +80,25 @@ public class GetCoralCommand {
                     if(targetLineMaybe.isEmpty()) return;
                     var targetLine = targetLineMaybe.get();
 
-                    var positionOnPath = (startTime.value - Timer.getTimestamp()) * lineFollowSpeed.get();
+                    var positionOnPath = (Timer.getTimestamp() - startTime.value) * lineFollowSpeed.get();
 
                     // Get the robot's position relative to the line.
                     var robotPosition = drive.getPose();
                     var linePosition = targetLine.getPoseAtDistance(positionOnPath);
-                    var robotToLine = linePosition.relativeTo(robotPosition);
+                    Logger.recordOutput("Auto/GetCoralTargetPose", linePosition);
+
+                    var robotToLine = robotPosition.relativeTo(linePosition);
 
                     var xError = robotToLine.getX();
                     var yError = robotToLine.getY();
-                    var xSpeed = xController.calculate(xError);
-                    var ySpeed = yController.calculate(yError);
+                    var thetaError = robotToLine.getRotation().getRadians();
+
+                    var xSpeed = -xController.calculate(xError);
+                    var ySpeed = -yController.calculate(yError);
+                    var thetaSpeed = -thetaController.calculate(thetaError);
 
                     drive.runVelocity(
-                        ChassisSpeeds.fromRobotRelativeSpeeds(xSpeed, ySpeed, 0, robotPosition.getRotation()));
+                        ChassisSpeeds.fromFieldRelativeSpeeds(xSpeed, ySpeed, thetaSpeed, robotPosition.getRotation()));
                 }, drive).until(() -> {
                     if(intake.intakeSensorTriggered()) return true;
 
@@ -106,7 +120,7 @@ public class GetCoralCommand {
                 }).finallyDo(() -> {
                     drive.stop();
                 }) //
-            ), IntakeCommands.intakeCommand(intake, arm));
+            ), IntakeCommands.intakeCommand(intake, arm, () -> true, () -> false, () -> false));
         }
     }
 }

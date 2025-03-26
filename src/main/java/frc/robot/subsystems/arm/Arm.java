@@ -46,12 +46,10 @@ public class Arm extends SubsystemBase {
     private static final LoggedTunableNumber armPitchKg = new LoggedTunableNumber("Arm/pitchKg");
 
     static {
-        elevatorKg
-            .initDefault(Constants.currentMode == Constants.Mode.SIM ? ArmConstants.ElevatorConstants.elevatorKgSim
-                : ArmConstants.ElevatorConstants.elevatorKgReal);
-        armPitchKg
-            .initDefault(Constants.currentMode == Constants.Mode.SIM ? ArmConstants.ShoulderConstants.armPitchKgSim
-                : ArmConstants.ShoulderConstants.armPitchKgReal);
+        elevatorKg.initDefault(Constants.isSim ? ArmConstants.ElevatorConstants.elevatorKgSim
+            : ArmConstants.ElevatorConstants.elevatorKgReal);
+        armPitchKg.initDefault(Constants.isSim ? ArmConstants.ShoulderConstants.armPitchKgSim
+            : ArmConstants.ShoulderConstants.armPitchKgReal);
     }
 
     public Arm(ArmIO io) {
@@ -59,11 +57,15 @@ public class Arm extends SubsystemBase {
         this.inputs = new ArmIOInputsAutoLogged();
     }
 
-    public Command goToStateCommand(ArmState state) {
-        return Commands.run(() -> {
+    public Command goToStateCommand(ArmState state, double timeoutSeconds) {
+        return this.run(() -> {
             targetState = state;
             adjustedTarget = getAdjustedTarget();
-        }, this).until(this::isAtTarget).withName("ArmGoToState");
+        }).until(this::isAtTarget).withName("ArmGoToState").withTimeout(timeoutSeconds);
+    }
+
+    public Command goToStateCommand(ArmState state) {
+        return goToStateCommand(state, 1.0);
     }
 
     public Command goToStateCommand(Supplier<ArmState> state) {
@@ -71,14 +73,18 @@ public class Arm extends SubsystemBase {
     }
 
     public Command setTargetStateCommand(Supplier<ArmState> state) {
-        return Commands.run(() -> {
+        return this.run(() -> {
             targetState = state.get();
         });
     }
 
-    private static final double TARGET_HEIGHT_TOLERANCE_METERS = Units.inchesToMeters(0.25);
-    private static final double TARGET_PITCH_TOLERANCE_DEGREES = 2.0;
-    private static final double TARGET_WRIST_TOLERANCE_DEGREES = 2.0;
+    private static final double TARGET_HEIGHT_TOLERANCE_METERS = Units.inchesToMeters(0.4);
+    private static final double TARGET_PITCH_TOLERANCE_DEGREES = 3.0;
+    private static final double TARGET_WRIST_TOLERANCE_DEGREES = 3.0;
+
+    public ArmState getCurrentTargetState() {
+        return adjustedTarget;
+    }
 
     private boolean atTargetPitch() {
         if(adjustedTarget == null) return false;

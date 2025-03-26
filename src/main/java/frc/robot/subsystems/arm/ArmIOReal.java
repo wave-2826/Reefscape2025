@@ -85,7 +85,7 @@ public class ArmIOReal implements ArmIO {
      * If we have reset to absolute. If we can't immediately reset to an absolute position because we have invalid data,
      * we attempt to repeatedly until it works.
      */
-    protected boolean needsToReset = true;
+    protected boolean needsToReset = false;
 
     public ArmIOReal() {
         this(null);
@@ -147,9 +147,8 @@ public class ArmIOReal implements ArmIO {
         armPitchConfig.absoluteEncoder
             .positionConversionFactor(ArmConstants.ShoulderConstants.pitchAbsolutePositionFactor)
             .velocityConversionFactor(ArmConstants.ShoulderConstants.pitchAbsoluteVelocityFactor)
-            .zeroOffset(
-                Constants.currentMode == Constants.Mode.SIM ? 0 : ArmConstants.ShoulderConstants.pitchZeroOffset)
-            .zeroCentered(true).inverted(ArmConstants.ShoulderConstants.pitchEncoderInverted);
+            .zeroOffset(Constants.isSim ? 0 : ArmConstants.ShoulderConstants.pitchZeroOffset).zeroCentered(true)
+            .inverted(ArmConstants.ShoulderConstants.pitchEncoderInverted);
         armPitchConfig.idleMode(IdleMode.kBrake)
             .smartCurrentLimit(ArmConstants.ShoulderConstants.pitchMotorCurrentLimit)
             .voltageCompensation(Constants.voltageCompensation)
@@ -170,9 +169,7 @@ public class ArmIOReal implements ArmIO {
         armWristConfig.absoluteEncoder
             .positionConversionFactor(ArmConstants.ShoulderConstants.wristAbsolutePositionFactor)
             .velocityConversionFactor(ArmConstants.ShoulderConstants.wristAbsoluteVelocityFactor)
-            .zeroOffset(
-                Constants.currentMode == Constants.Mode.SIM ? 0 : ArmConstants.ShoulderConstants.wristZeroOffset)
-            .zeroCentered(true);
+            .zeroOffset(Constants.isSim ? 0 : ArmConstants.ShoulderConstants.wristZeroOffset).zeroCentered(true);
         armWristConfig.idleMode(IdleMode.kBrake)
             .smartCurrentLimit(ArmConstants.ShoulderConstants.wristMotorCurrentLimit)
             .voltageCompensation(Constants.voltageCompensation)
@@ -227,6 +224,11 @@ public class ArmIOReal implements ArmIO {
         armWristRelativeEncoder = armWristMotor.getEncoder();
 
         endEffectorEncoder = endEffectorMotor.getEncoder();
+
+        tryUntilOk(elevatorHeightMotorLeader, 2,
+            () -> leaderElevatorHeightEncoder.setPosition(ArmConstants.ElevatorConstants.elevatorStartingHeightMeters));
+        tryUntilOk(elevatorHeightMotorFollower, 2, () -> followerElevatorHeightEncoder
+            .setPosition(ArmConstants.ElevatorConstants.elevatorStartingHeightMeters));
 
         if(overrideLaserCan != null) {
             elevatorHeightSensor = overrideLaserCan;
@@ -339,15 +341,15 @@ public class ArmIOReal implements ArmIO {
     }
 
     public void overridePitchPower(double power) {
-        armPitchMotor.set(power);
+        armPitchController.setReference(power, ControlType.kDutyCycle);
     }
 
     public void overrideWristPower(double power) {
-        armWristMotor.set(power);
+        armWristController.setReference(power, ControlType.kDutyCycle);
     }
 
     public void overrideEndEffectorPower(double power) {
-        endEffectorMotor.set(power);
+        endEffectorController.setReference(power, ControlType.kDutyCycle);
     }
 
     @Override
@@ -368,8 +370,7 @@ public class ArmIOReal implements ArmIO {
             endEffectorWasHolding = true;
 
             // We don't simulate the coaxial coupling in simulation, so we turn it off.
-            double couplingFactor = Constants.currentMode == Constants.Mode.SIM ? 0
-                : ArmConstants.EndEffectorConstants.endEffectorCouplingFactor;
+            double couplingFactor = Constants.isSim ? 0 : ArmConstants.EndEffectorConstants.endEffectorCouplingFactor;
             double holdPositionRad = startHoldEndEffectorPosition.getRadians()
                 - (armWristRelativeEncoder.getPosition() - startHoldWristPosition.getRadians()) * couplingFactor;
             endEffectorController.setReference(holdPositionRad, ControlType.kPosition,

@@ -9,13 +9,12 @@ import org.littletonrobotics.junction.Logger;
 
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
-import com.pathplanner.lib.path.PathConstraints;
 import com.pathplanner.lib.util.FlippingUtil;
 
 import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.ScheduleCommand;
 import frc.robot.FieldConstants;
 import frc.robot.FieldConstants.ReefBranch;
 import frc.robot.FieldConstants.ReefLevel;
@@ -23,7 +22,6 @@ import frc.robot.commands.AutoScoreCommands;
 import frc.robot.commands.intake.IntakeCommands;
 import frc.robot.subsystems.arm.Arm;
 import frc.robot.subsystems.drive.Drive;
-import frc.robot.subsystems.drive.DriveConstants;
 import frc.robot.subsystems.intake.Intake;
 import frc.robot.subsystems.pieceVision.PieceVision;
 import frc.robot.subsystems.vision.Vision;
@@ -35,20 +33,25 @@ public class AutoCommands {
 
     public static void registerNamedCommands(Drive drive, Vision vision, PieceVision pieceVision, Arm arm,
         Intake intake) {
-        NamedCommands.registerCommand("Auto Coral", grabCoral(drive, pieceVision, intake, arm, null));
+        // NamedCommands.registerCommand("Auto Coral", Commands
+        //     .defer(() -> grabCoral(drive, pieceVision, intake, arm, null), Set.of(drive, pieceVision, intake, arm)));
 
+        // TODO: Compute these ahead of time and don't use deferred commands
+        // It seems this requires fixing some issues with the commands referencing alliances before they're run
         for(var branch : ReefBranch.values()) {
             for(var level : ReefLevel.values()) {
                 ReefTarget target = new ReefTarget(branch, level);
-                NamedCommands.registerCommand("Score " + branch.toString() + " " + level.toString(), AutoScoreCommands
-                    .autoScoreCommand(drive, vision, arm, target, Optional.empty(), () -> 0, () -> 0, null));
+                NamedCommands.registerCommand("Score " + branch.toString() + " " + level.toString(),
+                    Commands.defer(() -> AutoScoreCommands.autoScoreCommand(drive, vision, arm, target,
+                        Optional.empty(), () -> 0, () -> 0, null), Set.of(drive, vision, arm)));
             }
         }
 
-        NamedCommands.registerCommand("Score Until Failure",
-            scoreUntilFailure(drive, vision, arm, pieceVision, intake));
+        // NamedCommands.registerCommand("Score Until Failure",
+        //     Commands.defer(() -> scoreUntilFailure(drive, vision, arm, pieceVision, intake),
+        //         Set.of(drive, vision, arm, pieceVision, intake)));
 
-        NamedCommands.registerCommand("Start intake", IntakeCommands.intakeCommand(intake, arm));
+        NamedCommands.registerCommand("Start intake", new ScheduleCommand(IntakeCommands.autoIntake(intake, arm)));
     }
 
     /**
@@ -106,9 +109,7 @@ public class AutoCommands {
             GetCoralCommand.getCoral(pieceVision, drive, intake, arm, grabbingFailed),
 
             // Go back to our starting position
-            AutoBuilder.pathfindToPose(startPose.value,
-                new PathConstraints(DriveConstants.maxSpeedMetersPerSec, 2.0, Units.degreesToRadians(360),
-                    Units.degreesToRadians(1000))),
+            new SimplePIDLineupCommand(drive, startPose.value),
 
             Commands.runOnce(() -> {
                 Logger.recordOutput("Auto/GrabbingCoral", false);

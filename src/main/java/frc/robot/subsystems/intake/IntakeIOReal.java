@@ -26,8 +26,9 @@ public class IntakeIOReal implements IntakeIO {
     protected final SparkMax transportMotor;
     protected final SparkFlex powerMotor;
 
-    protected final DigitalInput transportSensor;
     protected final DigitalInput intakeSensor;
+    protected final DigitalInput middleSensor;
+    protected final DigitalInput endSensor;
 
     protected final SparkClosedLoopController pitchController;
     protected final SparkClosedLoopController powerController;
@@ -46,8 +47,8 @@ public class IntakeIOReal implements IntakeIO {
             .feedbackSensor(FeedbackSensor.kAbsoluteEncoder);
         pitchConfig.absoluteEncoder.positionConversionFactor(IntakeConstants.pitchAbsolutePositionFactor)
             .velocityConversionFactor(IntakeConstants.pitchAbsoluteVelocityFactor)
-            .zeroOffset(Constants.currentMode == Constants.Mode.SIM ? 0 : IntakeConstants.intakeZeroAngle)
-            .zeroCentered(true).inverted(IntakeConstants.pitchEncoderInverted);
+            .zeroOffset(Constants.isSim ? 0 : IntakeConstants.intakeZeroAngle).zeroCentered(true)
+            .inverted(IntakeConstants.pitchEncoderInverted);
         pitchConfig.idleMode(IdleMode.kCoast).smartCurrentLimit(IntakeConstants.pitchMotorCurrentLimit)
             .voltageCompensation(Constants.voltageCompensation).inverted(IntakeConstants.pitchMotorInverted);
         pitchConfig.signals.apply(SparkUtil.defaultSignals) //
@@ -98,13 +99,14 @@ public class IntakeIOReal implements IntakeIO {
         powerEncoder = powerMotor.getEncoder();
 
         intakeSensor = new DigitalInput(IntakeConstants.intakeSensorDIOPort);
-        transportSensor = new DigitalInput(IntakeConstants.transportSensorDIOPort);
+        middleSensor = new DigitalInput(IntakeConstants.middleSensorDIOPort);
+        endSensor = new DigitalInput(IntakeConstants.endSensorDIOPort);
     }
 
     @Override
     public void runVelocity(double intakePower, double transportPower) {
-        powerController.setReference(intakePower * 3500., ControlType.kVelocity);
-        transportController.setReference(transportPower * 5000., ControlType.kVelocity);
+        powerController.setReference(intakePower * 2800., ControlType.kVelocity);
+        transportController.setReference(transportPower * 8000., ControlType.kVelocity);
     }
 
     @Override
@@ -119,13 +121,14 @@ public class IntakeIOReal implements IntakeIO {
 
     @Override
     public void overridePitchPower(double power) {
-        pitchMotor.set(power);
+        pitchController.setReference(-power, ControlType.kDutyCycle);
     }
 
     @Override
     public void updateInputs(IntakeIOInputs inputs) {
         inputs.intakeSensorTriggered = !intakeSensor.get();
-        inputs.transortSensorTriggered = !transportSensor.get();
+        // inputs.middleSensorTriggered = !middleSensor.get();
+        inputs.endSensorTriggered = !endSensor.get();
         inputs.intakePitch = Rotation2d.fromRadians(absolutePitchSensor.getPosition());
         inputs.intakeWheelSpeed = powerEncoder.getVelocity();
     }
