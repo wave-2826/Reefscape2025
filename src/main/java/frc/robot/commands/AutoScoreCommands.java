@@ -32,9 +32,6 @@ import frc.robot.util.LoggedTunableNumber;
 import frc.robot.util.ReefTarget;
 
 public class AutoScoreCommands {
-    // HACK
-    public static boolean autoScoreRunning = false;
-
     /**
      * The distance from the reef branch to the center of the robot when lining up to score L1 in meters.
      */
@@ -180,7 +177,7 @@ public class AutoScoreCommands {
      * @return
      */
     public static Command autoScoreCommand(Drive drive, Vision vision, Arm arm, ReefTarget target) {
-        return autoScoreCommand(drive, vision, arm, target, Optional.empty(), () -> 0, () -> 0, null);
+        return autoScoreCommand(drive, vision, arm, target, Optional.empty(), () -> 0, () -> 0, null, () -> true);
     }
 
     /**
@@ -200,17 +197,16 @@ public class AutoScoreCommands {
      */
     public static Command autoScoreCommand(Drive drive, Vision vision, Arm arm, ReefTarget target,
         Optional<BooleanSupplier> finishSequence, DoubleSupplier tweakX, DoubleSupplier tweakY,
-        BooleanConsumer lineupFeedback) {
+        BooleanConsumer lineupFeedback, BooleanSupplier useArmLineup) {
         Command autoAlign = autoAlignSequence(drive, vision, target,
             // During coarse lineup
-            ScoringSequenceCommands.prepForScoring(target.level(), arm),
+            ScoringSequenceCommands.prepForScoring(target.level(), arm).onlyIf(useArmLineup),
             // During close lineup
             ScoringSequenceCommands.middleArmMovement(target.level(), arm), tweakX, tweakY, finishSequence,
-            lineupFeedback);
+            lineupFeedback).onlyIf(useArmLineup);
 
-        return Commands.sequence(Commands.runOnce(() -> autoScoreRunning = true), autoAlign,
-            // Score
-            ScoringSequenceCommands.scoreAtLevel(target.level(), arm, drive)).finallyDo(() -> autoScoreRunning = false)
+        return Commands
+            .sequence(autoAlign, ScoringSequenceCommands.scoreAtLevel(target.level(), arm, drive).onlyIf(useArmLineup))
             .withName("AutoScore" + target.toString());
     }
 
@@ -228,13 +224,13 @@ public class AutoScoreCommands {
      * @return
      */
     public static Command autoScoreTeleopCommand(Drive drive, Vision vision, Arm arm, BooleanSupplier finishSequence,
-        DoubleSupplier tweakX, DoubleSupplier tweakY, BooleanConsumer lineupFeedback) {
+        DoubleSupplier tweakX, DoubleSupplier tweakY, BooleanConsumer lineupFeedback, BooleanSupplier useArmLineup) {
         AutoScoreState state = new AutoScoreState(DriverStationInterface.getInstance().getReefTarget());
         int id = state.hashCode();
 
         return new RestartWhenCommand(
             () -> autoScoreCommand(drive, vision, arm, state.target, Optional.of(finishSequence), tweakX, tweakY,
-                lineupFeedback),
+                lineupFeedback, useArmLineup),
 
             // Restart when our target changes
             () -> {

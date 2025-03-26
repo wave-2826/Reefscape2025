@@ -87,7 +87,7 @@ public class Controls {
             .whileTrue(AutoScoreCommands.autoScoreTeleopCommand(drive, vision, arm, driver.rightBumper(),
                 driver::getLeftX, driver::getLeftY, (aligned) -> {
                     setDriverRumble(RumbleType.kLeftRumble, aligned ? 1.0 : 0.0, 1);
-                }).finallyDo(() -> {
+                }, () -> operatorMode == OperatorMode.Normal).finallyDo(() -> {
                     setDriverRumble(RumbleType.kLeftRumble, 0.0, 1);
                 }));
 
@@ -163,6 +163,69 @@ public class Controls {
             .onTrue(Commands.sequence(intake.reset(), arm.setTargetStateCommand(() -> ArmConstants.restingState)));
     }
 
+    private void configureManualOperatorControls(Climber climber, Arm arm, Intake intake) {
+        Container<Double> height = new Container<Double>(0.525); // Height in meters
+        Container<Double> pitch = new Container<Double>(0.0); // Pitch in degrees
+        Container<WristRotation> wristRotation = new Container<WristRotation>(WristRotation.Horizontal);
+
+        operatorManual.onTrue(Commands.runOnce(() -> {
+            var armState = arm.getCurrentTargetState();
+            if(armState != null) {
+                height.value = armState.height().in(Meters);
+                pitch.value = armState.pitch().getDegrees();
+                wristRotation.value = armState.wristRotation();
+            }
+        }));
+
+        operator.leftBumper().and(operatorManual).onTrue(Commands.runOnce(() -> {
+            wristRotation.value = wristRotation.value.previous();
+        }));
+        operator.rightBumper().and(operatorManual).onTrue(Commands.runOnce(() -> {
+            wristRotation.value = wristRotation.value.next();
+        }));
+
+        operator.b().and(normalOperator).onTrue(Commands.sequence(//
+            arm.goToStateCommand(ArmConstants.restingState), //
+            Commands.runOnce(() -> operatorMode = OperatorMode.Normal)//
+        ));
+
+        var intakeManualOverride = operator.leftTrigger(0.3).and(operatorManual);
+        intakeManualOverride.whileTrue(intake.run(() -> {
+            // TODO: SEVEN RIVERS - Change to closed loop control here
+            intake.overridePitchPower(MathUtil.applyDeadband(operator.getRightY(), 0.2));
+            intake.overrideIntakeSpeed(MathUtil.applyDeadband(operator.getLeftY(), 0.2) * 0.4);
+        }).withName("IntakeManualControls"));
+
+        // Go to active scoring position
+        operator.a().and(normalOperator).whileTrue(Commands.runOnce(() -> {
+            var scoringPosition = ScoringSequenceCommands
+                .getStartingState(DriverStationInterface.getInstance().getReefTarget().level());
+            height.value = scoringPosition.height().in(Meters);
+            pitch.value = scoringPosition.pitch().getDegrees();
+            wristRotation.value = scoringPosition.wristRotation();
+        }));
+
+        operatorManual.and(intakeManualOverride.negate()).whileTrue(arm.setTargetStateCommand(() -> {
+            double eeSpeed = MathUtil.applyDeadband(operator.getLeftTriggerAxis() - operator.getRightTriggerAxis(), 0.2)
+                * 100; // Rad/sec
+            EndEffectorState endEffectorState = eeSpeed == 0.0 ? EndEffectorState.hold()
+                : EndEffectorState.velocity(eeSpeed);
+
+            height.value -= MathUtil.applyDeadband(operator.getLeftY(), 0.15) * 3.0 * 0.02;
+            double minHeight = ArmConstants.ElevatorConstants.softStopMarginBottom.in(Meters);
+            double maxHeight = ArmConstants.ElevatorConstants.maxElevatorHeight.in(Meters)
+                - ArmConstants.ElevatorConstants.softStopMarginTop.in(Meters);
+            height.value = MathUtil.clamp(height.value, minHeight, maxHeight);
+
+            pitch.value -= MathUtil.applyDeadband(operator.getRightY(), 0.15) * 0.02 * 400.;
+            pitch.value = MathUtil.clamp(pitch.value, ArmConstants.ShoulderConstants.minimumPitch.getDegrees(),
+                ArmConstants.ShoulderConstants.maximumPitch.getDegrees());
+
+            return new ArmState(Rotation2d.fromDegrees(pitch.value), Meters.of(height.value), wristRotation.value,
+                endEffectorState);
+        }).withName("ArmManualControls"));
+    }
+
     private void configureOverrideOperatorControls(Climber climber, Arm arm, Intake intake) {
         var intakeOverride = operator.b().and(operatorOverride);
         var climberOverride = operator.y().and(operatorOverride);
@@ -190,55 +253,6 @@ public class Controls {
             arm.overrideEndEffectorPower(
                 MathUtil.applyDeadband(operator.getLeftTriggerAxis() - operator.getRightTriggerAxis(), 0.2) * 0.4);
         }).withName("ArmOverrideControls"));
-    }
-
-    private void configureManualOperatorControls(Climber climber, Arm arm, Intake intake) {
-        Container<Double> height = new Container<Double>(0.525); // Height in meters
-        Container<Double> pitch = new Container<Double>(0.0); // Pitch in degrees
-        Container<WristRotation> wristRotation = new Container<WristRotation>(WristRotation.Horizontal);
-
-        operatorManual.onTrue(Commands.runOnce(() -> {
-            var armState = arm.getCurrentTargetState();
-            if(armState != null) {
-                height.value = armState.height().in(Meters);
-                pitch.value = armState.pitch().getDegrees();
-                wristRotation.value = armState.wristRotation();
-            }
-        }));
-
-        operator.leftBumper().and(operatorManual).onTrue(Commands.runOnce(() -> {
-            wristRotation.value = wristRotation.value.previous();
-        }));
-        operator.rightBumper().and(operatorManual).onTrue(Commands.runOnce(() -> {
-            wristRotation.value = wristRotation.value.next();
-        }));
-
-        var intakeManualOverride = operator.b().and(operatorManual);
-        intakeManualOverride.whileTrue(intake.run(() -> {
-            // TODO: SEVEN RIVERS - Change to closed loop control here
-            intake.overridePitchPower(MathUtil.applyDeadband(operator.getRightY(), 0.2));
-            intake.overrideIntakeSpeed(MathUtil.applyDeadband(operator.getLeftY(), 0.2) * 0.4);
-        }).withName("IntakeManualControls"));
-
-        operatorManual.and(intakeManualOverride.negate()).whileTrue(arm.setTargetStateCommand(() -> {
-            double eeSpeed = MathUtil.applyDeadband(operator.getLeftTriggerAxis() - operator.getRightTriggerAxis(), 0.2)
-                * 100; // Rad/sec
-            EndEffectorState endEffectorState = eeSpeed == 0.0 ? EndEffectorState.hold()
-                : EndEffectorState.velocity(eeSpeed);
-
-            height.value -= MathUtil.applyDeadband(operator.getLeftY(), 0.15) * 3.0 * 0.02;
-            double minHeight = ArmConstants.ElevatorConstants.softStopMarginBottom.in(Meters);
-            double maxHeight = ArmConstants.ElevatorConstants.maxElevatorHeight.in(Meters)
-                - ArmConstants.ElevatorConstants.softStopMarginTop.in(Meters);
-            height.value = MathUtil.clamp(height.value, minHeight, maxHeight);
-
-            pitch.value -= MathUtil.applyDeadband(operator.getRightY(), 0.15) * 0.02 * 400.;
-            pitch.value = MathUtil.clamp(pitch.value, ArmConstants.ShoulderConstants.minimumPitch.getDegrees(),
-                ArmConstants.ShoulderConstants.maximumPitch.getDegrees());
-
-            return new ArmState(Rotation2d.fromDegrees(pitch.value), Meters.of(height.value), wristRotation.value,
-                endEffectorState);
-        }).withName("ArmManualControls"));
     }
 
     private HashMap<Integer, Double> driverRumbleCommands = new HashMap<>();

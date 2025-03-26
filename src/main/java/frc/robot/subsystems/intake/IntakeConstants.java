@@ -12,6 +12,9 @@ import frc.robot.util.PIDConstants;
  * Constants related to the intake subsystem.
  */
 public class IntakeConstants {
+    /** If the transport sensors are disabled. */
+    public static final boolean disableTransportSensors = false;
+
     public static final int intakePitchMotorId = 44;
     public static final LoggedTunableSparkPID pitchPID = new LoggedTunableSparkPID("Intake/Pitch") // Position
         .addRealRobotGains(new PIDConstants(0.5, 0, 0.4)).addSimGains(new PIDConstants(5.0, 0, 0));
@@ -56,9 +59,9 @@ public class IntakeConstants {
 
     public static final boolean transportMotorInverted = false;
 
-    public static final int intakeSensorDIOPort = 0;
-    public static final int middleSensorDIOPort = 2;
-    public static final int endSensorDIOPort = 1;
+    public static final int intakeSensorDIOPort = 9;
+    public static final int middleSensorDIOPort = 8;
+    public static final int endSensorDIOPort = 7;
 
     // For simulation
     public static final Distance intakeLength = Inches.of(17);

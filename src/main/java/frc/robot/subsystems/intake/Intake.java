@@ -149,6 +149,8 @@ public class Intake extends SubsystemBase {
         io.updateInputs(inputs);
         Logger.processInputs("Intake", inputs);
 
+        TransportTarget transportTarget = getTransportTarget();
+
         if(usingClosedLoopControl) {
             if(Math.abs(
                 inputs.intakePitch.getDegrees() - targetIntakeState.pitch.getDegrees()) < INTAKE_PITCH_TOLERANCE_DEGREES
@@ -158,8 +160,9 @@ public class Intake extends SubsystemBase {
                 io.setIntakePitch(targetIntakeState.pitch);
             }
 
-            TransportTarget transportTarget = getTransportTarget();
-            io.runVelocity(targetIntakeState.speed,
+            if(IntakeConstants.disableTransportSensors) io.runVelocity(targetIntakeState.speed,
+                targetIntakeState.speed);
+            else io.runVelocity(targetIntakeState.speed,
                 targetIntakeState.speed == 0 ? transportTarget.speed : targetIntakeState.speed);
         }
 
@@ -167,6 +170,8 @@ public class Intake extends SubsystemBase {
 
         Logger.recordOutput("Intake/TargetPitch", targetIntakeState.pitch);
         Logger.recordOutput("Intake/TargetSpeed", targetIntakeState.speed);
+        Logger.recordOutput("Intake/TargetTransportSpeed", transportTarget.speed);
+        Logger.recordOutput("Intake/PieceMoving", pieceMoving);
 
         LoggedTracer.record("Intake");
     }
