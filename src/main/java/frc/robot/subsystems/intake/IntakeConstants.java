@@ -59,9 +59,9 @@ public class IntakeConstants {
 
     public static final boolean transportMotorInverted = false;
 
-    public static final int intakeSensorDIOPort = 7;
+    public static final int intakeSensorDIOPort = 9;
     public static final int middleSensorDIOPort = 8;
-    public static final int endSensorDIOPort = 9;
+    public static final int endSensorDIOPort = 7;
 
     // For simulation
     public static final Distance intakeLength = Inches.of(17);
