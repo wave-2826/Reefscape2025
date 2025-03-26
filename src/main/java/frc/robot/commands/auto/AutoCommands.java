@@ -2,7 +2,6 @@ package frc.robot.commands.auto;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 
 import org.littletonrobotics.junction.Logger;
@@ -41,9 +40,8 @@ public class AutoCommands {
         for(var branch : ReefBranch.values()) {
             for(var level : ReefLevel.values()) {
                 ReefTarget target = new ReefTarget(branch, level);
-                NamedCommands.registerCommand("Score " + branch.toString() + " " + level.toString(),
-                    Commands.defer(() -> AutoScoreCommands.autoScoreCommand(drive, vision, arm, target,
-                        Optional.empty(), () -> 0, () -> 0, null), Set.of(drive, vision, arm)));
+                NamedCommands.registerCommand("Score " + branch.toString() + " " + level.toString(), Commands.defer(
+                    () -> AutoScoreCommands.autoScoreCommand(drive, vision, arm, target), Set.of(drive, vision, arm)));
             }
         }
 

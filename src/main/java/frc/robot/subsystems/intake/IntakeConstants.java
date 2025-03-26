@@ -13,7 +13,7 @@ import frc.robot.util.PIDConstants;
  */
 public class IntakeConstants {
     /** If the transport sensors are disabled. */
-    public static final boolean disableTransportSensors = true;
+    public static final boolean disableTransportSensors = false;
 
     public static final int intakePitchMotorId = 44;
     public static final LoggedTunableSparkPID pitchPID = new LoggedTunableSparkPID("Intake/Pitch") // Position
@@ -59,9 +59,9 @@ public class IntakeConstants {
 
     public static final boolean transportMotorInverted = false;
 
-    public static final int intakeSensorDIOPort = 0;
-    public static final int middleSensorDIOPort = 2;
-    public static final int endSensorDIOPort = 1;
+    public static final int intakeSensorDIOPort = 7;
+    public static final int middleSensorDIOPort = 8;
+    public static final int endSensorDIOPort = 9;
 
     // For simulation
     public static final Distance intakeLength = Inches.of(17);
