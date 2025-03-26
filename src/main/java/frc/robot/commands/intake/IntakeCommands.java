@@ -2,6 +2,8 @@ package frc.robot.commands.intake;
 
 import java.util.function.BooleanSupplier;
 
+import org.littletonrobotics.junction.AutoLogOutput;
+
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.subsystems.arm.Arm;
@@ -16,6 +18,7 @@ public class IntakeCommands {
             arm.goToStateCommand(ArmConstants.restingState, 0.5));
     }
 
+    @AutoLogOutput(key = "Intake/CanTake")
     private static boolean canTake = false;
 
     public static Command autoIntake(Intake intake, Arm arm) {

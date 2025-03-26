@@ -160,7 +160,7 @@ public class Intake extends SubsystemBase {
 
             TransportTarget transportTarget = getTransportTarget();
             io.runVelocity(targetIntakeState.speed,
-                transportTarget.speed == 0 ? targetIntakeState.speed : transportTarget.speed);
+                targetIntakeState.speed == 0 ? transportTarget.speed : targetIntakeState.speed);
         }
 
         visualizer.update(inputs.intakePitch);
