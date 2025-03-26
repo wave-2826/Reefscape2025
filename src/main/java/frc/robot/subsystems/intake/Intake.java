@@ -169,6 +169,7 @@ public class Intake extends SubsystemBase {
         Logger.recordOutput("Intake/TargetPitch", targetIntakeState.pitch);
         Logger.recordOutput("Intake/TargetSpeed", targetIntakeState.speed);
         Logger.recordOutput("Intake/TargetTransportSpeed", transportTarget.speed);
+        Logger.recordOutput("Intake/PieceMoving", pieceMoving);
 
         LoggedTracer.record("Intake");
     }
