@@ -160,8 +160,7 @@ public class Controls {
         operator.povUp().and(normalOperator).onTrue(arm.goToStateCommand(ArmConstants.sourceIntakeState))
             .onFalse(arm.goToStateCommand(ArmConstants.sourceIntakeStoppedState));
         operator.povLeft().and(normalOperator)
-            .whileTrue(Commands.sequence(intake.runOnce(() -> intake.overrideIntakeSpeed(0.0)),
-                arm.setTargetStateCommand(() -> ArmConstants.restingState), intake.reset()));
+            .onTrue(Commands.sequence(intake.reset(), arm.setTargetStateCommand(() -> ArmConstants.restingState)));
     }
 
     private void configureOverrideOperatorControls(Climber climber, Arm arm, Intake intake) {

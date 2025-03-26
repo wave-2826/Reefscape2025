@@ -86,7 +86,9 @@ public class Intake extends SubsystemBase {
 
     public Command reset() {
         return runOnce(() -> {
+            usingClosedLoopControl = true;
             pieceMoving = false;
+            targetIntakeState = IntakeState.Up;
         });
     }
 
