@@ -36,34 +36,25 @@ public class CloseLineupCommand extends Command {
     private final Optional<BooleanSupplier> finishSequence;
     private final BooleanConsumer lineupFeedback;
 
-    private final static LoggedTunableNumber translationKp = new LoggedTunableNumber("CloseLineup/translationKp");
-    private final static LoggedTunableNumber translationKi = new LoggedTunableNumber("CloseLineup/translationKi");
-    private final static LoggedTunableNumber translationKd = new LoggedTunableNumber("CloseLineup/translationKd");
+    private final static LoggedTunableNumber translationKp = new LoggedTunableNumber("CloseLineup/translationKp", 4.5);
+    private final static LoggedTunableNumber translationKi = new LoggedTunableNumber("CloseLineup/translationKi", 0.0);
+    private final static LoggedTunableNumber translationKd = new LoggedTunableNumber("CloseLineup/translationKd", 0.5);
 
-    private final static LoggedTunableNumber thetaRotationKp = new LoggedTunableNumber("CloseLineup/thetaRotationKp");
-    private final static LoggedTunableNumber thetaRotationKi = new LoggedTunableNumber("CloseLineup/thetaRotationKi");
-    private final static LoggedTunableNumber thetaRotationKd = new LoggedTunableNumber("CloseLineup/thetaRotationKd");
+    private final static LoggedTunableNumber thetaRotationKp = new LoggedTunableNumber("CloseLineup/thetaRotationKp",
+        6.0);
+    private final static LoggedTunableNumber thetaRotationKi = new LoggedTunableNumber("CloseLineup/thetaRotationKi",
+        0.01);
+    private final static LoggedTunableNumber thetaRotationKd = new LoggedTunableNumber("CloseLineup/thetaRotationKd",
+        0.2);
 
     private final static LoggedTunableNumber xTranslationTolerance = new LoggedTunableNumber(
-        "CloseLineup/xTranslationTolerance");
+        "CloseLineup/xTranslationTolerance", 0.5);
     private final static LoggedTunableNumber yTranslationTolerance = new LoggedTunableNumber(
-        "CloseLineup/yTranslationTolerance");
+        "CloseLineup/yTranslationTolerance", 0.5);
     private final static LoggedTunableNumber thetaRotationTolerance = new LoggedTunableNumber(
-        "CloseLineup/thetaRotationTolerance");
+        "CloseLineup/thetaRotationTolerance", 1.5);
 
-    static {
-        translationKp.initDefault(2.5);
-        translationKi.initDefault(0.0);
-        translationKd.initDefault(0.5);
-
-        thetaRotationKp.initDefault(2.0);
-        thetaRotationKi.initDefault(0.0);
-        thetaRotationKd.initDefault(0.2);
-
-        xTranslationTolerance.initDefault(Units.inchesToMeters(1.0));
-        yTranslationTolerance.initDefault(Units.inchesToMeters(1.0));
-        thetaRotationTolerance.initDefault(Units.degreesToRadians(5));
-    }
+    private final static LoggedTunableNumber thetaIZone = new LoggedTunableNumber("CloseLineup/thetaIZone", 1.0);
 
     /**
      * A command that lines up the robot based on tracking the relative position of a single tag from the vision system
@@ -99,9 +90,11 @@ public class CloseLineupCommand extends Command {
         thetaController = new PIDController(thetaRotationKp.get(), thetaRotationKi.get(), thetaRotationKd.get());
         thetaController.enableContinuousInput(0.0, Math.PI * 2);
 
-        xController.setTolerance(xTranslationTolerance.get());
-        yController.setTolerance(yTranslationTolerance.get());
-        thetaController.setTolerance(thetaRotationTolerance.get());
+        xController.setTolerance(Units.inchesToMeters(xTranslationTolerance.get()));
+        yController.setTolerance(Units.inchesToMeters(yTranslationTolerance.get()));
+        thetaController.setTolerance(Units.degreesToRadians(thetaRotationTolerance.get()));
+        thetaController.setIntegratorRange(-Units.degreesToRadians(thetaIZone.get()),
+            Units.degreesToRadians(thetaIZone.get()));
 
         this.finishSequence = finishSequence;
         this.lineupFeedback = lineupFeedback;
@@ -136,10 +129,13 @@ public class CloseLineupCommand extends Command {
             thetaController.setPID(values[0], values[1], values[2]);
         }, thetaRotationKp, thetaRotationKi, thetaRotationKd);
         LoggedTunableNumber.ifChanged(hashCode(), (double[] values) -> {
-            xController.setTolerance(values[0]);
-            yController.setTolerance(values[1]);
-            thetaController.setTolerance(values[2]);
+            xController.setTolerance(Units.inchesToMeters(values[0]));
+            yController.setTolerance(Units.inchesToMeters(values[1]));
+            thetaController.setTolerance(Units.degreesToRadians(values[2]));
         }, xTranslationTolerance, yTranslationTolerance, thetaRotationTolerance);
+        LoggedTunableNumber.ifChanged(hashCode(), (double[] values) -> {
+            thetaController.setIntegratorRange(-Units.degreesToRadians(values[0]), Units.degreesToRadians(values[0]));
+        }, thetaIZone);
 
         Pose2d correctedCurrentPose = drive.getPose();
         Transform3d robotToTag = vision.getRobotToTag(tagToTrack);

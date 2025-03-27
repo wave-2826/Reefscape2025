@@ -67,9 +67,10 @@ public class DriveCommands {
     }
 
     /** Returns a command that drives straight at the specified speed. Positive numbers are forward. */
-    public static Command driveStraightCommand(Drive drive, double speedMetersPerSecond) {
+    public static Command driveStraightCommand(Drive drive, double speedMetersPerSecond, Rotation2d fieldAngle) {
         return Commands.run(() -> {
-            drive.runVelocity(new ChassisSpeeds(speedMetersPerSecond, 0., 0.));
+            drive.runVelocity(ChassisSpeeds.fromFieldRelativeSpeeds(fieldAngle.getCos() * speedMetersPerSecond,
+                fieldAngle.getSin() * speedMetersPerSecond, 0., drive.getRotation()));
         }, drive).withName("DriveStraight");
     }
 
@@ -78,7 +79,16 @@ public class DriveCommands {
      * forward.
      */
     public static Command driveStraightCommand(Drive drive, double speedMetersPerSecond, double timeSeconds) {
-        return driveStraightCommand(drive, speedMetersPerSecond).withTimeout(timeSeconds);
+        return driveStraightCommand(drive, speedMetersPerSecond, drive.getRotation()).withTimeout(timeSeconds);
+    }
+
+    /**
+     * Returns a command that drives at the specified speed and angle for the specified duration. Positive numbers are
+     * forward.
+     */
+    public static Command driveStraightCommand(Drive drive, double speedMetersPerSecond, double timeSeconds,
+        Rotation2d fieldAngle) {
+        return driveStraightCommand(drive, speedMetersPerSecond, fieldAngle).withTimeout(timeSeconds);
     }
 
     /**

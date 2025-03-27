@@ -26,7 +26,7 @@ public class ScoringSequenceCommands {
     private static LoggedTunableNumber elevatorScoreHeightReduction = new LoggedTunableNumber(//
         "AutoScore/ScoreHeightReduction", 6);
     private static LoggedTunableNumber gamePieceEjectVelocity = new LoggedTunableNumber(//
-        "AutoScore/GamePieceEjectVelocity", 12);
+        "AutoScore/GamePieceEjectVelocity", 17);
     private static LoggedTunableNumber branchScorePitch = new LoggedTunableNumber(//
         "AutoScore/BranchScorePitch", 65.);
     private static LoggedTunableNumber L4ScorePitch = new LoggedTunableNumber(//
@@ -41,6 +41,8 @@ public class ScoringSequenceCommands {
         "AutoScore/L4ScoreHeightFromTop", 10);
     private static LoggedTunableNumber preScoreElevatorHeight = new LoggedTunableNumber(//
         "AutoScore/PreScoreElevatorHeight", 15.5);
+    private static LoggedTunableNumber branchScorePitchDown = new LoggedTunableNumber(//
+        "AutoScore/BranchScorePitchDown", 40);
 
     /**
      * Gets the starting state for scoring at level 1.
@@ -123,7 +125,7 @@ public class ScoringSequenceCommands {
      * @param drive
      * @return
      */
-    public static Command scoreAtLevel(ReefLevel level, Arm arm, Drive drive) {
+    public static Command scoreAtLevel(ReefLevel level, Arm arm, Drive drive, Rotation2d fieldAngle) {
         if(level == ReefLevel.L1) return troughScoringSequence(arm);
 
         if(level == ReefLevel.L4) {
@@ -136,7 +138,7 @@ public class ScoringSequenceCommands {
             return Commands.sequence(
                 Commands.parallel(
                     arm.goToStateCommand(scoreDownState).withTimeout(0.75),
-                    DriveCommands.driveStraightCommand(drive, Units.feetToMeters(-2.5), 0.75)
+                    DriveCommands.driveStraightCommand(drive, Units.feetToMeters(-2.5), 0.75, fieldAngle)
                 ),
                 arm.goToStateCommand(ArmConstants.restingState)
             );
@@ -147,7 +149,8 @@ public class ScoringSequenceCommands {
         ArmState scoreDownState = new ArmState(startState.pitch(),
             startState.height().minus(Inches.of(elevatorScoreHeightReduction.get())), startState.wristRotation(),
             Constants.isSim ? EndEffectorState.velocity(gamePieceEjectVelocity.get()) : EndEffectorState.hold());
-        ArmState scoreDownState2 = new ArmState(startState.pitch().minus(Rotation2d.fromDegrees(15)),
+        ArmState scoreDownState2 = new ArmState(
+            startState.pitch().minus(Rotation2d.fromDegrees(branchScorePitchDown.get())),
             startState.height().minus(Inches.of(elevatorScoreHeightReduction.get())), startState.wristRotation(),
             EndEffectorState.velocity(gamePieceEjectVelocity.get()));
 
@@ -158,11 +161,11 @@ public class ScoringSequenceCommands {
                     Commands.waitSeconds(0.2),
                     arm.goToStateCommand(scoreDownState).withTimeout(0.75)
                 ),
-                DriveCommands.driveStraightCommand(drive, Units.feetToMeters(2.0), 0.4)
+                DriveCommands.driveStraightCommand(drive, Units.feetToMeters(2.5), 0.4, fieldAngle)
             ).withTimeout(0.75),
             Commands.parallel(
                 arm.goToStateCommand(scoreDownState2).withTimeout(0.75),
-                DriveCommands.driveStraightCommand(drive, Units.feetToMeters(-2.5), 0.75)
+                DriveCommands.driveStraightCommand(drive, Units.feetToMeters(-1.5), 0.8, fieldAngle)
             ),
             arm.goToStateCommand(ArmConstants.restingState)
         ).withName("ScoreAt" + level.name() + "Sequence");

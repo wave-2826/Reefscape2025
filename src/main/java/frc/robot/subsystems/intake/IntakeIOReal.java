@@ -127,7 +127,7 @@ public class IntakeIOReal implements IntakeIO {
     @Override
     public void updateInputs(IntakeIOInputs inputs) {
         inputs.intakeSensorTriggered = !intakeSensor.get();
-        // inputs.middleSensorTriggered = !middleSensor.get();
+        inputs.middleSensorTriggered = !middleSensor.get();
         inputs.endSensorTriggered = !endSensor.get();
         inputs.intakePitch = Rotation2d.fromRadians(absolutePitchSensor.getPosition());
         inputs.intakeWheelSpeed = powerEncoder.getVelocity();

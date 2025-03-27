@@ -102,15 +102,36 @@ public class FieldConstants {
         FrontRight(17, 8);
         // @formatter:on
 
-        public final Pose2d tagPose;
+        public final Pose2d blueTagPose;
+        public final Pose2d redTagPose;
 
         public final int aprilTagBlue;
         public final int aprilTagRed;
 
         ReefFace(int blueAprilTag, int redAprilTag) {
-            this.tagPose = VisionConstants.aprilTagLayout.getTagPose(blueAprilTag).get().toPose2d();
+            this.blueTagPose = VisionConstants.aprilTagLayout.getTagPose(blueAprilTag).get().toPose2d();
+            this.redTagPose = VisionConstants.aprilTagLayout.getTagPose(redAprilTag).get().toPose2d();
+
             this.aprilTagBlue = blueAprilTag;
             this.aprilTagRed = redAprilTag;
+        }
+
+        /**
+         * Gets the angle that the robot should move at when lining up with this face for the given alliance -- the
+         * angle facing into it.
+         */
+        public Rotation2d getFieldAngle(boolean isRed) {
+            var tagPose = isRed ? redTagPose : blueTagPose;
+            return tagPose.getRotation().plus(isRed ? Rotation2d.kZero : Rotation2d.k180deg);
+        }
+
+        /**
+         * Gets the angle that the robot should move at when lining up with this face for the current alliance -- the
+         * angle facing into it.
+         */
+        public Rotation2d getFieldAngle() {
+            return getFieldAngle(DriverStation.getAlliance().isPresent()
+                && DriverStation.getAlliance().get() == DriverStation.Alliance.Red);
         }
 
         /** Gets the AprilTag ID for a given alliance. */
@@ -125,12 +146,12 @@ public class FieldConstants {
         }
 
         public Pose2d getLeftBranchPose() {
-            return tagPose.transformBy(
+            return blueTagPose.transformBy(
                 new Transform2d(-reefBranchInset.in(Meters), -reefBranchSeparation.in(Meters) / 2., Rotation2d.kZero));
         }
 
         public Pose2d getRightBranchPose() {
-            return tagPose.transformBy(
+            return blueTagPose.transformBy(
                 new Transform2d(-reefBranchInset.in(Meters), reefBranchSeparation.in(Meters) / 2., Rotation2d.kZero));
         }
     }

@@ -1,6 +1,6 @@
 package frc.robot.subsystems.drive;
 
-import static edu.wpi.first.units.Units.MetersPerSecondPerSecond;
+import static edu.wpi.first.units.Units.Newton;
 import static frc.robot.subsystems.drive.DriveConstants.*;
 
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
@@ -8,7 +8,7 @@ import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
-import edu.wpi.first.units.measure.LinearAcceleration;
+import edu.wpi.first.units.measure.Force;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
 import frc.robot.Constants;
@@ -116,7 +116,7 @@ public class Module {
     }
 
     /** Runs the module with the specified setpoint state. */
-    public void runSetpoint(SwerveModuleState state, LinearAcceleration acceleration) {
+    public void runSetpoint(SwerveModuleState state, Force force) {
         // Optimize velocity setpoint
         state.optimize(getAngle());
         state.cosineScale(inputs.relativeTurnPosition);
@@ -127,9 +127,8 @@ public class Module {
         double coupleRadPerSecond = Constants.isSim ? 0
             : DriveConstants.turnDriveCouplingFactor * inputs.turnVelocityRadPerSec;
         double speedRadPerSec = state.speedMetersPerSecond / DriveConstants.wheelRadiusMeters + coupleRadPerSecond;
-        double nextSpeedRadPerSec = (state.speedMetersPerSecond + acceleration.in(MetersPerSecondPerSecond) * 0.02)
-            / DriveConstants.wheelRadiusMeters + coupleRadPerSecond;
-        io.setDriveVelocity(speedRadPerSec, ffModel.calculateWithVelocities(speedRadPerSec, nextSpeedRadPerSec)); // TODO: Acceleration feedforward   
+        io.setDriveVelocity(speedRadPerSec,
+            ffModel.calculate(speedRadPerSec) + driveKt * force.in(Newton) * wheelRadiusMeters); // TODO: Acceleration feedforward   
         io.setTurnPosition(state.angle);
     }
 

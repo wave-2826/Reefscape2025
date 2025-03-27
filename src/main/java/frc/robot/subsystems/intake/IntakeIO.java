@@ -8,8 +8,9 @@ public interface IntakeIO {
     @AutoLog
     public static class IntakeIOInputs {
         public boolean intakeSensorTriggered = false;
-        // public boolean middleSensorTriggered = false;
+        public boolean middleSensorTriggered = false;
         public boolean endSensorTriggered = false;
+
         /** The pitch of the intake. 0 degrees is straight outward. */
         public Rotation2d intakePitch = Rotation2d.kZero;
         /** The speed of the intake wheels, in radians per second. */

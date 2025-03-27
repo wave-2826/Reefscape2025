@@ -91,9 +91,9 @@ public class ModuleIOSpark implements ModuleIO {
         turnConfig.closedLoop.feedbackSensor(FeedbackSensor.kPrimaryEncoder).positionWrappingEnabled(true)
             .positionWrappingInputRange(turnPIDMinInput, turnPIDMaxInput).pidf(turnKp, 0.0, turnKd, 0.0);
         // TODO: Compare odometry accuracy
-        turnConfig.signals.analogPositionAlwaysOn(true)
-            .analogPositionPeriodMs((int) (1000.0 / DriveConstants.odometryFrequency)).analogVelocityAlwaysOn(true)
-            .analogVelocityPeriodMs(20).primaryEncoderPositionAlwaysOn(true).primaryEncoderPositionPeriodMs(20)
+        turnConfig.signals.analogPositionAlwaysOn(true).analogPositionPeriodMs(20).analogVelocityAlwaysOn(true)
+            .analogVelocityPeriodMs(20).primaryEncoderPositionAlwaysOn(true)
+            .primaryEncoderPositionPeriodMs((int) (1000.0 / DriveConstants.odometryFrequency))
             .primaryEncoderVelocityAlwaysOn(true).primaryEncoderVelocityPeriodMs(20).appliedOutputPeriodMs(20)
             .busVoltagePeriodMs(20).outputCurrentPeriodMs(20);
 
@@ -150,8 +150,7 @@ public class ModuleIOSpark implements ModuleIO {
         // Update odometry inputs
         inputs.odometryTimestamps = timestampQueue.stream().mapToDouble((Double value) -> value).toArray();
         inputs.odometryDrivePositionsRad = drivePositionQueue.stream().mapToDouble((Double value) -> value).toArray();
-        inputs.odometryTurnPositions = turnPositionQueue.stream()
-            .map((Double value) -> new Rotation2d(value).minus(zeroRotation)).toArray(Rotation2d[]::new);
+        inputs.odometryTurnPositions = turnPositionQueue.stream().map(Rotation2d::new).toArray(Rotation2d[]::new);
 
         timestampQueue.clear();
         drivePositionQueue.clear();

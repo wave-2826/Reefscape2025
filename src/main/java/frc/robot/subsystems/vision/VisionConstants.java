@@ -51,12 +51,12 @@ public class VisionConstants {
     // Robot to camera transforms
     // Front left camera
     public static final Transform3d robotToCamera0 = new Transform3d(
-        new Translation3d(0.26525768557776486, 0.26320120237709405, 0.3043617686719239),
-        new Rotation3d(0.007378789833927616, 0.2800075151914144, -0.5520122181237939));
+        new Translation3d(0.2641188936435686, 0.27179662045243047, 0.3268217346775703),
+        new Rotation3d(0.009216829869306487, 0.25623936411599274, -0.5882221880563707));
     // Front right camera
     public static final Transform3d robotToCamera1 = new Transform3d(
-        new Translation3d(0.2725368549785328, -0.26320120237709405, 0.30627972254109814),
-        new Rotation3d(0.013917894786869571, 0.2646770752290893, 0.5746210307152744));
+        new Translation3d(0.2636302545668782, -0.27179662045243047, 0.31824257640474607),
+        new Rotation3d(0.021219301471488785, 0.22761117681482465, 0.5872378479679213));
     // Back left camera
     public static final Transform3d robotToCamera2 = new Transform3d(new Translation3d(Units.inchesToMeters(4.006715),
         Units.inchesToMeters(7.487012), Units.inchesToMeters(25.736304)),
@@ -70,14 +70,14 @@ public class VisionConstants {
 
     // Standard deviation baselines, for 1 meter distance and 1 tag
     // (Adjusted automatically based on distance and # of tags)
-    public static final double linearStdDevBaseline = 0.015; // Meters
+    public static final double linearStdDevBaseline = 0.02; // Meters
     public static final double angularStdDevBaseline = 1000.; // Radians
 
     // Standard deviation multipliers for each camera
     // (Adjust to trust some cameras more than others)
     public static double[] cameraStdDevFactors = new double[] {
-        1.0, // Camera 0
-        1.0, // Camera 1
+        1.5, // Camera 0
+        1.5, // Camera 1
         1.5, // Camera 2
         1.5 // Camera 3
     };

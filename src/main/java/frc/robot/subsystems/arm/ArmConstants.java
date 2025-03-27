@@ -24,8 +24,8 @@ public class ArmConstants {
     public static final ArmState restingState = new ArmState(Rotation2d.fromRadians(-1.62), Meters.of(0.533),
         WristRotation.Horizontal, EndEffectorState.hold());
     /** The state the arm is in when getting a piece. */
-    public static final ArmState getPieceState = new ArmState(Rotation2d.fromRadians(-1.8), Meters.of(0.11),
-        WristRotation.Horizontal, EndEffectorState.velocity(-10));
+    public static final ArmState getPieceState = new ArmState(Rotation2d.fromRadians(-1.8), Meters.of(0.12),
+        WristRotation.Horizontal, EndEffectorState.velocity(-12));
 
     /** The state when the arm is intaking from the source. */
     public static final ArmState sourceIntakeState = new ArmState(Rotation2d.fromDegrees(80), Inches.of(5),
@@ -35,7 +35,7 @@ public class ArmConstants {
         WristRotation.Vertical, EndEffectorState.hold());
 
     public class ElevatorConstants {
-        public static final double elevatorStartingHeightMeters = 0.352;
+        public static final double elevatorStartingHeightMeters = 0.34;
 
         public static final int elevatorHeightMotor1Id = 50;
         public static final int elevatorHeightMotor2Id = 51;
@@ -159,7 +159,7 @@ public class ArmConstants {
 
         public static final LoggedTunableSparkPID armWristPID = new LoggedTunableSparkPID("Arm/Wrist")
             // .addRealRobotGains(new PIDConstants(0.85, 0.0, 14.0, armWristPositionSlot)) //
-            .addRealRobotGains(new PIDConstants(0.6, 0.0, 10.0, armWristPositionSlot)) //
+            .addRealRobotGains(new PIDConstants(0.6, 0.005, 6.0, armWristPositionSlot).iZone(Units.degreesToRadians(5))) //
             .addSimGains(new PIDConstants(0.05, 0.0, 0.0, armWristPositionSlot)) //
             .addRealRobotGains(new PIDConstants(2.0, 0.0, 1 / 917, armWristVelocitySlot))
             .addSimGains(new PIDConstants(2.0, 0.0, 0.0, 1 / 917, armWristVelocitySlot)); // 917 is the Neo 550 Kf value
@@ -205,7 +205,7 @@ public class ArmConstants {
     public class EndEffectorConstants {
         public static final int endEffectorMotorId = 54;
 
-        public static final double endEffectorReduction = 32. / 11. * 9.;
+        public static final double endEffectorReduction = 24. / 11. * 9.;
 
         // The PID slot used for end effector position control. We need to use position control because
         // the coaxial drive system has a coupling factor that could cause the piece to be spit out if
@@ -218,13 +218,13 @@ public class ArmConstants {
         // a coaxial drive system, the end effector wheel's rotation is linked to the wrist rotation.
         // We need to compensate for this by using position control on the end effector motor.
         // For every 1 rotation of the wrist, the end effector wheel rotates endEffectorCouplingFactor times.
-        public static final double endEffectorCouplingFactor = (1 / endEffectorReduction) / 2.; // TODO: Find the proper value for this. Maybe from empirical testing?
+        public static final double endEffectorCouplingFactor = -11. / 24.; // TODO: Find the proper value for this. Maybe from empirical testing?
 
         public static final LoggedTunableSparkPID endEffectorPID = new LoggedTunableSparkPID("Arm/EndEffector")
             .addRealRobotGains(new PIDConstants(0.001, 0.0, 0.5, endEffectorReduction / 565, endEffectorVelocitySlot))
             .addSimGains(new PIDConstants(0.01, 0.0, 0.0, 0.04, endEffectorVelocitySlot))
-            .addRealRobotGains(new PIDConstants(0.003, 0.0, 0.0, endEffectorPositionSlot))
-            .addSimGains(new PIDConstants(0.003, 0.0, 0.0, endEffectorPositionSlot));
+            .addRealRobotGains(new PIDConstants(0.9, 0.0, 0.1, endEffectorPositionSlot))
+            .addSimGains(new PIDConstants(0.9, 0.0, 0.1, endEffectorPositionSlot));
 
         /** The conversion factor from end effector motor rotations to radians. */
         public static final double endEffectorPositionConversionFactor = 2 * Math.PI / endEffectorReduction;

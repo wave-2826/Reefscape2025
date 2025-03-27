@@ -7,13 +7,13 @@
         {
           "type": "path",
           "data": {
-            "pathName": "No vision coral left.0"
+            "pathName": "No vision coral right.0"
           }
         },
         {
           "type": "named",
           "data": {
-            "name": "Score K L1"
+            "name": "Score D L4"
           }
         },
         {
@@ -25,13 +25,13 @@
         {
           "type": "path",
           "data": {
-            "pathName": "No vision coral left.1"
+            "pathName": "No vision coral right.1"
           }
         },
         {
           "type": "named",
           "data": {
-            "name": "Score L L4"
+            "name": "Score C L4"
           }
         }
       ]

@@ -5,6 +5,8 @@ import java.util.HashMap;
 import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
 
+import edu.wpi.first.math.filter.Debouncer;
+import edu.wpi.first.math.filter.Debouncer.DebounceType;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.GenericHID.RumbleType;
@@ -55,6 +57,11 @@ public class Intake extends SubsystemBase {
     private boolean usingClosedLoopControl = false;
 
     /**
+     * A debouncer for the middle sensor.
+     */
+    private Debouncer middleDebouncer = new Debouncer(0.15, DebounceType.kFalling);
+
+    /**
      * Used to emulate a "middle sensor" that doesn't exist right now.
      */
     private boolean pieceMoving = false;
@@ -78,7 +85,8 @@ public class Intake extends SubsystemBase {
     private TransportTarget getTransportTarget() {
         int key = 0b000;
         if(inputs.intakeSensorTriggered) key |= 0b100;
-        if(pieceMoving) key |= 0b010;
+        // if(pieceMoving) key |= 0b010;
+        if(middleDebouncer.calculate(inputs.middleSensorTriggered)) key |= 0b010;
         if(inputs.endSensorTriggered) key |= 0b001;
 
         return transportTargetMap.get(key);
@@ -119,12 +127,12 @@ public class Intake extends SubsystemBase {
      * @param power The desired power for the intake, from 0 to 1.
      */
     public void overrideIntakeSpeed(double power) {
-        // usingClosedLoopControl = false;
+        usingClosedLoopControl = false;
         io.runVelocity(power, power);
     }
 
     public void overridePitchPower(double power) {
-        // usingClosedLoopControl = false;
+        usingClosedLoopControl = false;
         io.overridePitchPower(power);
     }
 

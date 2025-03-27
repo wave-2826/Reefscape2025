@@ -48,9 +48,9 @@ public class VisionTuningCommands {
 
     /** The transform of the calibration tag, relative to the robot base. */
     public static Transform3d heldTagTransform = new Transform3d(new Translation3d( //
-        Units.inchesToMeters(15. + 4.0), // Distance forward
+        Units.inchesToMeters(15. + 6.25), // Distance forward
         Units.inchesToMeters(0.0 / 2), // Distance left
-        Units.inchesToMeters(8.45) // Distance up
+        Units.inchesToMeters(5.75 + 7. - 6.375 / 2.) // Distance up
     ), new Rotation3d(0., 0., Units.degreesToRadians(180)));
 
     public static Command measureCameraPositions(Vision vision) {

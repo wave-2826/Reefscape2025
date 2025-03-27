@@ -25,7 +25,7 @@ public class DriveConstants {
     public record SwerveModuleConfiguration(int driveMotorCanID, int turnMotorCanID, Rotation2d zeroOffset) {
     }
 
-    public static final double maxSpeedMetersPerSec = 4.0; // "Magic" number from max speed measurement
+    public static final double maxSpeedMetersPerSec = 3.6; // "Magic" number from max speed measurement
     public static final double odometryFrequency = 100.0; // Hz
     public static final double bumperSizeMeters = Units.inchesToMeters(37.625);
     public static final double trackWidth = Units.inchesToMeters(24.);
@@ -51,11 +51,11 @@ public class DriveConstants {
     public static final SwerveModuleConfiguration backRightModule = new SwerveModuleConfiguration(31, 32,
         Rotation2d.fromRadians(4.41693));
 
-    public static final boolean USE_SETPOINT_GENERATOR = true;
+    public static final boolean USE_SETPOINT_GENERATOR = false;
 
     // Drive motor configuration
-    public static final int driveMotorCurrentLimit = 85; // "Magic" number from slip current measurement
-    public static final double wheelRadiusMeters = Units.inchesToMeters(1.874); // "Magic" number from wheel radius characterization
+    public static final int driveMotorCurrentLimit = 75;
+    public static final double wheelRadiusMeters = Units.inchesToMeters(1.999); // "Magic" number from wheel radius characterization
     public static final double driveMotorReduction = Mk4Reductions.L2.reduction;
     public static final DCMotor driveSimMotor = DCMotor.getNeoVortex(1);
 
@@ -64,7 +64,7 @@ public class DriveConstants {
     public static final double driveEncoderVelocityFactor = (2 * Math.PI) / 60.0 / driveMotorReduction; // Rotor RPM -> Wheel Rad/Sec
 
     // Drive PID configuration
-    public static final double driveKp = 0.015;
+    public static final double driveKp = 0.03;
     public static final double driveKd = 0.0;
     /** The static feedforward gain in volts. */
     public static final double driveKs = 0.169; // "Magic" number from SysID
@@ -106,7 +106,7 @@ public class DriveConstants {
         / driveMotorReduction;
 
     // Turn PID configuration
-    public static final double turnKp = 3.0;
+    public static final double turnKp = 3.5;
     public static final double turnKd = 2.0;
     public static final double turnDerivativeFilter = 0.0;
 
@@ -118,7 +118,7 @@ public class DriveConstants {
     // PathPlanner configuration
     public static final double robotMassKg = Units.lbsToKilograms(114.5 + 13 + 13);
     /** The moment of inertia of the robot, in KG*M^2 */
-    public static final double robotMOIKgSqM = 9.442; // TODO: Estimate with angular SysID
+    public static final double robotMOIKgSqM = 5.0; // TODO: Estimate with angular SysID
     public static final double wheelCOF = 1.355; // "Magic" number from slip current measurement
 
     public static final RobotConfig pathplannerConfig = new RobotConfig(robotMassKg, robotMOIKgSqM,
@@ -129,7 +129,7 @@ public class DriveConstants {
     public static final PPHolonomicDriveController simHolonomicDriveController = new PPHolonomicDriveController(
         new PIDConstants(13.0, 0.0, 0.0), new PIDConstants(5.0, 0.0, 0.0));
     public static final PPHolonomicDriveController realHolonomicDriveController = new PPHolonomicDriveController(
-        new PIDConstants(3.0, 0.0, 0.5), new PIDConstants(2.0, 0.0, 0.0));
+        new PIDConstants(6.0, 0.0, 0.0), new PIDConstants(6.0, 0.0, 0.0));
 
     public static final DriveTrainSimulationConfig mapleSimConfig = DriveTrainSimulationConfig.Default()
         .withCustomModuleTranslations(moduleTranslations).withRobotMass(Kilogram.of(robotMassKg))

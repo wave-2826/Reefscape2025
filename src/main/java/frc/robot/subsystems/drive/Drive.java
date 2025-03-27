@@ -1,6 +1,6 @@
 package frc.robot.subsystems.drive;
 
-import static edu.wpi.first.units.Units.MetersPerSecondPerSecond;
+import static edu.wpi.first.units.Units.Newton;
 import static frc.robot.subsystems.drive.DriveConstants.driveBaseRadius;
 import static frc.robot.subsystems.drive.DriveConstants.maxSpeedMetersPerSec;
 import static frc.robot.subsystems.drive.DriveConstants.maxSteerVelocity;
@@ -26,7 +26,7 @@ import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
-import edu.wpi.first.units.measure.LinearAcceleration;
+import edu.wpi.first.units.measure.Force;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj.DriverStation;
@@ -170,7 +170,7 @@ public class Drive extends SubsystemBase {
      * @param speeds Speeds in meters/sec
      */
     public void runVelocityWithFeedforward(ChassisSpeeds speeds, DriveFeedforwards feedforwards) {
-        runVelocity(speeds, feedforwards.accelerations());
+        runVelocity(speeds, feedforwards.linearForces());
     }
 
     /**
@@ -179,9 +179,8 @@ public class Drive extends SubsystemBase {
      * @param accelerations
      */
     public void runVelocity(ChassisSpeeds speeds) {
-        runVelocity(speeds, new LinearAcceleration[] {
-            MetersPerSecondPerSecond.of(0), MetersPerSecondPerSecond.of(0), MetersPerSecondPerSecond.of(0),
-            MetersPerSecondPerSecond.of(0)
+        runVelocity(speeds, new Force[] {
+            Newton.of(0), Newton.of(0), Newton.of(0), Newton.of(0)
         });
     }
 
@@ -190,7 +189,7 @@ public class Drive extends SubsystemBase {
      *
      * @param speeds Speeds in meters/sec
      */
-    public void runVelocity(ChassisSpeeds speeds, LinearAcceleration[] accelerations) {
+    public void runVelocity(ChassisSpeeds speeds, Force[] forces) {
         Logger.recordOutput("SwerveChassisSpeeds/TargetSpeeds", speeds);
 
         setpointsUpdated = true;
@@ -198,8 +197,9 @@ public class Drive extends SubsystemBase {
         latestSpeedSetpoint = speeds;
 
         // Calculate module setpoints
+        // We only use the setpoint generator in teleoperated since Choreo already only generates possible trajectories.
         SwerveModuleState[] setpointStates;
-        if(DriveConstants.USE_SETPOINT_GENERATOR) {
+        if(DriveConstants.USE_SETPOINT_GENERATOR && DriverStation.isTeleop()) {
             previousSetpoint = setpointGenerator.generateSetpoint(previousSetpoint, speeds, 0.02);
             setpointStates = previousSetpoint.moduleStates();
         } else {
@@ -212,7 +212,7 @@ public class Drive extends SubsystemBase {
         Logger.recordOutput("SwerveStates/Setpoints", setpointStates);
 
         // Send setpoints to modules
-        for(int i = 0; i < 4; i++) modules[i].runSetpoint(setpointStates[i], accelerations[i]);
+        for(int i = 0; i < 4; i++) modules[i].runSetpoint(setpointStates[i], forces[i]);
 
         // Log optimized setpoints (runSetpoint mutates each state)
         Logger.recordOutput("SwerveStates/SetpointsOptimized", setpointStates);

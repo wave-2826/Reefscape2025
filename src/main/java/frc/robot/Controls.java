@@ -189,7 +189,7 @@ public class Controls {
             Commands.runOnce(() -> operatorMode = OperatorMode.Normal)//
         ));
 
-        var intakeManualOverride = operator.leftTrigger(0.3).and(operatorManual);
+        var intakeManualOverride = operator.x().and(operatorManual);
         intakeManualOverride.whileTrue(intake.run(() -> {
             // TODO: SEVEN RIVERS - Change to closed loop control here
             intake.overridePitchPower(MathUtil.applyDeadband(operator.getRightY(), 0.2));

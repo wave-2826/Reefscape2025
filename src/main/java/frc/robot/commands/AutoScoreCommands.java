@@ -42,13 +42,13 @@ public class AutoScoreCommands {
      * The distance from the reef branch to the center of the robot when lining up to score L2-L4 in meters.
      */
     private static final LoggedTunableNumber robotReefLineupBranchDistance = new LoggedTunableNumber(//
-        "AutoScore/BranchReefLineupDistance", 24.40);
+        "AutoScore/BranchReefLineupDistance", 24.0);
 
     /**
      * The distance from the reef branch to the center of the robot when lining up to score L4 in meters.
      */
     private static final LoggedTunableNumber robotReefLineupL4Distance = new LoggedTunableNumber(//
-        "AutoScore/L4ReefLineupDistance", 22.5);
+        "AutoScore/L4ReefLineupDistance", 21.75);
 
     /**
      * The amount the driver can tweak the auto lineup position, in inches.
@@ -60,7 +60,7 @@ public class AutoScoreCommands {
      * A tweaking factor added to our horizontal lineup distance from the center between two branches.
      */
     private static final LoggedTunableNumber centerDistanceTweak = new LoggedTunableNumber(//
-        "AutoScore/CenterDistanceTweak", -0.75);
+        "AutoScore/CenterDistanceTweak", 0.0);
 
     /**
      * Gets a command that pathfinds to the target pose and precisely aligns to it. Because PathPlanner's default
@@ -111,7 +111,7 @@ public class AutoScoreCommands {
 
         ReefFace reefFace = target.branch().face;
 
-        Pose2d initialLineupPosition = reefFace.tagPose.transformBy(tagRelativeOffset)
+        Pose2d initialLineupPosition = reefFace.blueTagPose.transformBy(tagRelativeOffset)
             .plus(new Transform2d(new Translation2d(Units.inchesToMeters(-5.), 0.), Rotation2d.kZero));
 
         // A pose to initially pathfind to if we're near the reef
@@ -206,7 +206,8 @@ public class AutoScoreCommands {
             lineupFeedback).onlyIf(useArmLineup);
 
         return Commands
-            .sequence(autoAlign, ScoringSequenceCommands.scoreAtLevel(target.level(), arm, drive).onlyIf(useArmLineup))
+            .sequence(autoAlign, ScoringSequenceCommands
+                .scoreAtLevel(target.level(), arm, drive, target.branch().face.getFieldAngle()).onlyIf(useArmLineup))
             .withName("AutoScore" + target.toString());
     }
 
