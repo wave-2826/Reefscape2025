@@ -46,6 +46,13 @@ public interface ArmIO {
     public default void resetToAbsolute() {
     }
 
+    /**
+     * Reset the elevator to the bottom-most position it can be in. Used for manually resetting the elevator if the
+     * height sensor malfunctions.
+     */
+    public default void resetToBottom() {
+    }
+
     public default void setElevatorHeight(double heightMeters, double feedforwardVolts) {
     }
 

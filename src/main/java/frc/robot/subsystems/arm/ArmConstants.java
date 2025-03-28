@@ -36,6 +36,7 @@ public class ArmConstants {
 
     public class ElevatorConstants {
         public static final double elevatorStartingHeightMeters = 0.34;
+        public static final double bottomResetHeightMeters = 0.022;
 
         public static final int elevatorHeightMotor1Id = 50;
         public static final int elevatorHeightMotor2Id = 51;

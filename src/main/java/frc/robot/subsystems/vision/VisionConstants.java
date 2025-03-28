@@ -67,11 +67,13 @@ public class VisionConstants {
     // Basic filtering thresholds
     public static final double maxAmbiguity = 0.3;
     public static final double maxZError = 0.75;
+    /** The maximum error in an estimate's rotation in degrees. */
+    public static final double maxRotationError = 20;
 
     // Standard deviation baselines, for 1 meter distance and 1 tag
     // (Adjusted automatically based on distance and # of tags)
     public static final double linearStdDevBaseline = 0.02; // Meters
-    public static final double angularStdDevBaseline = 1000.; // Radians
+    public static final double angularStdDevBaseline = 10000.; // Radians
 
     // Standard deviation multipliers for each camera
     // (Adjust to trust some cameras more than others)

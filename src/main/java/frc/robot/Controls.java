@@ -110,6 +110,8 @@ public class Controls {
         configureManualOperatorControls(climber, arm, intake);
         configureOverrideOperatorControls(climber, arm, intake);
 
+        operator.back().and(operator.start().negate()).debounce(0.05).onTrue(Commands.runOnce(arm::resetToAbsolute));
+
         // Override and manual mode enable
         operator.start().and(operator.back().negate()).debounce(0.05).onTrue(Commands.runOnce(() -> {
             if(operatorMode == OperatorMode.Manual) operatorMode = OperatorMode.Normal;
@@ -149,8 +151,6 @@ public class Controls {
 
         operator.b().and(normalOperator).onTrue(arm.goToStateCommand(ArmConstants.restingState));
 
-        operator.back().and(normalOperator).onTrue(Commands.runOnce(arm::resetToAbsolute));
-
         // Go to active scoring position
         operator.a().and(normalOperator).whileTrue(arm.goToStateCommand(() -> {
             return ScoringSequenceCommands
@@ -184,9 +184,12 @@ public class Controls {
             wristRotation.value = wristRotation.value.next();
         }));
 
-        operator.b().and(normalOperator).onTrue(Commands.sequence(//
-            arm.goToStateCommand(ArmConstants.restingState), //
-            Commands.runOnce(() -> operatorMode = OperatorMode.Normal)//
+        operator.leftStick().and(operator.rightStick()).and(operatorManual)
+            .onTrue(Commands.runOnce(arm::resetToBottom));
+
+        operator.b().and(operatorManual).onTrue(Commands.sequence(//
+            Commands.runOnce(() -> operatorMode = OperatorMode.Normal), //
+            arm.goToStateCommand(ArmConstants.restingState)//
         ));
 
         var intakeManualOverride = operator.x().and(operatorManual);
@@ -197,7 +200,7 @@ public class Controls {
         }).withName("IntakeManualControls"));
 
         // Go to active scoring position
-        operator.a().and(normalOperator).whileTrue(Commands.runOnce(() -> {
+        operator.a().and(operatorManual).whileTrue(Commands.runOnce(() -> {
             var scoringPosition = ScoringSequenceCommands
                 .getStartingState(DriverStationInterface.getInstance().getReefTarget().level());
             height.value = scoringPosition.height().in(Meters);

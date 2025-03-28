@@ -6,6 +6,7 @@ import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
@@ -20,6 +21,8 @@ import frc.robot.util.LoggedTracer;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.function.Supplier;
+
 import org.littletonrobotics.junction.Logger;
 
 public class Vision extends SubsystemBase {
@@ -39,9 +42,16 @@ public class Vision extends SubsystemBase {
      */
     private final HashMap<Integer, RobotToTag> robotToIndividualTags = new HashMap<>();
 
-    public Vision(VisionConsumer consumer, VisionIO... io) {
+    /**
+     * Used to get the current gyro reading so we can reject poses whose angle is sufficiently far from our current
+     * predicted angle.
+     */
+    private final Supplier<Rotation2d> getSwerveRotation;
+
+    public Vision(VisionConsumer consumer, Supplier<Rotation2d> getSwerveRotation, VisionIO... io) {
         this.consumer = consumer;
         this.io = io;
+        this.getSwerveRotation = getSwerveRotation;
 
         // Initialize inputs
         this.inputs = new VisionIOInputsAutoLogged[io.length];
@@ -160,7 +170,10 @@ public class Vision extends SubsystemBase {
 
                     // Must be within the field boundaries
                     || pose.getX() < 0.0 || pose.getX() > aprilTagLayout.getFieldLength() || pose.getY() < 0.0
-                    || pose.getY() > aprilTagLayout.getFieldWidth();
+                    || pose.getY() > aprilTagLayout.getFieldWidth()
+
+                    || Math.abs(pose.getRotation().toRotation2d().minus(getSwerveRotation.get())
+                        .getDegrees()) > maxRotationError;
 
                 // Add pose to log
                 robotPoses.add(pose);

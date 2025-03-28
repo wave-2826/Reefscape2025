@@ -251,6 +251,14 @@ public class ArmIOReal implements ArmIO {
     }
 
     @Override
+    public void resetToBottom() {
+        tryUntilOk(elevatorHeightMotorLeader, 2,
+            () -> leaderElevatorHeightEncoder.setPosition(ArmConstants.ElevatorConstants.bottomResetHeightMeters));
+        tryUntilOk(elevatorHeightMotorFollower, 2,
+            () -> followerElevatorHeightEncoder.setPosition(ArmConstants.ElevatorConstants.bottomResetHeightMeters));
+    }
+
+    @Override
     public void updateInputs(ArmIOInputs inputs) {
         // Update elevator height motor inputs
         sparkStickyFault = false;

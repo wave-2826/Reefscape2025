@@ -114,6 +114,10 @@ public class Arm extends SubsystemBase {
         io.resetToAbsolute();
     }
 
+    public void resetToBottom() {
+        io.resetToBottom();
+    }
+
     public void overrideHeightPower(double power) {
         targetState = null;
         io.overrideHeightPower(power, elevatorKg.get());

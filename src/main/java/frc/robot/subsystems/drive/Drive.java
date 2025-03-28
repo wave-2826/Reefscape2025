@@ -331,6 +331,9 @@ public class Drive extends SubsystemBase {
     /** Adds a new timestamped vision measurement. */
     public void addVisionMeasurement(Pose2d visionRobotPoseMeters, double timestampSeconds,
         Matrix<N3, N1> visionMeasurementStdDevs) {
+        // Logger.recordOutput("Vision/StdDevs1", visionMeasurementStdDevs.get(0, 0));
+        // Logger.recordOutput("Vision/StdDevs2", visionMeasurementStdDevs.get(1, 0));
+        // Logger.recordOutput("Vision/StdDevs3", visionMeasurementStdDevs.get(2, 0));
         poseEstimator.addVisionMeasurement(visionRobotPoseMeters, timestampSeconds, visionMeasurementStdDevs);
     }
 

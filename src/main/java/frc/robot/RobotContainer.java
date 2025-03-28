@@ -7,6 +7,7 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.commands.auto.AutoCommands;
 import frc.robot.commands.drive.DriveCommands;
 import frc.robot.commands.drive.DriveTuningCommands;
@@ -82,7 +83,7 @@ public class RobotContainer {
                     new ModuleIOSpark(DriveConstants.backLeftModule), new ModuleIOSpark(DriveConstants.backRightModule),
                     (pose) -> {
                     });
-                vision = new Vision(drive::addVisionMeasurement,
+                vision = new Vision(drive::addVisionMeasurement, drive::getRotation,
                     new VisionIOPhotonVision(VisionConstants.camera0Name, VisionConstants.robotToCamera0),
                     new VisionIOPhotonVision(VisionConstants.camera1Name, VisionConstants.robotToCamera1),
                     new VisionIOPhotonVision(VisionConstants.camera2Name, VisionConstants.robotToCamera2),
@@ -110,7 +111,7 @@ public class RobotContainer {
                     new ModuleIOSim(driveSimulation.getModules()[2]), new ModuleIOSim(driveSimulation.getModules()[3]),
                     driveSimulation::setSimulationWorldPose);
 
-                vision = new Vision(drive::addVisionMeasurement,
+                vision = new Vision(drive::addVisionMeasurement, drive::getRotation,
                     new VisionIOPhotonVisionSim(VisionConstants.camera0Name, VisionConstants.robotToCamera0,
                         driveSimulation::getSimulatedDriveTrainPose),
                     new VisionIOPhotonVisionSim(VisionConstants.camera1Name, VisionConstants.robotToCamera1,
@@ -143,7 +144,7 @@ public class RobotContainer {
                 }, (pose) -> {
                 });
                 // Needs to use the same number of dummy implementations as the real robot has cameras
-                vision = new Vision(drive::addVisionMeasurement, new VisionIO() {
+                vision = new Vision(drive::addVisionMeasurement, drive::getRotation, new VisionIO() {
                     /** Replayed robot doesn't have IO */
                 }, new VisionIO() {
                     /** Replayed robot doesn't have IO */
@@ -183,6 +184,10 @@ public class RobotContainer {
 
         autoChooser.addOption("omg why is auto not working",
             DriveCommands.driveStraightCommand(drive, Units.feetToMeters(1), 2));
+
+        autoChooser.addOption("Odometry Test 1", Commands.runOnce(() -> {
+            drive.setPose(new Pose2d(7.169, 3.989, Rotation2d.kZero));
+        }));
 
         // Configure the button bindings
         Controls.getInstance().configureControls(drive, driveSimulation, arm, intake, vision, climber);

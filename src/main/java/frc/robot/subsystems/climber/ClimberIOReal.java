@@ -41,7 +41,8 @@ public class ClimberIOReal implements ClimberIO {
             .feedbackSensor(FeedbackSensor.kPrimaryEncoder);
         config.absoluteEncoder.positionConversionFactor(ClimberConstants.climberAbsolutePositionFactor)
             .velocityConversionFactor(ClimberConstants.climberAbsoluteVelocityFactor)
-            .zeroOffset(Constants.isSim ? 0 : ClimberConstants.climberZeroAngle).zeroCentered(true);
+            .zeroOffset(Constants.isSim ? 0 : ClimberConstants.climberZeroAngle).zeroCentered(true)
+            .inverted(ClimberConstants.climberEncoderInverted);
         config.encoder.positionConversionFactor(ClimberConstants.climberPositionConversionFactor)
             .velocityConversionFactor(ClimberConstants.climberVelocityConversionFactor);
         config.idleMode(IdleMode.kBrake).smartCurrentLimit(ClimberConstants.climberMotorCurrentLimit)

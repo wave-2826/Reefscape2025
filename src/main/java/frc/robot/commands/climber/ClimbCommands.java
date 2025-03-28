@@ -28,8 +28,11 @@ public class ClimbCommands {
             //     .plus(Rotation2d.fromDegrees(climbSpeed * CLIMB_SPEED_DEGREES * 0.02));
 
             // climber.runClimber(climberRotation.value);
-            if(climber.getPitch().getDegrees() < Units.degreesToRadians(10)) {
+            if(climber.getPitch().getDegrees() < 5) {
                 climbSpeed = Math.min(0, climbSpeed);
+            }
+            if(climber.getPitch().getDegrees() > 93) {
+                climbSpeed = Math.max(0, climbSpeed);
             }
 
             climber.runClimberOpenLoop(climbSpeed);
