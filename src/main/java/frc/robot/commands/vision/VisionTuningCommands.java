@@ -48,10 +48,10 @@ public class VisionTuningCommands {
 
     /** The transform of the calibration tag, relative to the robot base. */
     public static Transform3d heldTagTransform = new Transform3d(new Translation3d( //
-        Units.inchesToMeters(15. + 6.25), // Distance forward
-        Units.inchesToMeters(0.0 / 2), // Distance left
-        Units.inchesToMeters(5.75 + 7. - 6.375 / 2.) // Distance up
-    ), new Rotation3d(0., 0., Units.degreesToRadians(180)));
+        Units.inchesToMeters(-3.), // Distance forward
+        Units.inchesToMeters(19.), // Distance left
+        Units.inchesToMeters(23. + 6.5 / 2) // Distance up
+    ), new Rotation3d(0., 0., Units.degreesToRadians(270)));
 
     public static Command measureCameraPositions(Vision vision) {
         TransformAverage[] averages = new TransformAverage[vision.getCameraCount()];

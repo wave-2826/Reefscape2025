@@ -5,7 +5,6 @@ import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation3d;
-import edu.wpi.first.math.util.Units;
 
 public class VisionConstants {
     /****** Simulation ******/
@@ -40,14 +39,6 @@ public class VisionConstants {
     public static final String camera2Name = "2826_OV9281_Cal"; // Back left
     public static final String camera3Name = "2826_OV9281_Dan"; // Back right
 
-    private static Transform3d reflectCameraPosition(Transform3d pos) {
-        Translation3d translation = pos.getTranslation();
-        translation = new Translation3d(translation.getX(), -translation.getY(), translation.getZ());
-        Rotation3d rotation = pos.getRotation();
-        rotation = new Rotation3d(rotation.getX(), rotation.getY(), -rotation.getZ());
-        return new Transform3d(translation, rotation);
-    }
-
     // Robot to camera transforms
     // Front left camera
     public static final Transform3d robotToCamera0 = new Transform3d(
@@ -58,11 +49,13 @@ public class VisionConstants {
         new Translation3d(0.2636302545668782, -0.27179662045243047, 0.31824257640474607),
         new Rotation3d(0.021219301471488785, 0.22761117681482465, 0.5872378479679213));
     // Back left camera
-    public static final Transform3d robotToCamera2 = new Transform3d(new Translation3d(Units.inchesToMeters(4.006715),
-        Units.inchesToMeters(7.487012), Units.inchesToMeters(25.736304)),
-        new Rotation3d(0.0, 0.0, -0.523598 - Math.PI));
+    public static final Transform3d robotToCamera2 = new Transform3d(
+        new Translation3d(0.17616398505194292, 0.23123207781818467, 0.6676432845715006),
+        new Rotation3d(0.0027423172023952245, 0.026004347701025454, 2.64243891600842));
     // Back right camera
-    public static final Transform3d robotToCamera3 = reflectCameraPosition(robotToCamera2);
+    public static final Transform3d robotToCamera3 = new Transform3d(
+        new Translation3d(0.10200963510691768, -0.20143263871228373, 0.6624475448167352),
+        new Rotation3d(0.0012974505131851419, -0.014898991823721702, -2.4933118982608544));
 
     // Basic filtering thresholds
     public static final double maxAmbiguity = 0.3;

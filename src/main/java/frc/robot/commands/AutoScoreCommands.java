@@ -36,7 +36,7 @@ public class AutoScoreCommands {
      * The distance from the reef branch to the center of the robot when lining up to score L1 in meters.
      */
     private static final LoggedTunableNumber robotReefLineupL1Distance = new LoggedTunableNumber(//
-        "AutoScore/L1ReefLineupDistance", 35.5);
+        "AutoScore/L1ReefLineupDistance", 33.5);
 
     /**
      * The distance from the reef branch to the center of the robot when lining up to score L2-L4 in meters.
@@ -86,11 +86,6 @@ public class AutoScoreCommands {
     public static Command autoAlignSequence(Drive drive, Vision vision, ReefTarget target, Command coarseLineupCommand,
         Command closeLineupCommand, DoubleSupplier tweakX, DoubleSupplier tweakY,
         Optional<BooleanSupplier> finishSequence, BooleanConsumer lineupFeedback) {
-        // Create the constraints to use while pathfinding
-        // PathConstraints constraints = new PathConstraints(DriveConstants.maxSpeedMetersPerSec, 5.0,
-        //     Units.degreesToRadians(540), Units.degreesToRadians(720));
-
-        // Pose2d currentPose = drive.getPose();
 
         boolean isLeft = target.branch().isLeft;
 
@@ -114,42 +109,24 @@ public class AutoScoreCommands {
         Pose2d initialLineupPosition = reefFace.blueTagPose.transformBy(tagRelativeOffset)
             .plus(new Transform2d(new Translation2d(Units.inchesToMeters(-5.), 0.), Rotation2d.kZero));
 
-        // A pose to initially pathfind to if we're near the reef
-        // Pose2d safeReefPose = new Pose2d(
-        //     currentPose.getTranslation()
-        //         .plus(new Translation2d(Units.inchesToMeters(15), 0.0)
-        //             .rotateBy(currentPose.getTranslation().minus(FieldConstants.reefCenter).getAngle())),
-        //     currentPose.getRotation());
-
         Supplier<Transform2d> getFieldRelativeOffset = () -> new Transform2d(
             new Translation2d(-tweakY.getAsDouble() * Units.inchesToMeters(autoAlignTweakAmount.get()),
                 -tweakX.getAsDouble() * Units.inchesToMeters(autoAlignTweakAmount.get())),
             Rotation2d.kZero);
 
-        // HACK ..?
-        // BooleanSupplier finishEarly = finishSequence.isEmpty() ? () -> false : finishSequence.get();
-
-        // Since AutoBuilder is configured, we can use it to build pathfinding commands
         // @formatter:off
         return Commands.sequence(
             Commands.runOnce(() -> {
                 Logger.recordOutput("AutoScore/InitialLineupPose", initialLineupPosition);
             }), 
 
-            // Move slightly outward first if we're near the reef
-            // AutoBuilder.pathfindToPoseFlipped(safeReefPose, constraints, MetersPerSecond.of(0.0)).until(finishEarly).onlyIf(() -> {
-            //     return currentPose.getTranslation().getDistance(FieldConstants.reefCenter) < Units.inchesToMeters(40);
-            // }),
-            // Commands.parallel(
-            //     AutoBuilder.pathfindToPoseFlipped(initialLineupPosition, constraints, MetersPerSecond.of(0.0)), // Move to the target pose
-            //     coarseLineupCommand.withTimeout(3)
-            // ).until(finishEarly).onlyIf(() -> {
-            //     return currentPose.getTranslation().getDistance(initialLineupPosition.getTranslation()) > Units.inchesToMeters(15);
-            // }),
-            // Commands.waitUntil(() -> !finishEarly.getAsBoolean()),
             Commands.runOnce(() -> Logger.recordOutput("AutoScore/RunningCloseLineup", true)),
             Commands.parallel(
-                closeLineupCommand.withTimeout(2.0), // Run during final adjustment
+                coarseLineupCommand.withTimeout(2),
+                drive.runOnce(drive::stopWithX)
+            ),
+            Commands.parallel(
+                closeLineupCommand.withTimeout(1.5), // Run during final adjustment
                 // TODO: Fully line up before finishing if the finish sequence button is held
                 new CloseLineupCommand(drive, vision, reefFace.getAprilTagID(), tagRelativeOffset, getFieldRelativeOffset, finishSequence, lineupFeedback) // Final adjustment
             )

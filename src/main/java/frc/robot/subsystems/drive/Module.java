@@ -1,14 +1,13 @@
 package frc.robot.subsystems.drive;
 
-import static edu.wpi.first.units.Units.Newton;
 import static frc.robot.subsystems.drive.DriveConstants.*;
 
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
-import edu.wpi.first.units.measure.Force;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
 import frc.robot.Constants;
@@ -22,7 +21,6 @@ public class Module {
 
     private static final LoggedTunableNumber driveS = new LoggedTunableNumber("Drive/DriveS");
     private static final LoggedTunableNumber driveV = new LoggedTunableNumber("Drive/DriveV");
-    private static final LoggedTunableNumber driveT = new LoggedTunableNumber("Drive/DriveT");
     private static final LoggedTunableNumber driveA = new LoggedTunableNumber("Drive/DriveA");
 
     private static final LoggedTunableNumber turnP = new LoggedTunableNumber("Drive/TurnP");
@@ -38,7 +36,6 @@ public class Module {
 
         driveS.initDefault(isSim ? DriveConstants.driveSimKs : DriveConstants.driveKs);
         driveV.initDefault(isSim ? DriveConstants.driveSimKv : DriveConstants.driveKv);
-        driveT.initDefault(isSim ? DriveConstants.driveSimKt : DriveConstants.driveKt);
         driveA.initDefault(isSim ? DriveConstants.driveSimKa : DriveConstants.driveKa);
 
         turnP.initDefault(isSim ? DriveConstants.turnSimP : DriveConstants.turnKp);
@@ -115,34 +112,25 @@ public class Module {
         turnEncoderDisconnectedAlert.set(!inputs.turnEncoderConnected);
     }
 
-    /** Runs the module with the specified setpoint state. */
-    public void runSetpoint(SwerveModuleState state, Force force) {
-        // Optimize velocity setpoint
-        state.optimize(getAngle());
-        state.cosineScale(inputs.relativeTurnPosition);
-
-        // Apply setpoints
-        // The simulation doesn't account for swerve azimuth coupling, so we don't do
-        // couple calculation in simulation.
-        double coupleRadPerSecond = Constants.isSim ? 0
-            : DriveConstants.turnDriveCouplingFactor * inputs.turnVelocityRadPerSec;
-        double speedRadPerSec = state.speedMetersPerSecond / DriveConstants.wheelRadiusMeters + coupleRadPerSecond;
-        io.setDriveVelocity(speedRadPerSec,
-            ffModel.calculate(speedRadPerSec) + driveKt * force.in(Newton) * wheelRadiusMeters); // TODO: Acceleration feedforward   
-        io.setTurnPosition(state.angle);
-    }
-
     /**
      * Runs the module with the specified setpoint state and a setpoint wheel force used for torque-based feedforward.
      */
-    public void runSetpoint(SwerveModuleState state, double wheelTorqueNm) {
+    public void runSetpoint(SwerveModuleState state, Translation2d force2dNewtons) {
         // Optimize velocity setpoint
         state.optimize(getAngle());
         state.cosineScale(inputs.relativeTurnPosition);
 
+        // TODO: Make torque feedforwards function properly. This _almost_ works, but there are
+        // seemingly some issues with it.
+        double moduleFeedforwardForceNewtons = force2dNewtons.getNorm()
+            * force2dNewtons.getAngle().minus(getAngle()).getCos();
+        double wheelFeedforwardTorque = Math.copySign(moduleFeedforwardForceNewtons * wheelRadiusMeters,
+            state.speedMetersPerSecond);
+
         // Apply setpoints
         double speedRadPerSec = state.speedMetersPerSecond / DriveConstants.wheelRadiusMeters;
-        io.setDriveVelocity(speedRadPerSec, ffModel.calculate(speedRadPerSec) + wheelTorqueNm * driveT.get());
+        io.setDriveVelocity(speedRadPerSec, wheelFeedforwardTorque == 0 ? ffModel.calculate(speedRadPerSec)
+            : driveSimMotor.getVoltage(wheelFeedforwardTorque, 0) + driveS.get() * Math.signum(speedRadPerSec));
         io.setTurnPosition(state.angle);
     }
 

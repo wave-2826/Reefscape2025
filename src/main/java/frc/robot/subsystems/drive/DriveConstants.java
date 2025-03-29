@@ -64,14 +64,12 @@ public class DriveConstants {
     public static final double driveEncoderVelocityFactor = (2 * Math.PI) / 60.0 / driveMotorReduction; // Rotor RPM -> Wheel Rad/Sec
 
     // Drive PID configuration
-    public static final double driveKp = 0.03;
+    public static final double driveKp = 0.018;
     public static final double driveKd = 0.0;
     /** The static feedforward gain in volts. */
     public static final double driveKs = 0.169; // "Magic" number from SysID
     /** The velocity gain in volts per (radian per second of wheel) */
     public static final double driveKv = 0.1114; // "Magic" number from SysID
-    /** The torque gain in volts per Nm */
-    public static final double driveKt = driveMotorReduction / driveSimMotor.KtNMPerAmp;
     /** The acceleration gain in volts per (radian per second per second of wheel) */
     public static final double driveKa = 0.0225; // Estimate... we should measure this with a full SysID run
 
@@ -106,7 +104,7 @@ public class DriveConstants {
         / driveMotorReduction;
 
     // Turn PID configuration
-    public static final double turnKp = 3.5;
+    public static final double turnKp = 2.5;
     public static final double turnKd = 2.0;
     public static final double turnDerivativeFilter = 0.0;
 
@@ -129,7 +127,7 @@ public class DriveConstants {
     public static final PPHolonomicDriveController simHolonomicDriveController = new PPHolonomicDriveController(
         new PIDConstants(13.0, 0.0, 0.0), new PIDConstants(5.0, 0.0, 0.0));
     public static final PPHolonomicDriveController realHolonomicDriveController = new PPHolonomicDriveController(
-        new PIDConstants(6.0, 0.0, 0.0), new PIDConstants(6.0, 0.0, 0.0));
+        new PIDConstants(5.0, 5.0, 0.0), new PIDConstants(5.0, 3.0, 0.0));
 
     public static final DriveTrainSimulationConfig mapleSimConfig = DriveTrainSimulationConfig.Default()
         .withCustomModuleTranslations(moduleTranslations).withRobotMass(Kilogram.of(robotMassKg))

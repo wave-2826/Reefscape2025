@@ -94,8 +94,12 @@ public class Controls {
         // Reset gyro or odometry if in simulation
         final Runnable resetGyro = Constants.isSim ? () -> drive.setPose(driveSimulation.getSimulatedDriveTrainPose()) // Reset odometry to actual robot pose during simulation
             : () -> drive.setPose(new Pose2d(drive.getPose().getTranslation(), Rotation2d.kZero)); // Zero gyro
+        final Runnable resetOdometry = Constants.isSim
+            ? () -> drive.setPose(driveSimulation.getSimulatedDriveTrainPose()) // Reset odometry to actual robot pose during simulation
+            : () -> drive.setPose(new Pose2d(0, 0, Rotation2d.kZero)); // Zero gyro
 
         driver.start().onTrue(Commands.runOnce(resetGyro, drive).ignoringDisable(true));
+        driver.back().onTrue(Commands.runOnce(resetOdometry, drive).ignoringDisable(true));
 
         var intakeTrigger = driver.rightTrigger(0.3).or(operator.rightBumper().and(normalOperator));
         intakeTrigger.onTrue(arm.goToStateCommand(ArmConstants.restingState));

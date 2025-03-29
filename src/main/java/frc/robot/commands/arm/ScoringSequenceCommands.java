@@ -89,13 +89,9 @@ public class ScoringSequenceCommands {
     public static Command prepForScoring(ReefLevel level, Arm arm) {
         if(level == ReefLevel.L1) { return arm.goToStateCommand(getL1StartingState()); }
 
-        if(DriverStation.isAutonomous()) {
-            // TEMPORARY
-            return arm.goToStateCommand(new ArmState(Rotation2d.fromDegrees(80), getStartingState(level).height(),
-                WristRotation.Horizontal, EndEffectorState.hold()));
-        }
+        ArmState startingState = getStartingState(level);
         return arm.goToStateCommand(new ArmState(Rotation2d.fromDegrees(80), Inches.of(preScoreElevatorHeight.get()),
-            WristRotation.Horizontal, EndEffectorState.hold()));
+            startingState.wristRotation(), EndEffectorState.hold()));
     }
 
     /**
@@ -107,13 +103,6 @@ public class ScoringSequenceCommands {
         if(level == ReefLevel.L1) { return arm.goToStateCommand(getL1StartingState()); }
 
         ArmState startingState = getStartingState(level);
-        if(level == ReefLevel.L2) {
-            return Commands.sequence(arm
-                .goToStateCommand(
-                    startingState.withHeight(Inches.of(L3ScoreHeight.get())).withPitch(Rotation2d.fromDegrees(-70)))
-                .withTimeout(0.75), arm.goToStateCommand(startingState).withTimeout(0.75));
-        }
-
         return arm.goToStateCommand(startingState).withTimeout(0.75);
     }
 
@@ -165,7 +154,7 @@ public class ScoringSequenceCommands {
             ).withTimeout(0.75),
             Commands.parallel(
                 arm.goToStateCommand(scoreDownState2).withTimeout(0.75),
-                DriveCommands.driveStraightCommand(drive, Units.feetToMeters(-1.5), 0.8, fieldAngle)
+                DriveCommands.driveStraightCommand(drive, Units.feetToMeters(-1.5), 0.4, fieldAngle)
             ),
             arm.goToStateCommand(ArmConstants.restingState)
         ).withName("ScoreAt" + level.name() + "Sequence");
