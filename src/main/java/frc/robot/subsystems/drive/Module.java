@@ -5,7 +5,6 @@ import static frc.robot.subsystems.drive.DriveConstants.*;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj.Alert;
@@ -113,24 +112,17 @@ public class Module {
     }
 
     /**
-     * Runs the module with the specified setpoint state and a setpoint wheel force used for torque-based feedforward.
+     * Runs the module with the specified setpoint state and acceleration in meters per second per second.
      */
-    public void runSetpoint(SwerveModuleState state, Translation2d force2dNewtons) {
+    public void runSetpoint(SwerveModuleState state, double accelerationMps2) {
         // Optimize velocity setpoint
         state.optimize(getAngle());
         state.cosineScale(inputs.relativeTurnPosition);
 
-        // TODO: Make torque feedforwards function properly. This _almost_ works, but there are
-        // seemingly some issues with it.
-        double moduleFeedforwardForceNewtons = force2dNewtons.getNorm()
-            * force2dNewtons.getAngle().minus(getAngle()).getCos();
-        double wheelFeedforwardTorque = Math.copySign(moduleFeedforwardForceNewtons * wheelRadiusMeters,
-            state.speedMetersPerSecond);
-
         // Apply setpoints
         double speedRadPerSec = state.speedMetersPerSecond / DriveConstants.wheelRadiusMeters;
-        io.setDriveVelocity(speedRadPerSec, wheelFeedforwardTorque == 0 ? ffModel.calculate(speedRadPerSec)
-            : driveSimMotor.getVoltage(wheelFeedforwardTorque, 0) + driveS.get() * Math.signum(speedRadPerSec));
+        double accelerationRadPerSecPerSec = accelerationMps2 / DriveConstants.wheelRadiusMeters;
+        io.setDriveVelocity(speedRadPerSec, ffModel.calculate(speedRadPerSec, accelerationRadPerSecPerSec));
         io.setTurnPosition(state.angle);
     }
 

@@ -148,7 +148,7 @@ public class Controls {
 
     private void configureNormalOperatorControls(Drive drive, SwerveDriveSimulation driveSimulation, Arm arm,
         Intake intake, Vision vision, Climber climber) {
-        operator.y().and(normalOperator).whileTrue(ClimbCommands.climbCommand(climber, operator::getLeftY));
+        operator.y().and(normalOperator).whileTrue(ClimbCommands.climbCommand(climber, operator::getLeftY, intake));
 
         // Backup for if the arm misses the piece somehow
         operator.leftTrigger(0.3).and(normalOperator).onTrue(IntakeCommands.getPieceFromIntake(arm));
@@ -197,6 +197,9 @@ public class Controls {
         ));
 
         var intakeManualOverride = operator.x().and(operatorManual);
+        operatorManual.and(intakeManualOverride.negate()).whileTrue(intake.run(() -> {
+            // Hold position
+        }));
         intakeManualOverride.whileTrue(intake.run(() -> {
             // TODO: SEVEN RIVERS - Change to closed loop control here
             intake.overridePitchPower(MathUtil.applyDeadband(operator.getRightY(), 0.2));
@@ -234,7 +237,7 @@ public class Controls {
     }
 
     private void configureOverrideOperatorControls(Climber climber, Arm arm, Intake intake) {
-        var intakeOverride = operator.b().and(operatorOverride);
+        var intakeOverride = operator.x().and(operatorOverride);
         var climberOverride = operator.y().and(operatorOverride);
         intakeOverride.whileTrue(intake.run(() -> {
             intake.overridePitchPower(MathUtil.applyDeadband(operator.getRightY(), 0.2));

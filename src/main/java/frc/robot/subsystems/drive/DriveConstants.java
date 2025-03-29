@@ -64,14 +64,14 @@ public class DriveConstants {
     public static final double driveEncoderVelocityFactor = (2 * Math.PI) / 60.0 / driveMotorReduction; // Rotor RPM -> Wheel Rad/Sec
 
     // Drive PID configuration
-    public static final double driveKp = 0.018;
+    public static final double driveKp = 0.00021867;
     public static final double driveKd = 0.0;
     /** The static feedforward gain in volts. */
-    public static final double driveKs = 0.169; // "Magic" number from SysID
+    public static final double driveKs = 0.2286; // "Magic" number from SysID
     /** The velocity gain in volts per (radian per second of wheel) */
-    public static final double driveKv = 0.1114; // "Magic" number from SysID
+    public static final double driveKv = 0.11167; // "Magic" number from SysID
     /** The acceleration gain in volts per (radian per second per second of wheel) */
-    public static final double driveKa = 0.0225; // Estimate... we should measure this with a full SysID run
+    public static final double driveKa = 0.013897; // Estimate... we should measure this with a full SysID run
 
     public static final double driveSimP = 0.6;
     public static final double driveSimD = 0.0;

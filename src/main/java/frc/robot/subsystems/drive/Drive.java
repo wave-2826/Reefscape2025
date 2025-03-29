@@ -18,7 +18,6 @@ import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Twist2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
@@ -169,10 +168,7 @@ public class Drive extends SubsystemBase {
      * @param speeds Speeds in meters/sec
      */
     public void runVelocityWithFeedforward(ChassisSpeeds speeds, DriveFeedforwards feedforwards) {
-        var xForces = feedforwards.robotRelativeForcesXNewtons();
-        var yForces = feedforwards.robotRelativeForcesYNewtons();
-
-        runVelocity(speeds, xForces, yForces);
+        runVelocity(speeds, feedforwards.accelerationsMPSSq());
     }
 
     /**
@@ -181,7 +177,7 @@ public class Drive extends SubsystemBase {
      * @param accelerations
      */
     public void runVelocity(ChassisSpeeds speeds) {
-        runVelocity(speeds, new double[4], new double[4]);
+        runVelocity(speeds, new double[4]);
     }
 
     /**
@@ -190,7 +186,7 @@ public class Drive extends SubsystemBase {
      * @param speeds Speeds in meters/sec
      */
     @SuppressWarnings("unused")
-    public void runVelocity(ChassisSpeeds speeds, double[] xForces, double[] yForces) {
+    public void runVelocity(ChassisSpeeds speeds, double[] accelerationsMps2) {
         Logger.recordOutput("SwerveChassisSpeeds/TargetSpeeds", speeds);
 
         setpointsUpdated = true;
@@ -212,16 +208,8 @@ public class Drive extends SubsystemBase {
         // Log unoptimized setpoints
         Logger.recordOutput("SwerveStates/Setpoints", setpointStates);
 
-        Translation2d[] moduleForcesNewtons = new Translation2d[4];
-        for(int i = 0; i < 4; i++) moduleForcesNewtons[i] = new Translation2d(xForces[i], yForces[i]);
-
-        SwerveModuleState[] forceFeedforwardStates = new SwerveModuleState[4];
-        for(int i = 0; i < 4; i++) forceFeedforwardStates[i] = new SwerveModuleState(moduleForcesNewtons[i].getNorm(),
-            moduleForcesNewtons[i].getAngle());
-        Logger.recordOutput("SwerveStates/ForceFeedforwards", forceFeedforwardStates);
-
         // Send setpoints to modules
-        for(int i = 0; i < 4; i++) modules[i].runSetpoint(setpointStates[i], moduleForcesNewtons[i]);
+        for(int i = 0; i < 4; i++) modules[i].runSetpoint(setpointStates[i], accelerationsMps2[i]);
 
         // Log optimized setpoints (runSetpoint mutates each state)
         Logger.recordOutput("SwerveStates/SetpointsOptimized", setpointStates);
