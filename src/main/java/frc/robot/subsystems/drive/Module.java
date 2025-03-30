@@ -4,10 +4,12 @@ import static frc.robot.subsystems.drive.DriveConstants.*;
 
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.filter.Debouncer;
+import edu.wpi.first.math.filter.Debouncer.DebounceType;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj.Alert;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Alert.AlertType;
 import frc.robot.Constants;
 import frc.robot.util.LoggedTunableNumber;
@@ -59,7 +61,7 @@ public class Module {
      * A debouncer used to reset the module to absolute after it hasn't rotated for a period of time. Used to prevent
      * latency-related issues.
      */
-    private final Debouncer noMovementDebouncer = new Debouncer(0.25);
+    private final Debouncer noMovementDebouncer = new Debouncer(0.5, DebounceType.kRising);
     /**
      * The speed considered unmoving for resetting the encoder, in radians per second.
      */
@@ -88,13 +90,14 @@ public class Module {
             io.setTurnPID(turnP.get(), 0, turnD.get(), turnDerivativeFilter.get());
         }
 
-        io.updateInputs(inputs);
-        Logger.processInputs("Drive/Module" + name, inputs);
-
         // Reset to absolute if we've been unmoving for a relatively long time
-        if(noMovementDebouncer.calculate(Math.abs(inputs.turnVelocityRadPerSec) < SPEED_CONSIDERED_UNMOVING)) {
+        if(DriverStation.isDisabled()
+            && noMovementDebouncer.calculate(Math.abs(inputs.turnVelocityRadPerSec) < SPEED_CONSIDERED_UNMOVING)) {
             io.resetToAbsolute();
         }
+
+        io.updateInputs(inputs);
+        Logger.processInputs("Drive/Module" + name, inputs);
 
         // Calculate positions for odometry
         int sampleCount = inputs.odometryTimestamps.length; // All signals are sampled together
@@ -138,6 +141,18 @@ public class Module {
     public void runCharacterization(double output) {
         io.setDriveOpenLoop(output);
         io.setTurnPosition(Rotation2d.kZero);
+    }
+
+    /** Characterize robot angular motion. */
+    public void runAngularCharacterization(double output) {
+        io.setDriveOpenLoop(output);
+        io.setTurnPosition(Rotation2d.fromDegrees(switch(name) {
+            case "FrontLeft" -> 135.0;
+            case "FrontRight" -> 45.0;
+            case "BackLeft" -> -135.0;
+            case "BackRight" -> -45.0;
+            default -> 0.0;
+        }));
     }
 
     /** Disables all outputs to motors. */

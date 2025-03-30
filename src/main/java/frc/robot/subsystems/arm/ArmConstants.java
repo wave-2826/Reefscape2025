@@ -11,6 +11,7 @@ import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.units.measure.Distance;
+import frc.robot.commands.arm.ScoringSequenceCommands;
 import frc.robot.subsystems.arm.ArmState.WristRotation;
 import frc.robot.util.LoggedTunableSparkPID;
 import frc.robot.util.PIDConstants;
@@ -24,8 +25,8 @@ public class ArmConstants {
     public static final ArmState restingState = new ArmState(Rotation2d.fromRadians(-1.62), Meters.of(0.533),
         WristRotation.Horizontal, EndEffectorState.hold());
     /** The state the arm is in when getting a piece. */
-    public static final ArmState getPieceState = new ArmState(Rotation2d.fromRadians(-1.8), Meters.of(0.12),
-        WristRotation.Horizontal, EndEffectorState.velocity(-12));
+    public static final ArmState getPieceState = new ArmState(Rotation2d.fromRadians(-1.8), Meters.of(0.14),
+        WristRotation.Horizontal, EndEffectorState.velocity(-20));
 
     /** The state when the arm is intaking from the source. */
     public static final ArmState sourceIntakeState = new ArmState(Rotation2d.fromDegrees(80), Inches.of(5),
@@ -33,6 +34,11 @@ public class ArmConstants {
     /** The state when the arm is intaking from the source but stopped. */
     public static final ArmState sourceIntakeStoppedState = new ArmState(Rotation2d.fromDegrees(80), Inches.of(5),
         WristRotation.Vertical, EndEffectorState.hold());
+
+    /** The state when the arm is preparing for scoring. */
+    public static final ArmState prepForScoringState = new ArmState(Rotation2d.fromDegrees(80),
+        Inches.of(ScoringSequenceCommands.preScoreElevatorHeight.get()), WristRotation.HorizontalFlipped,
+        EndEffectorState.hold());
 
     public class ElevatorConstants {
         public static final double elevatorStartingHeightMeters = 0.34;
@@ -45,7 +51,7 @@ public class ArmConstants {
         // PID constants for the elevator position PID
         public static final LoggedTunableSparkPID elevatorPID = new LoggedTunableSparkPID("Arm/Elevator")
             // .addRealRobotGains(new PIDConstants(7.0, 0.0, 7.0)) //
-            .addRealRobotGains(new PIDConstants(6.0, 0.005, 6.0).iZone(Units.inchesToMeters(1.5))) //
+            .addRealRobotGains(new PIDConstants(7.0, 0.005, 7.0).iZone(Units.inchesToMeters(1.5))) //
             .addSimGains(new PIDConstants(40.0, 0.0, 0.0));
 
         // Feedforward constants for the elevator

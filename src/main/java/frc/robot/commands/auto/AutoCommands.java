@@ -18,8 +18,10 @@ import frc.robot.FieldConstants;
 import frc.robot.FieldConstants.ReefBranch;
 import frc.robot.FieldConstants.ReefLevel;
 import frc.robot.commands.AutoScoreCommands;
+import frc.robot.commands.LoggedCommand;
 import frc.robot.commands.intake.IntakeCommands;
 import frc.robot.subsystems.arm.Arm;
+import frc.robot.subsystems.arm.ArmConstants;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.intake.Intake;
 import frc.robot.subsystems.pieceVision.PieceVision;
@@ -40,7 +42,7 @@ public class AutoCommands {
         for(var branch : ReefBranch.values()) {
             for(var level : ReefLevel.values()) {
                 ReefTarget target = new ReefTarget(branch, level);
-                NamedCommands.registerCommand("Score " + branch.toString() + " " + level.toString(), Commands.defer(
+                registerLoggedNamedCommand("Score " + branch.toString() + " " + level.toString(), Commands.defer(
                     () -> AutoScoreCommands.autoScoreCommand(drive, vision, arm, target), Set.of(drive, vision, arm)));
             }
         }
@@ -49,7 +51,14 @@ public class AutoCommands {
         //     Commands.defer(() -> scoreUntilFailure(drive, vision, arm, pieceVision, intake),
         //         Set.of(drive, vision, arm, pieceVision, intake)));
 
-        NamedCommands.registerCommand("Start intake", new ScheduleCommand(IntakeCommands.autoIntake(intake, arm)));
+        registerLoggedNamedCommand("Start intake", new ScheduleCommand(IntakeCommands.autoIntake(intake, arm)));
+        registerLoggedNamedCommand("Wait for piece", IntakeCommands.waitForPieceInArm().withTimeout(2));
+
+        registerLoggedNamedCommand("Prep arm", arm.goToStateCommand(ArmConstants.prepForScoringState, 0.2));
+    }
+
+    private static void registerLoggedNamedCommand(String name, Command command) {
+        NamedCommands.registerCommand(name, new LoggedCommand(name, command));
     }
 
     /**

@@ -5,7 +5,6 @@ import static edu.wpi.first.units.Units.Inches;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.units.measure.Distance;
-import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.Constants;
@@ -39,7 +38,7 @@ public class ScoringSequenceCommands {
         "AutoScore/L3ScoreHeight", 26);
     private static LoggedTunableNumber L4ScoreHeightFromTop = new LoggedTunableNumber(//
         "AutoScore/L4ScoreHeightFromTop", 10);
-    private static LoggedTunableNumber preScoreElevatorHeight = new LoggedTunableNumber(//
+    public static LoggedTunableNumber preScoreElevatorHeight = new LoggedTunableNumber(//
         "AutoScore/PreScoreElevatorHeight", 15.5);
     private static LoggedTunableNumber branchScorePitchDown = new LoggedTunableNumber(//
         "AutoScore/BranchScorePitchDown", 40);
@@ -88,10 +87,7 @@ public class ScoringSequenceCommands {
      */
     public static Command prepForScoring(ReefLevel level, Arm arm) {
         if(level == ReefLevel.L1) { return arm.goToStateCommand(getL1StartingState()); }
-
-        ArmState startingState = getStartingState(level);
-        return arm.goToStateCommand(new ArmState(Rotation2d.fromDegrees(80), Inches.of(preScoreElevatorHeight.get()),
-            startingState.wristRotation(), EndEffectorState.hold()));
+        return arm.goToStateCommand(ArmConstants.prepForScoringState);
     }
 
     /**
@@ -148,13 +144,13 @@ public class ScoringSequenceCommands {
             Commands.parallel(
                 Commands.sequence(
                     Commands.waitSeconds(0.2),
-                    arm.goToStateCommand(scoreDownState).withTimeout(0.75)
+                    arm.goToStateCommand(scoreDownState)
                 ),
                 DriveCommands.driveStraightCommand(drive, Units.feetToMeters(2.5), 0.4, fieldAngle)
             ).withTimeout(0.75),
             Commands.parallel(
                 arm.goToStateCommand(scoreDownState2).withTimeout(0.75),
-                DriveCommands.driveStraightCommand(drive, Units.feetToMeters(-1.5), 0.4, fieldAngle)
+                DriveCommands.driveStraightCommand(drive, Units.feetToMeters(-1.5), 0.35, fieldAngle)
             ),
             arm.goToStateCommand(ArmConstants.restingState)
         ).withName("ScoreAt" + level.name() + "Sequence");

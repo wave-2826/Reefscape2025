@@ -24,6 +24,7 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.DriverStation;
 import frc.robot.Constants;
 import frc.robot.subsystems.drive.DriveConstants.SwerveModuleConfiguration;
+import frc.robot.util.AngleAverageFilter;
 
 import java.util.Queue;
 import java.util.function.DoubleSupplier;
@@ -55,6 +56,9 @@ public class ModuleIOSpark implements ModuleIO {
     private final Debouncer driveConnectedDebounce = new Debouncer(0.5);
     private final Debouncer turnConnectedDebounce = new Debouncer(0.5);
     private final Debouncer turnEncoderConnectedDebounce = new Debouncer(0.5);
+
+    private final AngleAverageFilter encoderFilter = new AngleAverageFilter(15);
+    private boolean didResetToAbsolute = false;
 
     public ModuleIOSpark(SwerveModuleConfiguration config) {
         zeroRotation = config.zeroOffset();
@@ -155,6 +159,11 @@ public class ModuleIOSpark implements ModuleIO {
         timestampQueue.clear();
         drivePositionQueue.clear();
         turnPositionQueue.clear();
+
+        if(!didResetToAbsolute) {
+            encoderFilter.reset();
+        }
+        didResetToAbsolute = false;
     }
 
     @Override
@@ -207,9 +216,12 @@ public class ModuleIOSpark implements ModuleIO {
     public void resetToAbsolute() {
         // Both the turn encoder and turn absolute encoder have conversion factors
         // that represent radians of the output, so this requires no conversion.
-        // TODO: Linear filtering on the absolute encoder input to avoid jittering caused by signal noise?
-        turnEncoder.setPosition(MathUtil.inputModulus(turnAbsoluteEncoder.getPosition() - zeroRotation.getRadians(),
-            turnPIDMinInput, turnPIDMaxInput));
+
+        didResetToAbsolute = true;
+
+        turnEncoder.setPosition(MathUtil.inputModulus(
+            encoderFilter.calculate(turnAbsoluteEncoder.getPosition() - zeroRotation.getRadians()), turnPIDMinInput,
+            turnPIDMaxInput));
     }
 
     @Override

@@ -99,6 +99,7 @@ public class DriveTuningCommands {
     private static TuningResults tuningResults = TuningResults.load();
 
     private static SysIdRoutine sysIdRoutine = null;
+    private static SysIdRoutine angularSysIdRoutine = null;
 
     private DriveTuningCommands() {
     }
@@ -121,6 +122,15 @@ public class DriveTuningCommands {
                 sysIdDynamic(drive, SysIdRoutine.Direction.kForward));
             chooser.addOption("TUNING | Drive SysId (Dynamic Reverse)",
                 sysIdDynamic(drive, SysIdRoutine.Direction.kReverse));
+
+            chooser.addOption("TUNING | Drive Angular SysId (Quasistatic Forward)",
+                sysIdQuasistaticAngular(drive, SysIdRoutine.Direction.kForward));
+            chooser.addOption("TUNING | Drive Angular SysId (Quasistatic Reverse)",
+                sysIdQuasistaticAngular(drive, SysIdRoutine.Direction.kReverse));
+            chooser.addOption("TUNING | Drive Angular SysId (Dynamic Forward)",
+                sysIdDynamicAngular(drive, SysIdRoutine.Direction.kForward));
+            chooser.addOption("TUNING | Drive Angular SysId (Dynamic Reverse)",
+                sysIdDynamicAngular(drive, SysIdRoutine.Direction.kReverse));
         }
     }
 
@@ -393,5 +403,32 @@ public class DriveTuningCommands {
 
         return Commands.run(() -> drive.runCharacterization(0.0), drive).withTimeout(1.0)
             .andThen(sysIdRoutine.dynamic(direction));
+    }
+
+    /** Configures the angular SysId routine if it hasn't been configured yet. */
+    private static void initAngularSysId(Drive drive) {
+        if(angularSysIdRoutine == null) {
+            angularSysIdRoutine = new SysIdRoutine(
+                new SysIdRoutine.Config(null, null, null,
+                    (state) -> Logger.recordOutput("Drive/SysIdState", state.toString())),
+                new SysIdRoutine.Mechanism((voltage) -> drive.runAngularCharacterization(voltage.in(Volts)), null,
+                    drive));
+        }
+    }
+
+    /** Returns a command to run a quasistatic test in the specified direction. */
+    public static Command sysIdQuasistaticAngular(Drive drive, SysIdRoutine.Direction direction) {
+        initAngularSysId(drive);
+
+        return Commands.run(() -> drive.runAngularCharacterization(0.0), drive).withTimeout(1.0)
+            .andThen(angularSysIdRoutine.quasistatic(direction));
+    }
+
+    /** Returns a command to run a dynamic test in the specified direction. */
+    public static Command sysIdDynamicAngular(Drive drive, SysIdRoutine.Direction direction) {
+        initAngularSysId(drive);
+
+        return Commands.run(() -> drive.runAngularCharacterization(0.0), drive).withTimeout(1.0)
+            .andThen(angularSysIdRoutine.dynamic(direction));
     }
 }

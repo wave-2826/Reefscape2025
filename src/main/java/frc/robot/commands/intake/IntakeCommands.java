@@ -3,39 +3,49 @@ package frc.robot.commands.intake;
 import java.util.function.BooleanSupplier;
 
 import org.littletonrobotics.junction.AutoLogOutput;
+import org.littletonrobotics.junction.Logger;
 
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.ScheduleCommand;
 import frc.robot.subsystems.arm.Arm;
 import frc.robot.subsystems.arm.ArmConstants;
 import frc.robot.subsystems.intake.Intake;
 import frc.robot.subsystems.intake.Intake.IntakeState;
 
 public class IntakeCommands {
+    public static boolean waitingForPiece = false;
+
+    public static Command waitForPieceInArm() {
+        return Commands.sequence(Commands.runOnce(() -> Logger.recordOutput("Auto/WaitingForPiece", true)),
+            Commands.runOnce(() -> waitingForPiece = true), Commands.waitUntil(() -> waitingForPiece == false),
+            Commands.runOnce(() -> Logger.recordOutput("Auto/WaitingForPiece", false)));
+    }
+
     public static Command getPieceFromIntake(Arm arm) {
         return Commands.sequence(arm.goToStateCommand(ArmConstants.restingState),
-            arm.goToStateCommand(ArmConstants.getPieceState, 0.3), Commands.waitSeconds(0.1),
-            arm.goToStateCommand(ArmConstants.restingState, 0.5));
+            arm.goToStateCommand(ArmConstants.getPieceState, 0.2), Commands.waitSeconds(0.06),
+            arm.goToStateCommand(ArmConstants.restingState, 0.2),
+            arm.goToStateCommand(ArmConstants.prepForScoringState, 0.2),
+            Commands.runOnce(() -> waitingForPiece = false));
     }
 
     @AutoLogOutput(key = "Intake/CanTake")
     private static boolean canTake = false;
 
     public static Command autoIntake(Intake intake, Arm arm) {
-        return intake.startRun(() -> {
-            intake.setIntakeState(IntakeState.IntakeDown);
-        }, () -> {
-            if(intake.intakeSensorTriggered()) {
-                canTake = true;
-            }
-
-            if(intake.pieceWaitingForArm() && canTake) {
-                getPieceFromIntake(arm).schedule();
-                canTake = false;
-            }
-        }).withName("AutoIntakeSequence").finallyDo(() -> {
-            intake.setIntakeState(IntakeState.Up);
-        });
+        // @formatter:off
+        return Commands.sequence(
+            intake.runOnce(() -> {
+                intake.setIntakeState(IntakeState.IntakeDown);
+            }),
+            Commands.waitUntil(intake::pieceWaitingForArm),
+            new ScheduleCommand(getPieceFromIntake(arm)),
+            intake.runOnce(() -> {
+                intake.setIntakeState(IntakeState.Up);
+            })
+        ).withName("AutoIntakeSequence");
+        // @formatter:on
     }
 
     public static Command intakeCommand(Intake intake, Arm arm, BooleanSupplier shouldIntake,

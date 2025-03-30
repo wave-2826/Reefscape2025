@@ -64,7 +64,7 @@ public class Intake extends SubsystemBase {
     /**
      * A debouncer for the middle sensor.
      */
-    private Debouncer middleDebouncer = new Debouncer(0.15, DebounceType.kFalling);
+    private Debouncer middleDebouncer = new Debouncer(0.2, DebounceType.kFalling);
 
     /**
      * Used to emulate a "middle sensor" that doesn't exist right now.

@@ -221,6 +221,12 @@ public class Drive extends SubsystemBase {
         for(int i = 0; i < 4; i++) modules[i].runCharacterization(output);
     }
 
+    /** Runs the drive to rotate with the specified drive output for angular system identification. */
+    public void runAngularCharacterization(double output) {
+        velocityControlMode = false;
+        for(int i = 0; i < 4; i++) modules[i].runAngularCharacterization(output);
+    }
+
     /** Runs a particular module in a straight line with the specified drive output. */
     public void runCharacterization(int module, double output) {
         velocityControlMode = false;

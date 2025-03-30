@@ -58,5 +58,6 @@
     "java.jdt.ls.vmargs": "-XX:+UseParallelGC -XX:GCTimeRatio=4 -XX:AdaptiveSizePolicyWeight=90 -Dsun.zip.disableMemoryMapping=true -Xmx64G -Xms100m -Xlog:disable",
     "java.debug.settings.hotCodeReplace": "auto",
     "wpilib.autoStartRioLog": false,
-    "wpilib.skipSelectSimulateExtension": true
+    "wpilib.skipSelectSimulateExtension": true,
+    "wpilib.skipTests": true
 }

@@ -78,29 +78,29 @@ public class Arm extends SubsystemBase {
         });
     }
 
-    private static final double TARGET_HEIGHT_TOLERANCE_METERS = Units.inchesToMeters(0.4);
-    private static final double TARGET_PITCH_TOLERANCE_DEGREES = 3.0;
-    private static final double TARGET_WRIST_TOLERANCE_DEGREES = 3.0;
+    private static final double TARGET_HEIGHT_TOLERANCE_METERS = Units.inchesToMeters(1.5);
+    private static final double TARGET_PITCH_TOLERANCE_DEGREES = 8.0;
+    private static final double TARGET_WRIST_TOLERANCE_DEGREES = 5.0;
 
     public ArmState getCurrentTargetState() {
         return adjustedTarget;
     }
 
     private boolean atTargetPitch() {
-        if(adjustedTarget == null) return false;
+        if(adjustedTarget == null) return true;
         return Math.abs(
             MathUtil.angleModulus(inputs.armPitchPosition.getRadians() - adjustedTarget.pitch().getRadians())) < Units
                 .degreesToRadians(TARGET_PITCH_TOLERANCE_DEGREES);
     }
 
     private boolean atTargetHeight() {
-        if(adjustedTarget == null) return false;
+        if(adjustedTarget == null) return true;
         return Math
             .abs(inputs.elevatorHeightMeters - adjustedTarget.height().in(Meters)) < TARGET_HEIGHT_TOLERANCE_METERS;
     }
 
     private boolean atTargetWrist() {
-        if(adjustedTarget == null) return false;
+        if(adjustedTarget == null) return true;
         return Math.abs(MathUtil.angleModulus(
             inputs.armWristPosition.getRadians() - adjustedTarget.wristRotation().rotation.getRadians())) < Units
                 .degreesToRadians(TARGET_WRIST_TOLERANCE_DEGREES);
@@ -149,7 +149,7 @@ public class Arm extends SubsystemBase {
         EndEffectorState targetEndEffector = targetState.endEffectorState();
         double degreesOff = Math.abs(inputs.armPitchPosition.getDegrees() - targetState.pitch().getDegrees());
         if(targetEndEffector.isHold() && degreesOff > TARGET_PITCH_TOLERANCE_DEGREES * 2) {
-            targetEndEffector = EndEffectorState.velocity(-6 * degreesOff / 90.);
+            targetEndEffector = EndEffectorState.velocity(-8 * degreesOff / 90.);
         }
 
         return new ArmState(targetState.pitch(), targetState.height(), targetWrist, targetEndEffector);

@@ -5,6 +5,12 @@
     "data": {
       "commands": [
         {
+          "type": "named",
+          "data": {
+            "name": "Prep arm"
+          }
+        },
+        {
           "type": "path",
           "data": {
             "pathName": "No vision coral left.0"
@@ -26,6 +32,12 @@
           "type": "path",
           "data": {
             "pathName": "No vision coral left.1"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Wait for piece"
           }
         },
         {

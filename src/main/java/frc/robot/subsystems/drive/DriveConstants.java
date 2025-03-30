@@ -25,7 +25,7 @@ public class DriveConstants {
     public record SwerveModuleConfiguration(int driveMotorCanID, int turnMotorCanID, Rotation2d zeroOffset) {
     }
 
-    public static final double maxSpeedMetersPerSec = 3.6; // "Magic" number from max speed measurement
+    public static final double maxSpeedMetersPerSec = 3.7; // "Magic" number from max speed measurement
     public static final double odometryFrequency = 100.0; // Hz
     public static final double bumperSizeMeters = Units.inchesToMeters(37.625);
     public static final double trackWidth = Units.inchesToMeters(24.);
@@ -47,7 +47,7 @@ public class DriveConstants {
     public static final SwerveModuleConfiguration frontRightModule = new SwerveModuleConfiguration(11, 12,
         Rotation2d.fromRadians(1.43579));
     public static final SwerveModuleConfiguration backLeftModule = new SwerveModuleConfiguration(21, 22,
-        Rotation2d.fromRadians(0.245));
+        Rotation2d.fromRadians(5.541));
     public static final SwerveModuleConfiguration backRightModule = new SwerveModuleConfiguration(31, 32,
         Rotation2d.fromRadians(4.41693));
 
@@ -82,7 +82,7 @@ public class DriveConstants {
 
     // Turn motor configuration
     public static final boolean turnInverted = false;
-    public static final int turnMotorCurrentLimit = 35;
+    public static final int turnMotorCurrentLimit = 45;
     public static final double turnMotorReduction = Mk4Reductions.Turn.reduction;
     public static final DCMotor turnSimMotor = DCMotor.getNeoVortex(1);
     public static final AngularVelocity maxSteerVelocity = RadiansPerSecond.of(100);
@@ -115,8 +115,13 @@ public class DriveConstants {
 
     // PathPlanner configuration
     public static final double robotMassKg = Units.lbsToKilograms(114.5 + 13 + 13);
-    /** The moment of inertia of the robot, in KG*M^2 */
-    public static final double robotMOIKgSqM = 5.0; // TODO: Estimate with angular SysID
+    /**
+     * The moment of inertia of the robot, in KG*M^2. Based on SysId:
+     * https://pathplanner.dev/robot-config.html#calculating-moi-through-sysid-recommended
+     * <p>
+     * Currently roughly ~5.73.
+     */
+    public static final double robotMOIKgSqM = robotMassKg * driveBaseRadius * driveKa / 0.066624;
     public static final double wheelCOF = 1.355; // "Magic" number from slip current measurement
 
     public static final RobotConfig pathplannerConfig = new RobotConfig(robotMassKg, robotMOIKgSqM,
@@ -127,7 +132,7 @@ public class DriveConstants {
     public static final PPHolonomicDriveController simHolonomicDriveController = new PPHolonomicDriveController(
         new PIDConstants(13.0, 0.0, 0.0), new PIDConstants(5.0, 0.0, 0.0));
     public static final PPHolonomicDriveController realHolonomicDriveController = new PPHolonomicDriveController(
-        new PIDConstants(5.0, 5.0, 0.0), new PIDConstants(5.0, 3.0, 0.0));
+        new PIDConstants(6.5, 0.0, 0.25), new PIDConstants(7.0, 1.0, 1.0));
 
     public static final DriveTrainSimulationConfig mapleSimConfig = DriveTrainSimulationConfig.Default()
         .withCustomModuleTranslations(moduleTranslations).withRobotMass(Kilogram.of(robotMassKg))
