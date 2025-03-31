@@ -136,12 +136,12 @@ public class Drive extends SubsystemBase {
         PathPlannerLogging.setLogTargetPoseCallback((targetPose) -> {
             // HACK: what is pathplanner doing
             boolean isRed = DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red;
-            if(isRed && targetPose.getX() < FieldConstants.fieldLength / 2) {
+            if(DriverStation.isEnabled() && isRed && targetPose.getX() < FieldConstants.fieldLength / 2) {
                 // omg wtf
                 CommandScheduler.getInstance().cancelAll();
                 System.out.println("Stopping auto; PathPlanner is trying to destroy the robot again");
             }
-            if(!isRed && targetPose.getX() > FieldConstants.fieldLength / 2) {
+            if(DriverStation.isEnabled() && !isRed && targetPose.getX() > FieldConstants.fieldLength / 2) {
                 // omg wtf
                 CommandScheduler.getInstance().cancelAll();
                 System.out.println("Stopping auto; PathPlanner is trying to destroy the robot again");
@@ -236,6 +236,11 @@ public class Drive extends SubsystemBase {
     /** Stops the drive. */
     public void stop() {
         runVelocity(new ChassisSpeeds());
+    }
+
+    /** Resets the modules to absolute. */
+    public void resetToAbsolute() {
+        for(int i = 0; i < 4; i++) modules[i].resetToAbsolute();
     }
 
     /**

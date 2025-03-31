@@ -43,13 +43,13 @@ public class DriveConstants {
 
     // TODO: Command to tune wheel offsets
     public static final SwerveModuleConfiguration frontLeftModule = new SwerveModuleConfiguration(41, 42,
-        Rotation2d.fromRadians(1.23295));
+        Rotation2d.fromRadians(1.219));
     public static final SwerveModuleConfiguration frontRightModule = new SwerveModuleConfiguration(11, 12,
-        Rotation2d.fromRadians(1.43579));
+        Rotation2d.fromRadians(1.407));
     public static final SwerveModuleConfiguration backLeftModule = new SwerveModuleConfiguration(21, 22,
-        Rotation2d.fromRadians(5.541));
+        Rotation2d.fromRadians(3.755));
     public static final SwerveModuleConfiguration backRightModule = new SwerveModuleConfiguration(31, 32,
-        Rotation2d.fromRadians(4.41693));
+        Rotation2d.fromRadians(4.427));
 
     public static final boolean USE_SETPOINT_GENERATOR = false;
 
@@ -64,25 +64,25 @@ public class DriveConstants {
     public static final double driveEncoderVelocityFactor = (2 * Math.PI) / 60.0 / driveMotorReduction; // Rotor RPM -> Wheel Rad/Sec
 
     // Drive PID configuration
-    public static final double driveKp = 0.00021867;
+    public static final double driveKp = 0.00022524;
     public static final double driveKd = 0.0;
     /** The static feedforward gain in volts. */
-    public static final double driveKs = 0.2286; // "Magic" number from SysID
+    public static final double driveKs = 0.17179; // "Magic" number from SysID
     /** The velocity gain in volts per (radian per second of wheel) */
-    public static final double driveKv = 0.11167; // "Magic" number from SysID
+    public static final double driveKv = 0.11; // "Magic" number from SysID
     /** The acceleration gain in volts per (radian per second per second of wheel) */
-    public static final double driveKa = 0.013897; // Estimate... we should measure this with a full SysID run
+    public static final double driveKa = 0.024772;
 
     public static final double driveSimP = 0.6;
     public static final double driveSimD = 0.0;
     public static final double driveSimKs = 0.0311; // "Magic" number from SysID
     public static final double driveSimKv = 0.1344; // "Magic" number from SysID
     public static final double driveSimKt = driveMotorReduction / driveSimMotor.KtNMPerAmp;
-    public static final double driveSimKa = 0.0225; // Estimate... we should measure this with a full SysID run
+    public static final double driveSimKa = 0.0225; // "Magic" number from SysID
 
     // Turn motor configuration
     public static final boolean turnInverted = false;
-    public static final int turnMotorCurrentLimit = 45;
+    public static final int turnMotorCurrentLimit = 30;
     public static final double turnMotorReduction = Mk4Reductions.Turn.reduction;
     public static final DCMotor turnSimMotor = DCMotor.getNeoVortex(1);
     public static final AngularVelocity maxSteerVelocity = RadiansPerSecond.of(100);
@@ -119,9 +119,9 @@ public class DriveConstants {
      * The moment of inertia of the robot, in KG*M^2. Based on SysId:
      * https://pathplanner.dev/robot-config.html#calculating-moi-through-sysid-recommended
      * <p>
-     * Currently roughly ~5.73.
+     * Currently roughly ~8.95.
      */
-    public static final double robotMOIKgSqM = robotMassKg * driveBaseRadius * driveKa / 0.066624;
+    public static final double robotMOIKgSqM = robotMassKg * driveBaseRadius * driveKa / 0.042656;
     public static final double wheelCOF = 1.355; // "Magic" number from slip current measurement
 
     public static final RobotConfig pathplannerConfig = new RobotConfig(robotMassKg, robotMOIKgSqM,

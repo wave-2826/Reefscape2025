@@ -11,7 +11,6 @@ import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.units.measure.Distance;
-import frc.robot.commands.arm.ScoringSequenceCommands;
 import frc.robot.subsystems.arm.ArmState.WristRotation;
 import frc.robot.util.LoggedTunableSparkPID;
 import frc.robot.util.PIDConstants;
@@ -22,23 +21,22 @@ import frc.robot.util.GearRatios.UltraPlanetaryRatio;
  */
 public class ArmConstants {
     /** The state that the arm rests in while waiting for a game piece. */
-    public static final ArmState restingState = new ArmState(Rotation2d.fromRadians(-1.62), Meters.of(0.533),
+    public static final ArmState restingState = new ArmState(Rotation2d.fromDegrees(-102), Meters.of(0.5),
         WristRotation.Horizontal, EndEffectorState.hold());
     /** The state the arm is in when getting a piece. */
-    public static final ArmState getPieceState = new ArmState(Rotation2d.fromRadians(-1.8), Meters.of(0.14),
+    public static final ArmState getPieceState = new ArmState(Rotation2d.fromDegrees(-102), Meters.of(0.3),
         WristRotation.Horizontal, EndEffectorState.velocity(-20));
 
     /** The state when the arm is intaking from the source. */
     public static final ArmState sourceIntakeState = new ArmState(Rotation2d.fromDegrees(80), Inches.of(5),
-        WristRotation.Vertical, EndEffectorState.velocity(-18));
+        WristRotation.Vertical, EndEffectorState.velocity(-20));
     /** The state when the arm is intaking from the source but stopped. */
     public static final ArmState sourceIntakeStoppedState = new ArmState(Rotation2d.fromDegrees(80), Inches.of(5),
         WristRotation.Vertical, EndEffectorState.hold());
 
     /** The state when the arm is preparing for scoring. */
-    public static final ArmState prepForScoringState = new ArmState(Rotation2d.fromDegrees(80),
-        Inches.of(ScoringSequenceCommands.preScoreElevatorHeight.get()), WristRotation.HorizontalFlipped,
-        EndEffectorState.hold());
+    public static final ArmState prepForScoringState = new ArmState(Rotation2d.fromDegrees(80), restingState.height(),
+        WristRotation.HorizontalFlipped, EndEffectorState.hold());
 
     public class ElevatorConstants {
         public static final double elevatorStartingHeightMeters = 0.34;

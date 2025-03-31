@@ -140,8 +140,7 @@ public class ArmIOReal implements ArmIO {
 
         SparkMaxConfig armPitchConfig = new SparkMaxConfig();
         armPitchConfig.closedLoop.apply(ArmConstants.ShoulderConstants.armPitchPID.getConfig())
-            .feedbackSensor(FeedbackSensor.kAbsoluteEncoder).positionWrappingEnabled(true)
-            .positionWrappingInputRange(-Math.PI, Math.PI);
+            .feedbackSensor(FeedbackSensor.kAbsoluteEncoder); // No position wrapping -- we shouldn't try to go all the way around.
         armPitchConfig.encoder.positionConversionFactor(ArmConstants.ShoulderConstants.pitchPositionConversionFactor)
             .velocityConversionFactor(ArmConstants.ShoulderConstants.pitchVelocityConversionFactor);
         armPitchConfig.absoluteEncoder
@@ -278,26 +277,28 @@ public class ArmIOReal implements ArmIO {
 
         Measurement measurement = elevatorHeightSensor.getMeasurement();
         inputs.elevatorHeightSensorConnected = elevatorHeightSensorConnectedDebouncer.calculate(measurement != null);
-        inputs.absoluteHeightMeters = (float) measurement.distance_mm / 1000.;
-        inputs.validAbsoluteMeasurement = measurement.status == LaserCan.LASERCAN_STATUS_VALID_MEASUREMENT;
+        if(measurement != null) {
+            inputs.absoluteHeightMeters = (float) measurement.distance_mm / 1000.;
+            inputs.validAbsoluteMeasurement = measurement.status == LaserCan.LASERCAN_STATUS_VALID_MEASUREMENT;
 
-        Logger.recordOutput("Arm/ElevatorNeedsToReset", needsToReset);
-        // For some reason, this doens't work with simulated sparks. We do this in ArmIOSim instead.
-        if(needsToReset && inputs.validAbsoluteMeasurement && Constants.currentMode != Constants.Mode.SIM) {
-            // TODO: Use ifOk and only adjust once this works?
-            tryUntilOk(elevatorHeightMotorLeader, 2,
-                () -> leaderElevatorHeightEncoder.setPosition(inputs.absoluteHeightMeters));
-            tryUntilOk(elevatorHeightMotorFollower, 2,
-                () -> followerElevatorHeightEncoder.setPosition(inputs.absoluteHeightMeters));
-            needsToReset = false;
+            Logger.recordOutput("Arm/ElevatorNeedsToReset", needsToReset);
+            // For some reason, this doens't work with simulated sparks. We do this in ArmIOSim instead.
+            if(needsToReset && inputs.validAbsoluteMeasurement && Constants.currentMode != Constants.Mode.SIM) {
+                // TODO: Use ifOk and only adjust once this works?
+                tryUntilOk(elevatorHeightMotorLeader, 2,
+                    () -> leaderElevatorHeightEncoder.setPosition(inputs.absoluteHeightMeters));
+                tryUntilOk(elevatorHeightMotorFollower, 2,
+                    () -> followerElevatorHeightEncoder.setPosition(inputs.absoluteHeightMeters));
+                needsToReset = false;
+            }
+
+            laserCANNoiseIssue.set(measurement.status == LaserCan.LASERCAN_STATUS_NOISE_ISSUE);
+            laserCANWeakSignal.set(measurement.status == LaserCan.LASERCAN_STATUS_WEAK_SIGNAL);
+            laserCANOutOfBounds.set(measurement.status == LaserCan.LASERCAN_STATUS_OUT_OF_BOUNDS);
+            laserCANWraparound.set(measurement.status == LaserCan.LASERCAN_STATUS_WRAPAROUND);
+
+            Logger.recordOutput("Arm/ElevatorAmbientLight", measurement.ambient);
         }
-
-        laserCANNoiseIssue.set(measurement.status == LaserCan.LASERCAN_STATUS_NOISE_ISSUE);
-        laserCANWeakSignal.set(measurement.status == LaserCan.LASERCAN_STATUS_WEAK_SIGNAL);
-        laserCANOutOfBounds.set(measurement.status == LaserCan.LASERCAN_STATUS_OUT_OF_BOUNDS);
-        laserCANWraparound.set(measurement.status == LaserCan.LASERCAN_STATUS_WRAPAROUND);
-
-        Logger.recordOutput("Arm/ElevatorAmbientLight", measurement.ambient);
 
         // Update arm pitch motor inputs
         sparkStickyFault = false;

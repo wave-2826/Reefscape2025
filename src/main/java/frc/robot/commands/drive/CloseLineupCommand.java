@@ -54,6 +54,13 @@ public class CloseLineupCommand extends Command {
     private final static LoggedTunableNumber thetaRotationTolerance = new LoggedTunableNumber(
         "CloseLineup/thetaRotationTolerance", 1.5);
 
+    private final static LoggedTunableNumber xDerivativeTolerance = new LoggedTunableNumber(
+        "CloseLineup/xTranslationTolerance", 0.5);
+    private final static LoggedTunableNumber yDerivativeTolerance = new LoggedTunableNumber(
+        "CloseLineup/yTranslationTolerance", 0.5);
+    private final static LoggedTunableNumber thetaDerivativeTolerance = new LoggedTunableNumber(
+        "CloseLineup/thetaRotationTolerance", 3);
+
     private final static LoggedTunableNumber thetaIZone = new LoggedTunableNumber("CloseLineup/thetaIZone", 1.0);
 
     /**
@@ -90,9 +97,13 @@ public class CloseLineupCommand extends Command {
         thetaController = new PIDController(thetaRotationKp.get(), thetaRotationKi.get(), thetaRotationKd.get());
         thetaController.enableContinuousInput(0.0, Math.PI * 2);
 
-        xController.setTolerance(Units.inchesToMeters(xTranslationTolerance.get()));
-        yController.setTolerance(Units.inchesToMeters(yTranslationTolerance.get()));
-        thetaController.setTolerance(Units.degreesToRadians(thetaRotationTolerance.get()));
+        xController.setTolerance(Units.inchesToMeters(xTranslationTolerance.get()),
+            Units.inchesToMeters(xDerivativeTolerance.get()));
+        yController.setTolerance(Units.inchesToMeters(yTranslationTolerance.get()),
+            Units.inchesToMeters(yDerivativeTolerance.get()));
+        thetaController.setTolerance(Units.degreesToRadians(thetaRotationTolerance.get()),
+            Units.degreesToRadians(thetaDerivativeTolerance.get()));
+
         thetaController.setIntegratorRange(-Units.degreesToRadians(thetaIZone.get()),
             Units.degreesToRadians(thetaIZone.get()));
 

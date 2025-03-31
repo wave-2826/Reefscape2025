@@ -115,6 +115,14 @@ public class Module {
     }
 
     /**
+     * Resets the module to the absolute value. Will produce incorrect results if the modules are moving while this
+     * runs.
+     */
+    public void resetToAbsolute() {
+        io.resetToAbsolute();
+    }
+
+    /**
      * Runs the module with the specified setpoint state and acceleration in meters per second per second.
      */
     public void runSetpoint(SwerveModuleState state, double accelerationMps2) {

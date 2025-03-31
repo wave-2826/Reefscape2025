@@ -99,7 +99,10 @@ public class Controls {
             : () -> drive.setPose(new Pose2d(0, 0, Rotation2d.kZero)); // Zero gyro
 
         driver.start().onTrue(Commands.runOnce(resetGyro, drive).ignoringDisable(true));
-        driver.back().onTrue(Commands.runOnce(resetOdometry, drive).ignoringDisable(true));
+        driver.start().and(driver.leftStick()).debounce(0.5)
+            .onTrue(Commands.runOnce(resetOdometry, drive).ignoringDisable(true));
+        // Used to account for swerve belts slipping.
+        driver.back().whileTrue(Commands.run(drive::resetToAbsolute));
 
         var intakeTrigger = driver.rightTrigger(0.3).or(operator.rightBumper().and(normalOperator));
         intakeTrigger.onTrue(arm.goToStateCommand(ArmConstants.restingState));
