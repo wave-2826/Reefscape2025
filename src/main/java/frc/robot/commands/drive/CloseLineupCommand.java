@@ -8,12 +8,15 @@ import org.littletonrobotics.junction.Logger;
 
 import com.pathplanner.lib.auto.AutoBuilder;
 
+import edu.wpi.first.math.controller.HolonomicDriveController;
 import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.util.function.BooleanConsumer;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -30,8 +33,7 @@ public class CloseLineupCommand extends Command {
     private final Transform2d tagRelativeOffset;
     private final Supplier<Transform2d> fieldRelativeOffset;
 
-    private final PIDController xController, yController;
-    private final PIDController thetaController;
+    private final HolonomicDriveController driveController;
 
     private final Optional<BooleanSupplier> finishSequence;
     private final BooleanConsumer lineupFeedback;
@@ -60,6 +62,10 @@ public class CloseLineupCommand extends Command {
         "CloseLineup/yDerivativeTolerance", 0.75);
     private final static LoggedTunableNumber thetaDerivativeTolerance = new LoggedTunableNumber(
         "CloseLineup/thetaDerivativeTolerance", 3);
+
+    private final static LoggedTunableNumber maxVelocity = new LoggedTunableNumber("CloseLineup/maxVelocityMPS", 2.0);
+    private final static LoggedTunableNumber maxAcceleration = new LoggedTunableNumber(
+        "CloseLineup/maxAccelerationMPS2", 0.5);
 
     private final static LoggedTunableNumber thetaIZone = new LoggedTunableNumber("CloseLineup/thetaIZone", 1.0);
 
@@ -92,10 +98,12 @@ public class CloseLineupCommand extends Command {
         this.tagRelativeOffset = tagRelativeOffset;
         this.fieldRelativeOffset = fieldRelativeOffset;
 
-        xController = new PIDController(translationKp.get(), translationKi.get(), translationKd.get());
-        yController = new PIDController(translationKp.get(), translationKi.get(), translationKd.get());
-        thetaController = new PIDController(thetaRotationKp.get(), thetaRotationKi.get(), thetaRotationKd.get());
-        thetaController.enableContinuousInput(0.0, Math.PI * 2);
+        var xController = new PIDController(translationKp.get(), translationKi.get(), translationKd.get());
+        var yController = new PIDController(translationKp.get(), translationKi.get(), translationKd.get());
+        var thetaController = new ProfiledPIDController(thetaRotationKp.get(), thetaRotationKi.get(),
+            thetaRotationKd.get(), new TrapezoidProfile.Constraints(maxVelocity.get(), maxAcceleration.get()));
+
+        driveController = new HolonomicDriveController(xController, yController, thetaController);
 
         xController.setTolerance(Units.inchesToMeters(xTranslationTolerance.get()),
             Units.inchesToMeters(xDerivativeTolerance.get()));
@@ -116,13 +124,11 @@ public class CloseLineupCommand extends Command {
 
     @Override
     public void initialize() {
-        xController.reset();
-        yController.reset();
-        thetaController.reset();
+        driveController.getThetaController().reset(drive.getRotation().getRadians());
     }
 
     private boolean atSetpoint() {
-        return xController.atSetpoint() && yController.atSetpoint() && thetaController.atSetpoint();
+        return driveController.atReference();
     }
 
     private Transform2d flipFieldTransform(Transform2d transform) {
@@ -133,20 +139,24 @@ public class CloseLineupCommand extends Command {
     @Override
     public void execute() {
         LoggedTunableNumber.ifChanged(hashCode(), (double[] values) -> {
-            xController.setPID(values[0], values[1], values[2]);
-            yController.setPID(values[0], values[1], values[2]);
+            driveController.getXController().setPID(values[0], values[1], values[2]);
+            driveController.getYController().setPID(values[0], values[1], values[2]);
         }, translationKp, translationKi, translationKd);
         LoggedTunableNumber.ifChanged(hashCode(), (double[] values) -> {
-            thetaController.setPID(values[0], values[1], values[2]);
+            driveController.getThetaController().setPID(values[0], values[1], values[2]);
         }, thetaRotationKp, thetaRotationKi, thetaRotationKd);
         LoggedTunableNumber.ifChanged(hashCode(), (double[] values) -> {
-            xController.setTolerance(Units.inchesToMeters(values[0]));
-            yController.setTolerance(Units.inchesToMeters(values[1]));
-            thetaController.setTolerance(Units.degreesToRadians(values[2]));
+            driveController.getYController().setTolerance(Units.inchesToMeters(values[0]));
+            driveController.getYController().setTolerance(Units.inchesToMeters(values[1]));
+            driveController.getThetaController().setTolerance(Units.degreesToRadians(values[2]));
         }, xTranslationTolerance, yTranslationTolerance, thetaRotationTolerance);
         LoggedTunableNumber.ifChanged(hashCode(), (double[] values) -> {
-            thetaController.setIntegratorRange(-Units.degreesToRadians(values[0]), Units.degreesToRadians(values[0]));
+            driveController.getThetaController().setIntegratorRange(-Units.degreesToRadians(values[0]),
+                Units.degreesToRadians(values[0]));
         }, thetaIZone);
+        LoggedTunableNumber.ifChanged(hashCode(), (double[] values) -> {
+            driveController.getThetaController().setConstraints(new TrapezoidProfile.Constraints(values[0], values[1]));
+        }, maxVelocity, maxAcceleration);
 
         Pose2d correctedCurrentPose = drive.getPose();
         Transform3d robotToTag = vision.getRobotToTag(tagToTrack);
@@ -169,28 +179,28 @@ public class CloseLineupCommand extends Command {
         currentTargetPose = new Pose2d(currentTargetPose.getTranslation().plus(absoluteOffset.getTranslation()),
             currentTargetPose.getRotation().plus(absoluteOffset.getRotation()));
 
-        xController.setSetpoint(currentTargetPose.getX());
-        yController.setSetpoint(currentTargetPose.getY());
-        thetaController.setSetpoint(currentTargetPose.getRotation().getRadians());
+        // xController.setSetpoint(currentTargetPose.getX());
+        // yController.setSetpoint(currentTargetPose.getY());
+        // thetaController.setSetpoint(currentTargetPose.getRotation().getRadians());
 
         Logger.recordOutput("CloseLineup/TargetPose", currentTargetPose);
 
-        double xSpeed = xController.calculate(correctedCurrentPose.getX());
-        double ySpeed = yController.calculate(correctedCurrentPose.getY());
-        double thetaSpeed = thetaController.calculate(correctedCurrentPose.getRotation().getRadians());
+        // double xSpeed = xController.calculate(correctedCurrentPose.getX());
+        // double ySpeed = yController.calculate(correctedCurrentPose.getY());
+        // double thetaSpeed = thetaController.calculate(correctedCurrentPose.getRotation().getRadians());
 
-        // Terrible solution. Do not copy.
-        if(xController.atSetpoint()) xSpeed = 0;
-        if(yController.atSetpoint()) ySpeed = 0;
+        // // Terrible solution. Do not copy.
+        // if(xController.atSetpoint()) xSpeed = 0;
+        // if(yController.atSetpoint()) ySpeed = 0;
 
         if(lineupFeedback != null) {
             lineupFeedback.accept(atSetpoint());
         }
 
-        ChassisSpeeds wheelSpeeds = ChassisSpeeds.fromFieldRelativeSpeeds(xSpeed, ySpeed, thetaSpeed,
-            correctedCurrentPose.getRotation());
+        // ChassisSpeeds wheelSpeeds = ChassisSpeeds.fromFieldRelativeSpeeds(xSpeed, ySpeed, thetaSpeed,
+        //     correctedCurrentPose.getRotation());
 
-        drive.runVelocity(wheelSpeeds);
+        // drive.runVelocity(wheelSpeeds);
     }
 
     @Override
