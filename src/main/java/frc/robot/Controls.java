@@ -91,6 +91,9 @@ public class Controls {
                     setDriverRumble(RumbleType.kLeftRumble, 0.0, 1);
                 }));
 
+        driver.a().debounce(Controls.debounceTime, DebounceType.kFalling).whileTrue(AutoScoreCommands
+            .removeAlgaeTeleopCommand(drive, vision, arm, driver.rightBumper(), driver::getLeftX, driver::getLeftY));
+
         // Reset gyro or odometry if in simulation
         final Runnable resetGyro = Constants.isSim ? () -> drive.setPose(driveSimulation.getSimulatedDriveTrainPose()) // Reset odometry to actual robot pose during simulation
             : () -> drive.setPose(new Pose2d(drive.getPose().getTranslation(), Rotation2d.kZero)); // Zero gyro

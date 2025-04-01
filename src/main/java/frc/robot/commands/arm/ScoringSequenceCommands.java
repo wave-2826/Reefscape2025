@@ -1,6 +1,7 @@
 package frc.robot.commands.arm;
 
 import static edu.wpi.first.units.Units.Inches;
+import static edu.wpi.first.units.Units.Meters;
 
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.util.Units;
@@ -23,25 +24,25 @@ import frc.robot.util.LoggedTunableNumber;
  */
 public class ScoringSequenceCommands {
     private static LoggedTunableNumber elevatorScoreHeightReduction = new LoggedTunableNumber(//
-        "AutoScore/ScoreHeightReduction", 6);
+        "AutoScore/ScoreHeightReduction", 4);
     private static LoggedTunableNumber gamePieceEjectVelocity = new LoggedTunableNumber(//
-        "AutoScore/GamePieceEjectVelocity", 17);
+        "AutoScore/GamePieceEjectVelocity", 8);
     private static LoggedTunableNumber branchScorePitch = new LoggedTunableNumber(//
-        "AutoScore/BranchScorePitch", 65.);
+        "AutoScore/BranchScorePitch", 55.);
     private static LoggedTunableNumber L4ScorePitch = new LoggedTunableNumber(//
-        "AutoScore/L4ScorePitch", 35.);
+        "AutoScore/L4ScorePitch", 43.);
     private static LoggedTunableNumber L1ScoreHeight = new LoggedTunableNumber(//
         "AutoScore/L1ScoreHeight", 14);
     private static LoggedTunableNumber L2ScoreHeight = new LoggedTunableNumber(//
-        "AutoScore/L2ScoreHeight", 10);
+        "AutoScore/L2ScoreHeight", 6);
     private static LoggedTunableNumber L3ScoreHeight = new LoggedTunableNumber(//
-        "AutoScore/L3ScoreHeight", 26);
+        "AutoScore/L3ScoreHeight", 22);
     private static LoggedTunableNumber L4ScoreHeightFromTop = new LoggedTunableNumber(//
-        "AutoScore/L4ScoreHeightFromTop", 6);
+        "AutoScore/L4ScoreHeightFromTop", 9);
     private static LoggedTunableNumber branchScorePitchDown = new LoggedTunableNumber(//
-        "AutoScore/BranchScorePitchDown", 40);
+        "AutoScore/BranchScorePitchDown", 35);
     private static LoggedTunableNumber L4PitchDown = new LoggedTunableNumber(//
-        "AutoScore/L4PitchDown", 35);
+        "AutoScore/L4PitchDown", 40);
 
     /**
      * Gets the starting state for scoring at level 1.
@@ -123,7 +124,7 @@ public class ScoringSequenceCommands {
             return Commands.sequence(
                 Commands.parallel(
                     arm.goToStateCommand(scoreDownState).withTimeout(0.75),
-                    DriveCommands.driveStraightCommand(drive, Units.feetToMeters(-2.5), 0.75, fieldAngle)
+                    DriveCommands.driveStraightCommand(drive, Units.feetToMeters(-2.5), 0.7, fieldAngle)
                 ),
                 arm.goToStateCommand(ArmConstants.restingState)
             );
@@ -146,15 +147,49 @@ public class ScoringSequenceCommands {
                     Commands.waitSeconds(0.2),
                     arm.goToStateCommand(scoreDownState)
                 ),
-                DriveCommands.driveStraightCommand(drive, Units.feetToMeters(2.5), 0.4, fieldAngle)
+                DriveCommands.driveStraightCommand(drive, Units.feetToMeters(2.5), 0.15, fieldAngle)
             ).withTimeout(0.75),
             Commands.parallel(
                 arm.goToStateCommand(scoreDownState2).withTimeout(0.75),
-                DriveCommands.driveStraightCommand(drive, Units.feetToMeters(-1.5), 0.35, fieldAngle)
-            ),
-            arm.goToStateCommand(ArmConstants.restingState)
+                DriveCommands.driveStraightCommand(drive, Units.feetToMeters(-2), 1.25, fieldAngle)
+            )
         ).withName("ScoreAt" + level.name() + "Sequence");
         // @formatter:on
+    }
+
+    /**
+     * Goes to an arm state that prepares to remove algae.
+     * @return
+     */
+    public static Command prepForAlgaeRemoval(ReefLevel level, Arm arm) {
+        if(level == ReefLevel.L3) {
+            return arm.goToStateCommand(new ArmState(Rotation2d.fromDegrees(0), Meters.of(0.62), WristRotation.Vertical,
+                EndEffectorState.hold()));
+        } else {
+            return arm.goToStateCommand(new ArmState(Rotation2d.fromDegrees(0), Meters.of(0.98), WristRotation.Vertical,
+                EndEffectorState.hold()));
+        }
+    }
+
+    /**
+     * A sequence to remove algae at the given level.
+     * @param level
+     * @param arm
+     * @param drive
+     * @return
+     */
+    public static Command removeAlgae(ReefLevel level, Arm arm, Drive drive, Rotation2d fieldAngle) {
+        if(level == ReefLevel.L3) {
+            return Commands.parallel(
+                arm.goToStateCommand(new ArmState(Rotation2d.fromDegrees(30), Meters.of(0.65), WristRotation.Vertical,
+                    EndEffectorState.velocity(12))),
+                DriveCommands.driveStraightCommand(drive, Units.feetToMeters(-2.5), 1.5, fieldAngle));
+        } else {
+            return Commands.parallel(
+                arm.goToStateCommand(new ArmState(Rotation2d.fromDegrees(-30), Meters.of(0.95), WristRotation.Vertical,
+                    EndEffectorState.velocity(12))),
+                DriveCommands.driveStraightCommand(drive, Units.feetToMeters(-2.5), 1.5, fieldAngle));
+        }
     }
 
     /**

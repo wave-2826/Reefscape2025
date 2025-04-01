@@ -38,7 +38,7 @@ public class CloseLineupCommand extends Command {
 
     private final static LoggedTunableNumber translationKp = new LoggedTunableNumber("CloseLineup/translationKp", 4.5);
     private final static LoggedTunableNumber translationKi = new LoggedTunableNumber("CloseLineup/translationKi", 0.0);
-    private final static LoggedTunableNumber translationKd = new LoggedTunableNumber("CloseLineup/translationKd", 0.5);
+    private final static LoggedTunableNumber translationKd = new LoggedTunableNumber("CloseLineup/translationKd", 0.75);
 
     private final static LoggedTunableNumber thetaRotationKp = new LoggedTunableNumber("CloseLineup/thetaRotationKp",
         6.0);
@@ -48,18 +48,18 @@ public class CloseLineupCommand extends Command {
         0.2);
 
     private final static LoggedTunableNumber xTranslationTolerance = new LoggedTunableNumber(
-        "CloseLineup/xTranslationTolerance", 0.5);
+        "CloseLineup/xTranslationTolerance", 0.25);
     private final static LoggedTunableNumber yTranslationTolerance = new LoggedTunableNumber(
-        "CloseLineup/yTranslationTolerance", 0.5);
+        "CloseLineup/yTranslationTolerance", 0.25);
     private final static LoggedTunableNumber thetaRotationTolerance = new LoggedTunableNumber(
-        "CloseLineup/thetaRotationTolerance", 1.5);
+        "CloseLineup/thetaRotationTolerance", 1.25);
 
     private final static LoggedTunableNumber xDerivativeTolerance = new LoggedTunableNumber(
-        "CloseLineup/xTranslationTolerance", 0.5);
+        "CloseLineup/xDerivativeTolerance", 0.75);
     private final static LoggedTunableNumber yDerivativeTolerance = new LoggedTunableNumber(
-        "CloseLineup/yTranslationTolerance", 0.5);
+        "CloseLineup/yDerivativeTolerance", 0.75);
     private final static LoggedTunableNumber thetaDerivativeTolerance = new LoggedTunableNumber(
-        "CloseLineup/thetaRotationTolerance", 3);
+        "CloseLineup/thetaDerivativeTolerance", 3);
 
     private final static LoggedTunableNumber thetaIZone = new LoggedTunableNumber("CloseLineup/thetaIZone", 1.0);
 
@@ -180,8 +180,8 @@ public class CloseLineupCommand extends Command {
         double thetaSpeed = thetaController.calculate(correctedCurrentPose.getRotation().getRadians());
 
         // Terrible solution. Do not copy.
-        if(xController.atSetpoint()) xSpeed = 0.;
-        if(yController.atSetpoint()) ySpeed = 0.;
+        if(xController.atSetpoint()) xSpeed = 0;
+        if(yController.atSetpoint()) ySpeed = 0;
 
         if(lineupFeedback != null) {
             lineupFeedback.accept(atSetpoint());

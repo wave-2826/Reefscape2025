@@ -42,19 +42,19 @@ public class AutoScoreCommands {
      * The distance from the reef branch to the center of the robot when lining up to score L2-L4 in meters.
      */
     private static final LoggedTunableNumber robotReefLineupBranchDistance = new LoggedTunableNumber(//
-        "AutoScore/BranchReefLineupDistance", 24.0);
+        "AutoScore/BranchReefLineupDistance", 19.5);
 
     /**
      * The distance from the reef branch to the center of the robot when lining up to score L4 in meters.
      */
     private static final LoggedTunableNumber robotReefLineupL4Distance = new LoggedTunableNumber(//
-        "AutoScore/L4ReefLineupDistance", 21.25);
+        "AutoScore/L4ReefLineupDistance", 24.25);
 
     /**
      * The amount the driver can tweak the auto lineup position, in inches.
      */
     private static final LoggedTunableNumber autoAlignTweakAmount = new LoggedTunableNumber(//
-        "AutoScore/AutoAlignTweakInches", 4.0);
+        "AutoScore/AutoAlignTweakInches", 4.5);
 
     /**
      * A tweaking factor added to our horizontal lineup distance from the center between two branches.
@@ -73,6 +73,8 @@ public class AutoScoreCommands {
      * @param drive The drive subsystem
      * @param vision The vision subsystem
      * @param target The reef target to align to
+     * @param distanceAwayInches The distance away in inches.
+     * @param alignCenter If the robot should align to the center instead of branch side.
      * @param coarseLineupCommand The command to run during coarse lineup
      * @param closeLineupCommand The command to run during close lineup
      * @param tweakX The amount to tweak the X position during close lineup
@@ -83,26 +85,16 @@ public class AutoScoreCommands {
      *            null.
      * @return
      */
-    public static Command autoAlignSequence(Drive drive, Vision vision, ReefTarget target, Command coarseLineupCommand,
-        Command closeLineupCommand, DoubleSupplier tweakX, DoubleSupplier tweakY,
-        Optional<BooleanSupplier> finishSequence, BooleanConsumer lineupFeedback) {
+    public static Command autoAlignSequence(Drive drive, Vision vision, ReefTarget target, double distanceAwayInches,
+        boolean alignCenter, Command coarseLineupCommand, Command closeLineupCommand, DoubleSupplier tweakX,
+        DoubleSupplier tweakY, Optional<BooleanSupplier> finishSequence, BooleanConsumer lineupFeedback) {
 
         boolean isLeft = target.branch().isLeft;
 
-        double distanceAwayInches;
-        if(target.level() == ReefLevel.L1) {
-            distanceAwayInches = robotReefLineupL1Distance.get();
-        } else if(target.level() == ReefLevel.L4) {
-            distanceAwayInches = robotReefLineupL4Distance.get();
-        } else {
-            distanceAwayInches = robotReefLineupBranchDistance.get();
-        }
-
         double centerDistance = FieldConstants.reefBranchSeparation.in(Meters) / 2.
             + Units.inchesToMeters(centerDistanceTweak.get());
-        Transform2d tagRelativeOffset = new Transform2d(
-            new Translation2d(Units.inchesToMeters(distanceAwayInches), isLeft ? -centerDistance : centerDistance),
-            Rotation2d.k180deg);
+        Transform2d tagRelativeOffset = new Transform2d(new Translation2d(Units.inchesToMeters(distanceAwayInches),
+            alignCenter ? 0. : (isLeft ? -centerDistance : centerDistance)), Rotation2d.k180deg);
 
         ReefFace reefFace = target.branch().face;
 
@@ -175,7 +167,16 @@ public class AutoScoreCommands {
     public static Command autoScoreCommand(Drive drive, Vision vision, Arm arm, ReefTarget target,
         Optional<BooleanSupplier> finishSequence, DoubleSupplier tweakX, DoubleSupplier tweakY,
         BooleanConsumer lineupFeedback, BooleanSupplier useArmLineup) {
-        Command autoAlign = autoAlignSequence(drive, vision, target,
+        double distanceAwayInches;
+        if(target.level() == ReefLevel.L1) {
+            distanceAwayInches = robotReefLineupL1Distance.get();
+        } else if(target.level() == ReefLevel.L4) {
+            distanceAwayInches = robotReefLineupL4Distance.get();
+        } else {
+            distanceAwayInches = robotReefLineupBranchDistance.get();
+        }
+
+        Command autoAlign = autoAlignSequence(drive, vision, target, distanceAwayInches, false,
             // During coarse lineup
             ScoringSequenceCommands.prepForScoring(target.level(), arm).onlyIf(useArmLineup),
             // During close lineup
@@ -215,6 +216,61 @@ public class AutoScoreCommands {
                 var newTarget = DriverStationInterface.getInstance().getReefTarget();
                 if(!newTarget.equals(state.target) || robotReefLineupL1Distance.hasChanged(id)
                     || robotReefLineupBranchDistance.hasChanged(id)) {
+                    state.target = newTarget;
+                    return true;
+                }
+                return false;
+            }, Set.of(drive, arm));
+    }
+
+    /**
+     * Gets a command that automatically removes algae at the selected level on the driver station interface.
+     * @param drive The drive subsystem
+     * @param vision The vision subsystem
+     * @param arm The arm subsystem
+     * @param target The target to score at
+     * @param finishSequence If present, the close lineup waits for this to be true before finishing. If not present,
+     *            the close lineup finishes when the target is fully aligned.
+     * @param tweakX The amount to tweak the X position during close lineup
+     * @param tweakY The amount to tweak the Y position during close lineup
+     * @return
+     */
+    public static Command removeAlgaeCommand(Drive drive, Vision vision, Arm arm, ReefTarget target,
+        Optional<BooleanSupplier> finishSequence, DoubleSupplier tweakX, DoubleSupplier tweakY) {
+        Command autoAlign = autoAlignSequence(drive, vision, target, 20, true,
+            // During coarse lineup
+            ScoringSequenceCommands.prepForAlgaeRemoval(target.level(), arm),
+            // During close lineup
+            Commands.none(), tweakX, tweakY, finishSequence, (v) -> {
+            });
+
+        return Commands
+            .sequence(autoAlign,
+                ScoringSequenceCommands.removeAlgae(target.level(), arm, drive, target.branch().face.getFieldAngle()))
+            .withName("RemoveAlgae" + target.toString());
+    }
+
+    /**
+     * Gets a command that automatically removes algae at the selected level on the driver station interface.
+     * @param drive The drive subsystem
+     * @param vision The vision subsystem
+     * @param arm The arm subsystem
+     * @param finishSequence The close lineup waits for this to be true before finishing.
+     * @param tweakX The amount to tweak the X position during close lineup
+     * @param tweakY The amount to tweak the Y position during close lineup
+     * @return
+     */
+    public static Command removeAlgaeTeleopCommand(Drive drive, Vision vision, Arm arm, BooleanSupplier finishSequence,
+        DoubleSupplier tweakX, DoubleSupplier tweakY) {
+        AutoScoreState state = new AutoScoreState(DriverStationInterface.getInstance().getReefTarget());
+
+        return new RestartWhenCommand(
+            () -> removeAlgaeCommand(drive, vision, arm, state.target, Optional.of(finishSequence), tweakX, tweakY),
+
+            // Restart when our target changes
+            () -> {
+                var newTarget = DriverStationInterface.getInstance().getReefTarget();
+                if(!newTarget.equals(state.target)) {
                     state.target = newTarget;
                     return true;
                 }

@@ -49,7 +49,7 @@ public class DriveConstants {
     public static final SwerveModuleConfiguration backLeftModule = new SwerveModuleConfiguration(21, 22,
         Rotation2d.fromRadians(3.755));
     public static final SwerveModuleConfiguration backRightModule = new SwerveModuleConfiguration(31, 32,
-        Rotation2d.fromRadians(4.427));
+        Rotation2d.fromRadians(3.983));
 
     public static final boolean USE_SETPOINT_GENERATOR = false;
 
@@ -82,7 +82,7 @@ public class DriveConstants {
 
     // Turn motor configuration
     public static final boolean turnInverted = false;
-    public static final int turnMotorCurrentLimit = 30;
+    public static final int turnMotorCurrentLimit = 25;
     public static final double turnMotorReduction = Mk4Reductions.Turn.reduction;
     public static final DCMotor turnSimMotor = DCMotor.getNeoVortex(1);
     public static final AngularVelocity maxSteerVelocity = RadiansPerSecond.of(100);

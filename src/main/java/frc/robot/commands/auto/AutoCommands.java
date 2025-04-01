@@ -54,7 +54,9 @@ public class AutoCommands {
         registerLoggedNamedCommand("Start intake", new ScheduleCommand(IntakeCommands.autoIntake(intake, arm)));
         registerLoggedNamedCommand("Wait for piece", IntakeCommands.waitForPieceInArm().withTimeout(2));
 
-        registerLoggedNamedCommand("Prep arm", arm.goToStateCommand(ArmConstants.prepForScoringState, 0.2));
+        registerLoggedNamedCommand("Prep arm",
+            new ScheduleCommand(Commands.sequence(arm.goToStateCommand(ArmConstants.prepForScoringState, 1.0),
+                Commands.runOnce(arm::resetToAbsolute))));
     }
 
     private static void registerLoggedNamedCommand(String name, Command command) {

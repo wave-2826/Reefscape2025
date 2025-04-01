@@ -24,7 +24,7 @@ public class ClimbCommands {
     public static Command climbCommand(Climber climber, DoubleSupplier climbSupplier, Intake intake) {
         return Commands.run(() -> {
             double climbSpeed = MathUtil.applyDeadband(climbSupplier.getAsDouble(), 0.2);
-            if(climber.getPitch().getDegrees() < 11) {
+            if(climber.getPitch().getDegrees() < 8) {
                 climbSpeed = Math.min(0, climbSpeed);
             }
             if(climber.getPitch().getDegrees() > 93) {
