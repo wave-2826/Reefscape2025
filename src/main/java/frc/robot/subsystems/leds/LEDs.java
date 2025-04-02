@@ -21,6 +21,7 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.drive.DriveConstants;
+import frc.robot.subsystems.intake.Intake;
 import frc.robot.util.LoggedTracer;
 import frc.robot.util.RioAlerts;
 
@@ -97,7 +98,8 @@ public class LEDs extends SubsystemBase {
      */
     private double lastTime = Timer.getTimestamp();
     /**
-     * The time used for the LEDs. This isn't necessarily monotonically increasing.
+     * The time used for the LEDs, in seconds (but scaled by the drivetrain speed). This isn't necessarily monotonically
+     * increasing.
      */
     private double time = 0;
 
@@ -125,6 +127,11 @@ public class LEDs extends SubsystemBase {
         EStopped((leds) -> leds.pulse(Color.kBlack, Color.kRed, 2.0)), // Active when the robot is E-stopped
 
         BatteryLow((leds) -> leds.flash(Color.kOrangeRed, Color.kBlack, 0.3, 0.05, 0.3, 5.0), LEDCompositingMode.Value), // Active when the robot battery is low
+
+        AutoScoring((leds) -> leds.rainbow()), //
+        AutoScoreReady((leds) -> leds.pulse(Color.kPurple, Color.kPink, 0.3)), //
+        Intaking((leds) -> leds.pulse(Color.kBlack, Color.kGreen, 0.5)), //
+        PieceReadyForArm((leds) -> leds.pulse(Color.kBlack, Color.kYellow, 0.5)), //
 
         HitWall(LEDs::hitWall, LEDCompositingMode.Value), // Active when the robot hits a wall
         AutonomousStart(LEDs::autonomousStart, LEDCompositingMode.Additive), // Active at the start of autonomous
@@ -214,6 +221,11 @@ public class LEDs extends SubsystemBase {
         enableState(LEDState.Disabled);
     }
 
+    public void registerIntakeStates(Intake intake) {
+        bindStateToTrigger(LEDState.Intaking, new Trigger(intake::intakeSensorTriggered));
+        bindStateToTrigger(LEDState.PieceReadyForArm, new Trigger(intake::pieceWaitingForArm));
+    }
+
     /**
      * Gets the time since the LED state was last changed.
      */
@@ -251,6 +263,13 @@ public class LEDs extends SubsystemBase {
      */
     public Command disableStateCommand(LEDState state) {
         return new InstantCommand(() -> disableState(state)).ignoringDisable(true);
+    }
+
+    /**
+     * Creates a command that runs the given state while the command runs.
+     */
+    public Command runStateCommand(LEDState state) {
+        return Commands.startEnd(() -> enableState(state), () -> disableState(state)).ignoringDisable(true);
     }
 
     /**
@@ -292,6 +311,16 @@ public class LEDs extends SubsystemBase {
     public void solid(Color color) {
         for(int i = 0; i < LEDConstants.ledCount; i++) {
             setLEDColor(i, color);
+        }
+    }
+
+    /**
+     * A moving rainbow effect.
+     */
+    public void rainbow() {
+        for(int i = 0; i < LEDConstants.ledCount; i++) {
+            double t = (time + i / (double) LEDConstants.ledCount) % 1.;
+            setLEDColor(i, Color.fromHSV((int) (t * 255), 255, 255));
         }
     }
 

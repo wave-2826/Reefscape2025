@@ -24,6 +24,7 @@ import frc.robot.subsystems.arm.Arm;
 import frc.robot.subsystems.arm.ArmConstants;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.intake.Intake;
+import frc.robot.subsystems.leds.LEDs;
 import frc.robot.subsystems.pieceVision.PieceVision;
 import frc.robot.subsystems.vision.Vision;
 import frc.robot.util.Container;
@@ -33,7 +34,7 @@ public class AutoCommands {
     private static boolean grabbingCoralFailed = false;
 
     public static void registerNamedCommands(Drive drive, Vision vision, PieceVision pieceVision, Arm arm,
-        Intake intake) {
+        Intake intake, LEDs leds) {
         // NamedCommands.registerCommand("Auto Coral", Commands
         //     .defer(() -> grabCoral(drive, pieceVision, intake, arm, null), Set.of(drive, pieceVision, intake, arm)));
 
@@ -42,13 +43,14 @@ public class AutoCommands {
         for(var branch : ReefBranch.values()) {
             for(var level : ReefLevel.values()) {
                 ReefTarget target = new ReefTarget(branch, level);
-                registerLoggedNamedCommand("Score " + branch.toString() + " " + level.toString(), Commands.defer(
-                    () -> AutoScoreCommands.autoScoreCommand(drive, vision, arm, target), Set.of(drive, vision, arm)));
+                registerLoggedNamedCommand("Score " + branch.toString() + " " + level.toString(),
+                    Commands.defer(() -> AutoScoreCommands.autoScoreCommand(drive, vision, arm, leds, target),
+                        Set.of(drive, vision, arm)));
             }
         }
 
         // NamedCommands.registerCommand("Score Until Failure",
-        //     Commands.defer(() -> scoreUntilFailure(drive, vision, arm, pieceVision, intake),
+        //     Commands.defer(() -> scoreUntilFailure(drive, vision, arm, pieceVision, intake, leds),
         //         Set.of(drive, vision, arm, pieceVision, intake)));
 
         registerLoggedNamedCommand("Start intake", new ScheduleCommand(IntakeCommands.autoIntake(intake, arm)));
@@ -66,8 +68,8 @@ public class AutoCommands {
     /**
      * Constructs a command that repeatedly finds coral and scores it on the next available branch until it fails.
      */
-    public static Command scoreUntilFailure(Drive drive, Vision vision, Arm arm, PieceVision pieceVision,
-        Intake intake) {
+    public static Command scoreUntilFailure(Drive drive, Vision vision, Arm arm, PieceVision pieceVision, Intake intake,
+        LEDs leds) {
         List<ReefTarget> scoringPositionsAvailable = new ArrayList<>();
         return Commands.sequence(Commands.runOnce(() -> {
             grabbingCoralFailed = false;
@@ -95,7 +97,7 @@ public class AutoCommands {
                     // Should never happen... 
                 }
 
-                return AutoScoreCommands.autoScoreCommand(drive, vision, arm, nextAvailableTarget);
+                return AutoScoreCommands.autoScoreCommand(drive, vision, arm, leds, nextAvailableTarget);
             }, Set.of(drive, vision, arm)).unless(() -> grabbingCoralFailed) //
         ).repeatedly().until(() -> grabbingCoralFailed)).withName("ScoreUntilFailure");
     }

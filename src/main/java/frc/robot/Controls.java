@@ -30,6 +30,7 @@ import frc.robot.subsystems.arm.ArmState.WristRotation;
 import frc.robot.subsystems.climber.Climber;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.intake.Intake;
+import frc.robot.subsystems.leds.LEDs;
 import frc.robot.subsystems.vision.Vision;
 import frc.robot.util.Container;
 import frc.robot.util.DriverStationInterface;
@@ -74,7 +75,7 @@ public class Controls {
 
     /** Configures the controls. */
     public void configureControls(Drive drive, SwerveDriveSimulation driveSimulation, Arm arm, Intake intake,
-        Vision vision, Climber climber) {
+        Vision vision, Climber climber, LEDs leds) {
         // Default command, normal field-relative drive
         drive.setDefaultCommand(DriveCommands.joystickDrive(drive, () -> -driver.getLeftY(), () -> -driver.getLeftX(),
             () -> -driver.getRightX()));
@@ -84,15 +85,16 @@ public class Controls {
 
         // Auto score
         driver.b().debounce(Controls.debounceTime, DebounceType.kFalling)
-            .whileTrue(AutoScoreCommands.autoScoreTeleopCommand(drive, vision, arm, driver.rightBumper(),
+            .whileTrue(AutoScoreCommands.autoScoreTeleopCommand(drive, vision, arm, leds, driver.rightBumper(),
                 driver::getLeftX, driver::getLeftY, (aligned) -> {
                     setDriverRumble(RumbleType.kLeftRumble, aligned ? 1.0 : 0.0, 1);
                 }, () -> operatorMode == OperatorMode.Normal).finallyDo(() -> {
                     setDriverRumble(RumbleType.kLeftRumble, 0.0, 1);
                 }));
 
-        driver.a().debounce(Controls.debounceTime, DebounceType.kFalling).whileTrue(AutoScoreCommands
-            .removeAlgaeTeleopCommand(drive, vision, arm, driver.rightBumper(), driver::getLeftX, driver::getLeftY));
+        driver.a().debounce(Controls.debounceTime, DebounceType.kFalling)
+            .whileTrue(AutoScoreCommands.removeAlgaeTeleopCommand(drive, vision, arm, leds, driver.rightBumper(),
+                driver::getLeftX, driver::getLeftY));
 
         // Reset gyro or odometry if in simulation
         final Runnable resetGyro = Constants.isSim ? () -> drive.setPose(driveSimulation.getSimulatedDriveTrainPose()) // Reset odometry to actual robot pose during simulation
@@ -160,6 +162,7 @@ public class Controls {
         operator.leftTrigger(0.3).and(normalOperator).onTrue(IntakeCommands.getPieceFromIntake(arm));
 
         operator.b().and(normalOperator).onTrue(arm.goToStateCommand(ArmConstants.restingState));
+        operator.x().and(normalOperator).onTrue(arm.goToStateCommand(ArmConstants.prepForScoringState));
 
         // Go to active scoring position
         operator.a().and(normalOperator).whileTrue(arm.goToStateCommand(() -> {

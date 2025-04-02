@@ -61,8 +61,6 @@ public class RobotContainer {
     private final Climber climber;
     private final Intake intake;
     private final PieceVision pieceVision;
-
-    @SuppressWarnings("unused")
     private final LEDs leds;
 
     // Only used in simulation
@@ -175,7 +173,7 @@ public class RobotContainer {
         // Initializes the driver station interface API.
         DriverStationInterface.getInstance();
 
-        AutoCommands.registerNamedCommands(drive, vision, pieceVision, arm, intake);
+        AutoCommands.registerNamedCommands(drive, vision, pieceVision, arm, intake, leds);
 
         // Set up auto routines
         autoChooser = new LoggedDashboardChooser<>("Auto Choices", AutoBuilder.buildAutoChooser());
@@ -190,7 +188,7 @@ public class RobotContainer {
         }));
 
         // Configure the button bindings
-        Controls.getInstance().configureControls(drive, driveSimulation, arm, intake, vision, climber);
+        Controls.getInstance().configureControls(drive, driveSimulation, arm, intake, vision, climber, leds);
     }
 
     public Command getAutonomousCommand() {

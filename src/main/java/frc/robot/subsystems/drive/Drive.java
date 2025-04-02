@@ -86,7 +86,7 @@ public class Drive extends SubsystemBase {
 
     private final Consumer<Pose2d> resetSimulationPoseCallBack;
     /** The acceleration that needs to be experienced for an "abrupt stop". */
-    private final static double ABRUPT_STOP_THRESHOLD_GS = 10.0;
+    private final static double ABRUPT_STOP_THRESHOLD_GS = 7.0;
     /** Whether the robot experienced an abrupt stop last loop iteration. Used to avoid multiple callbacks. */
     private boolean previousAbruptStop = false;
     /** A callback that will be called if the robot hits a wall or is otherwise abruptly accelerated. */

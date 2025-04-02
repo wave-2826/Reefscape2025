@@ -83,15 +83,6 @@ public class ScoringSequenceCommands {
     }
 
     /**
-     * Goes to an arm state that prepares to score by holding the piece upward. Should be run during coarse alignment.
-     * @return
-     */
-    public static Command prepForScoring(ReefLevel level, Arm arm) {
-        if(level == ReefLevel.L1) { return arm.goToStateCommand(getL1StartingState()); }
-        return arm.goToStateCommand(ArmConstants.prepForScoringState);
-    }
-
-    /**
      * The middle movement as part of the scoring sequence. Should be run during close alignment after prepForScoring.
      * This is the "main" arm position as part of the scoring sequence; the arm will be lined up with the branch post.
      * @return

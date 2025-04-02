@@ -26,6 +26,8 @@ import frc.robot.commands.drive.CloseLineupCommand;
 import frc.robot.commands.util.RestartWhenCommand;
 import frc.robot.subsystems.arm.Arm;
 import frc.robot.subsystems.drive.Drive;
+import frc.robot.subsystems.leds.LEDs;
+import frc.robot.subsystems.leds.LEDs.LEDState;
 import frc.robot.subsystems.vision.Vision;
 import frc.robot.util.DriverStationInterface;
 import frc.robot.util.LoggedTunableNumber;
@@ -142,11 +144,12 @@ public class AutoScoreCommands {
      * @param drive The drive subsystem
      * @param vision The vision subsystem
      * @param arm The arm subsystem
+     * @param leds The LEDs subsystem
      * @param target The target to score at
      * @return
      */
-    public static Command autoScoreCommand(Drive drive, Vision vision, Arm arm, ReefTarget target) {
-        return autoScoreCommand(drive, vision, arm, target, Optional.empty(), () -> 0, () -> 0, null, () -> true);
+    public static Command autoScoreCommand(Drive drive, Vision vision, Arm arm, LEDs leds, ReefTarget target) {
+        return autoScoreCommand(drive, vision, arm, leds, target, Optional.empty(), () -> 0, () -> 0, null, () -> true);
     }
 
     /**
@@ -155,6 +158,7 @@ public class AutoScoreCommands {
      * @param drive The drive subsystem
      * @param vision The vision subsystem
      * @param arm The arm subsystem
+     * @param leds The LEDs subsystem
      * @param target The target to score at
      * @param finishSequence If present, the close lineup waits for this to be true before finishing. If not present,
      *            the close lineup finishes when the target is fully aligned.
@@ -164,7 +168,7 @@ public class AutoScoreCommands {
      *            null.
      * @return
      */
-    public static Command autoScoreCommand(Drive drive, Vision vision, Arm arm, ReefTarget target,
+    public static Command autoScoreCommand(Drive drive, Vision vision, Arm arm, LEDs leds, ReefTarget target,
         Optional<BooleanSupplier> finishSequence, DoubleSupplier tweakX, DoubleSupplier tweakY,
         BooleanConsumer lineupFeedback, BooleanSupplier useArmLineup) {
         double distanceAwayInches;
@@ -178,15 +182,21 @@ public class AutoScoreCommands {
 
         Command autoAlign = autoAlignSequence(drive, vision, target, distanceAwayInches, false,
             // During coarse lineup
-            ScoringSequenceCommands.prepForScoring(target.level(), arm).onlyIf(useArmLineup),
+            Commands.none(),
             // During close lineup
             ScoringSequenceCommands.middleArmMovement(target.level(), arm), tweakX, tweakY, finishSequence,
-            lineupFeedback).onlyIf(useArmLineup);
+            (feedback) -> {
+                leds.setStateActive(LEDState.AutoScoreReady, feedback);
+                if(lineupFeedback != null) lineupFeedback.accept(feedback);
+            }).onlyIf(useArmLineup);
 
-        return Commands
-            .sequence(autoAlign, ScoringSequenceCommands
-                .scoreAtLevel(target.level(), arm, drive, target.branch().face.getFieldAngle()).onlyIf(useArmLineup))
-            .withName("AutoScore" + target.toString());
+        return Commands.sequence(//
+            autoAlign, //
+            ScoringSequenceCommands.scoreAtLevel(target.level(), arm, drive, target.branch().face.getFieldAngle())
+                .raceWith(leds.runStateCommand(LEDState.AutoScoring)).onlyIf(useArmLineup)//
+        ).finallyDo(() -> {
+            leds.setStateActive(LEDState.AutoScoreReady, false);
+        }).withName("AutoScore" + target.toString());
     }
 
     /**
@@ -195,6 +205,7 @@ public class AutoScoreCommands {
      * @param drive The drive subsystem
      * @param vision The vision subsystem
      * @param arm The arm subsystem
+     * @param leds The LEDs subsystem
      * @param finishSequence The close lineup waits for this to be true before finishing.
      * @param tweakX The amount to tweak the X position during close lineup
      * @param tweakY The amount to tweak the Y position during close lineup
@@ -202,20 +213,19 @@ public class AutoScoreCommands {
      *            null.
      * @return
      */
-    public static Command autoScoreTeleopCommand(Drive drive, Vision vision, Arm arm, BooleanSupplier finishSequence,
-        DoubleSupplier tweakX, DoubleSupplier tweakY, BooleanConsumer lineupFeedback, BooleanSupplier useArmLineup) {
+    public static Command autoScoreTeleopCommand(Drive drive, Vision vision, Arm arm, LEDs leds,
+        BooleanSupplier finishSequence, DoubleSupplier tweakX, DoubleSupplier tweakY, BooleanConsumer lineupFeedback,
+        BooleanSupplier useArmLineup) {
         AutoScoreState state = new AutoScoreState(DriverStationInterface.getInstance().getReefTarget());
-        int id = state.hashCode();
 
         return new RestartWhenCommand(
-            () -> autoScoreCommand(drive, vision, arm, state.target, Optional.of(finishSequence), tweakX, tweakY,
+            () -> autoScoreCommand(drive, vision, arm, leds, state.target, Optional.of(finishSequence), tweakX, tweakY,
                 lineupFeedback, useArmLineup),
 
             // Restart when our target changes
             () -> {
                 var newTarget = DriverStationInterface.getInstance().getReefTarget();
-                if(!newTarget.equals(state.target) || robotReefLineupL1Distance.hasChanged(id)
-                    || robotReefLineupBranchDistance.hasChanged(id)) {
+                if(!newTarget.equals(state.target)) {
                     state.target = newTarget;
                     return true;
                 }
@@ -228,6 +238,7 @@ public class AutoScoreCommands {
      * @param drive The drive subsystem
      * @param vision The vision subsystem
      * @param arm The arm subsystem
+     * @param leds The LEDs subsystem
      * @param target The target to score at
      * @param finishSequence If present, the close lineup waits for this to be true before finishing. If not present,
      *            the close lineup finishes when the target is fully aligned.
@@ -235,19 +246,23 @@ public class AutoScoreCommands {
      * @param tweakY The amount to tweak the Y position during close lineup
      * @return
      */
-    public static Command removeAlgaeCommand(Drive drive, Vision vision, Arm arm, ReefTarget target,
+    public static Command removeAlgaeCommand(Drive drive, Vision vision, Arm arm, LEDs leds, ReefTarget target,
         Optional<BooleanSupplier> finishSequence, DoubleSupplier tweakX, DoubleSupplier tweakY) {
         Command autoAlign = autoAlignSequence(drive, vision, target, 20, true,
             // During coarse lineup
             ScoringSequenceCommands.prepForAlgaeRemoval(target.level(), arm),
             // During close lineup
-            Commands.none(), tweakX, tweakY, finishSequence, (v) -> {
+            Commands.none(), tweakX, tweakY, finishSequence, (feedback) -> {
+                leds.setStateActive(LEDState.AutoScoreReady, feedback);
             });
 
-        return Commands
-            .sequence(autoAlign,
-                ScoringSequenceCommands.removeAlgae(target.level(), arm, drive, target.branch().face.getFieldAngle()))
-            .withName("RemoveAlgae" + target.toString());
+        return Commands.sequence(//
+            autoAlign, //
+            ScoringSequenceCommands.removeAlgae(target.level(), arm, drive, target.branch().face.getFieldAngle())
+                .raceWith(leds.runStateCommand(LEDState.AutoScoring))//
+        ).finallyDo(() -> {
+            leds.setStateActive(LEDState.AutoScoreReady, false);
+        }).withName("RemoveAlgae" + target.toString());
     }
 
     /**
@@ -255,17 +270,19 @@ public class AutoScoreCommands {
      * @param drive The drive subsystem
      * @param vision The vision subsystem
      * @param arm The arm subsystem
+     * @param leds The LEDs subsystem
      * @param finishSequence The close lineup waits for this to be true before finishing.
      * @param tweakX The amount to tweak the X position during close lineup
      * @param tweakY The amount to tweak the Y position during close lineup
      * @return
      */
-    public static Command removeAlgaeTeleopCommand(Drive drive, Vision vision, Arm arm, BooleanSupplier finishSequence,
-        DoubleSupplier tweakX, DoubleSupplier tweakY) {
+    public static Command removeAlgaeTeleopCommand(Drive drive, Vision vision, Arm arm, LEDs leds,
+        BooleanSupplier finishSequence, DoubleSupplier tweakX, DoubleSupplier tweakY) {
         AutoScoreState state = new AutoScoreState(DriverStationInterface.getInstance().getReefTarget());
 
         return new RestartWhenCommand(
-            () -> removeAlgaeCommand(drive, vision, arm, state.target, Optional.of(finishSequence), tweakX, tweakY),
+            () -> removeAlgaeCommand(drive, vision, arm, leds, state.target, Optional.of(finishSequence), tweakX,
+                tweakY),
 
             // Restart when our target changes
             () -> {
