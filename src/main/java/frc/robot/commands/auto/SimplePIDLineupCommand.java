@@ -34,13 +34,13 @@ public class SimplePIDLineupCommand extends Command {
         "CloseLineup/thetaRotationTolerance");
 
     static {
-        translationKp.initDefault(1.5);
+        translationKp.initDefault(4.0);
         translationKi.initDefault(0.0);
-        translationKd.initDefault(0.25);
+        translationKd.initDefault(0.75);
 
-        thetaRotationKp.initDefault(1.75);
+        thetaRotationKp.initDefault(4.0);
         thetaRotationKi.initDefault(0.0);
-        thetaRotationKd.initDefault(0.0);
+        thetaRotationKd.initDefault(0.25);
 
         xTranslationTolerance.initDefault(Units.inchesToMeters(3.0));
         yTranslationTolerance.initDefault(Units.inchesToMeters(3.0));

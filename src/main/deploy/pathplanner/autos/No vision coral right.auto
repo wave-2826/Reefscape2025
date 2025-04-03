@@ -37,13 +37,25 @@
         {
           "type": "named",
           "data": {
-            "name": "Wait for piece"
+            "name": "Wait/Score B L4"
           }
         },
         {
           "type": "named",
           "data": {
-            "name": "Score B L4"
+            "name": "Start intake"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "No vision coral right.2"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Wait/Score A L4"
           }
         }
       ]

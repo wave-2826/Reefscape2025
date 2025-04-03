@@ -82,7 +82,7 @@ public class DriveConstants {
 
     // Turn motor configuration
     public static final boolean turnInverted = false;
-    public static final int turnMotorCurrentLimit = 25;
+    public static final int turnMotorCurrentLimit = 35;
     public static final double turnMotorReduction = Mk4Reductions.Turn.reduction;
     public static final DCMotor turnSimMotor = DCMotor.getNeoVortex(1);
     public static final AngularVelocity maxSteerVelocity = RadiansPerSecond.of(100);

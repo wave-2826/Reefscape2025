@@ -10,6 +10,7 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.GenericHID.RumbleType;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -98,10 +99,14 @@ public class Controls {
 
         // Reset gyro or odometry if in simulation
         final Runnable resetGyro = Constants.isSim ? () -> drive.setPose(driveSimulation.getSimulatedDriveTrainPose()) // Reset odometry to actual robot pose during simulation
-            : () -> drive.setPose(new Pose2d(drive.getPose().getTranslation(), Rotation2d.kZero)); // Zero gyro
+            : () -> drive.setPose(new Pose2d(drive.getPose().getTranslation(),
+                DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Blue ? Rotation2d.kZero
+                    : Rotation2d.k180deg)); // Zero gyro
         final Runnable resetOdometry = Constants.isSim
             ? () -> drive.setPose(driveSimulation.getSimulatedDriveTrainPose()) // Reset odometry to actual robot pose during simulation
-            : () -> drive.setPose(new Pose2d(0, 0, Rotation2d.kZero)); // Zero gyro
+            : () -> drive.setPose(
+                new Pose2d(0, 0, DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Blue ? Rotation2d.kZero
+                    : Rotation2d.k180deg)); // Zero gyro
 
         driver.start().onTrue(Commands.runOnce(resetGyro, drive).ignoringDisable(true));
         driver.start().and(driver.leftStick()).debounce(0.5)
@@ -156,7 +161,7 @@ public class Controls {
 
     private void configureNormalOperatorControls(Drive drive, SwerveDriveSimulation driveSimulation, Arm arm,
         Intake intake, Vision vision, Climber climber) {
-        operator.y().and(normalOperator).whileTrue(ClimbCommands.climbCommand(climber, operator::getLeftY, intake));
+        operator.y().and(normalOperator).whileTrue(ClimbCommands.climbCommand(climber, operator::getLeftY));
 
         // Backup for if the arm misses the piece somehow
         operator.leftTrigger(0.3).and(normalOperator).onTrue(IntakeCommands.getPieceFromIntake(arm));
@@ -230,13 +235,13 @@ public class Controls {
             EndEffectorState endEffectorState = eeSpeed == 0.0 ? EndEffectorState.hold()
                 : EndEffectorState.velocity(eeSpeed);
 
-            height.value -= MathUtil.applyDeadband(operator.getLeftY(), 0.15) * 3.0 * 0.02;
+            height.value -= MathUtil.applyDeadband(operator.getLeftY(), 0.25) * 3.0 * 0.02;
             double minHeight = ArmConstants.ElevatorConstants.softStopMarginBottom.in(Meters);
             double maxHeight = ArmConstants.ElevatorConstants.maxElevatorHeight.in(Meters)
                 - ArmConstants.ElevatorConstants.softStopMarginTop.in(Meters);
             height.value = MathUtil.clamp(height.value, minHeight, maxHeight);
 
-            pitch.value -= MathUtil.applyDeadband(operator.getRightY(), 0.15) * 0.02 * 400.;
+            pitch.value -= MathUtil.applyDeadband(operator.getRightY(), 0.2) * 0.02 * 400.;
             pitch.value = MathUtil.clamp(pitch.value, ArmConstants.ShoulderConstants.minimumPitch.getDegrees(),
                 ArmConstants.ShoulderConstants.maximumPitch.getDegrees());
 

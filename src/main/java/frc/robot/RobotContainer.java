@@ -170,6 +170,8 @@ public class RobotContainer {
                 break;
         }
 
+        leds.registerIntakeStates(intake);
+
         // Initializes the driver station interface API.
         DriverStationInterface.getInstance();
 

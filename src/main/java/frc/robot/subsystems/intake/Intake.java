@@ -32,8 +32,7 @@ public class Intake extends SubsystemBase {
         IntakeDown(Rotation2d.kZero, 1.0, true),
         OuttakeDown(Rotation2d.kZero, -1.0, true),
         Up(Rotation2d.fromDegrees(80.0), 0.0, false),
-        OuttakeUp(Rotation2d.fromDegrees(50), -1.0, false),
-        Climb(Rotation2d.fromDegrees(80.0), 0.0, false);
+        OuttakeUp(Rotation2d.fromDegrees(50), -1.0, false);
         // @formatter:on
 
         public final Rotation2d pitch;

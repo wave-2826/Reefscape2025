@@ -7,8 +7,6 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.subsystems.climber.Climber;
-import frc.robot.subsystems.intake.Intake;
-import frc.robot.subsystems.intake.Intake.IntakeState;
 import frc.robot.util.Container;
 
 public class ClimbCommands {
@@ -21,7 +19,7 @@ public class ClimbCommands {
         return Commands.runOnce(() -> climberRotation.value = Rotation2d.kZero);
     }
 
-    public static Command climbCommand(Climber climber, DoubleSupplier climbSupplier, Intake intake) {
+    public static Command climbCommand(Climber climber, DoubleSupplier climbSupplier) {
         return Commands.run(() -> {
             double climbSpeed = MathUtil.applyDeadband(climbSupplier.getAsDouble(), 0.2);
             if(climber.getPitch().getDegrees() < 8) {
@@ -32,8 +30,6 @@ public class ClimbCommands {
             }
 
             climber.runClimberOpenLoop(climbSpeed);
-
-            intake.setIntakeState(IntakeState.Climb);
-        }, climber, intake).finallyDo(() -> climber.runClimberOpenLoop(0));
+        }, climber).finallyDo(() -> climber.runClimberOpenLoop(0));
     }
 }

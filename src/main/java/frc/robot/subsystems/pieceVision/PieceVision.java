@@ -84,7 +84,7 @@ public class PieceVision extends SubsystemBase {
 
         public Pose2d getPoseAtDistance(double distance) {
             return new Pose2d(origin, direction)
-                .transformBy(new Transform2d(new Translation2d(distance, 0), Rotation2d.kZero));
+                .transformBy(new Transform2d(new Translation2d(distance, 0), Rotation2d.k180deg));
         }
     }
 
@@ -137,6 +137,9 @@ public class PieceVision extends SubsystemBase {
 
         RobotModeTriggers.disabled().onTrue(Commands.runOnce(this::resetPaths));
         RobotModeTriggers.autonomous().onTrue(Commands.runOnce(this::resetPaths));
+
+        // Preload the records that need to be logged to avoid stalling the code
+        Logger.recordOutput("PieceVision/PieceLocations", new PieceLocation[] {});
     }
 
     private PieceLocation getBestPieceLocation() {

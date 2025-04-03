@@ -105,8 +105,8 @@ public class IntakeIOReal implements IntakeIO {
 
     @Override
     public void runVelocity(double intakePower, double transportPower) {
-        powerController.setReference(intakePower * 2800., ControlType.kVelocity);
-        transportController.setReference(transportPower * 8000., ControlType.kVelocity);
+        powerController.setReference(intakePower * 2900., ControlType.kVelocity);
+        transportController.setReference(transportPower * 9500., ControlType.kVelocity);
     }
 
     @Override

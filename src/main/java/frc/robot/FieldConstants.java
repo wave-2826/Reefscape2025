@@ -12,6 +12,7 @@ import edu.wpi.first.math.util.Units;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import frc.robot.subsystems.vision.VisionConstants;
 
 /**
@@ -122,7 +123,7 @@ public class FieldConstants {
          */
         public Rotation2d getFieldAngle(boolean isRed) {
             var tagPose = isRed ? redTagPose : blueTagPose;
-            return tagPose.getRotation().plus(isRed ? Rotation2d.kZero : Rotation2d.k180deg);
+            return tagPose.getRotation().plus(Rotation2d.k180deg);
         }
 
         /**
@@ -130,8 +131,7 @@ public class FieldConstants {
          * angle facing into it.
          */
         public Rotation2d getFieldAngle() {
-            return getFieldAngle(DriverStation.getAlliance().isPresent()
-                && DriverStation.getAlliance().get() == DriverStation.Alliance.Red);
+            return getFieldAngle(DriverStation.getAlliance().orElse(Alliance.Blue) == DriverStation.Alliance.Red);
         }
 
         /** Gets the AprilTag ID for a given alliance. */

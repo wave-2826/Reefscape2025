@@ -43,18 +43,23 @@ public class AutoCommands {
         for(var branch : ReefBranch.values()) {
             for(var level : ReefLevel.values()) {
                 ReefTarget target = new ReefTarget(branch, level);
+                registerLoggedNamedCommand("Wait/Score " + branch.toString() + " " + level.toString(),
+                    Commands.defer(() -> Commands.sequence(//
+                        IntakeCommands.waitForPieceInArm().withTimeout(1.5), //
+                        AutoScoreCommands.autoScoreCommand(drive, vision, arm, leds, target)
+                            .onlyIf(() -> !IntakeCommands.waitingForPiece)),
+                        Set.of(drive, vision, arm)));
                 registerLoggedNamedCommand("Score " + branch.toString() + " " + level.toString(),
                     Commands.defer(() -> AutoScoreCommands.autoScoreCommand(drive, vision, arm, leds, target),
                         Set.of(drive, vision, arm)));
             }
         }
 
-        // NamedCommands.registerCommand("Score Until Failure",
-        //     Commands.defer(() -> scoreUntilFailure(drive, vision, arm, pieceVision, intake, leds),
-        //         Set.of(drive, vision, arm, pieceVision, intake)));
+        registerLoggedNamedCommand("Score Until Failure",
+            Commands.defer(() -> scoreUntilFailure(drive, vision, arm, pieceVision, intake, leds),
+                Set.of(drive, vision, arm, pieceVision, intake)));
 
         registerLoggedNamedCommand("Start intake", new ScheduleCommand(IntakeCommands.autoIntake(intake, arm)));
-        registerLoggedNamedCommand("Wait for piece", IntakeCommands.waitForPieceInArm().withTimeout(2));
 
         registerLoggedNamedCommand("Prep arm",
             new ScheduleCommand(Commands.sequence(arm.goToStateCommand(ArmConstants.prepForScoringState, 1.0),
@@ -77,19 +82,26 @@ public class AutoCommands {
 
             if(FlippingUtil.flipFieldPose(drive.getPose()).getY() > FieldConstants.fieldWidth / 2.) {
                 // If on the left side of the field
+                scoringPositionsAvailable.add(new ReefTarget(ReefBranch.J, ReefLevel.L4));
                 scoringPositionsAvailable.add(new ReefTarget(ReefBranch.K, ReefLevel.L4));
-                scoringPositionsAvailable.add(new ReefTarget(ReefBranch.L, ReefLevel.L4));
-                scoringPositionsAvailable.add(new ReefTarget(ReefBranch.A, ReefLevel.L4)); // 4-piece auton? Probably not...
-                scoringPositionsAvailable.add(new ReefTarget(ReefBranch.B, ReefLevel.L4)); // 5-piece auton!?! lol yeah right...   
+                scoringPositionsAvailable.add(new ReefTarget(ReefBranch.L, ReefLevel.L4)); // 4-piece auton? Probably not...
+                scoringPositionsAvailable.add(new ReefTarget(ReefBranch.A, ReefLevel.L4)); // 5-piece auton!?! lol yeah right...   
             } else {
                 // If on the right side of the field
+                scoringPositionsAvailable.add(new ReefTarget(ReefBranch.E, ReefLevel.L4));
                 scoringPositionsAvailable.add(new ReefTarget(ReefBranch.D, ReefLevel.L4));
-                scoringPositionsAvailable.add(new ReefTarget(ReefBranch.C, ReefLevel.L4));
-                scoringPositionsAvailable.add(new ReefTarget(ReefBranch.B, ReefLevel.L4)); // 4-piece auton? Probably not...
-                scoringPositionsAvailable.add(new ReefTarget(ReefBranch.A, ReefLevel.L4)); // 5-piece auton!?! lol yeah right...
+                scoringPositionsAvailable.add(new ReefTarget(ReefBranch.C, ReefLevel.L4)); // 4-piece auton? Probably not...
+                scoringPositionsAvailable.add(new ReefTarget(ReefBranch.B, ReefLevel.L4)); // 5-piece auton!?! lol yeah right...
             }
         }), Commands.sequence( //
             grabCoral(drive, pieceVision, intake, arm, () -> grabbingCoralFailed = true), //
+            IntakeCommands.waitForPieceInArm().withTimeout(1.5),
+            // If we don't have a piece, we failed to grab it
+            Commands.runOnce(() -> {
+                if(!IntakeCommands.waitingForPiece) {
+                    grabbingCoralFailed = true;
+                }
+            }), //
             Commands.defer(() -> {
                 var nextAvailableTarget = scoringPositionsAvailable.remove(0);
                 if(scoringPositionsAvailable.isEmpty()) {

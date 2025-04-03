@@ -87,9 +87,10 @@ public class AutoScoreCommands {
      *            null.
      * @return
      */
-    public static Command autoAlignSequence(Drive drive, Vision vision, ReefTarget target, double distanceAwayInches,
-        boolean alignCenter, Command coarseLineupCommand, Command closeLineupCommand, DoubleSupplier tweakX,
-        DoubleSupplier tweakY, Optional<BooleanSupplier> finishSequence, BooleanConsumer lineupFeedback) {
+    public static Command autoAlignSequence(Drive drive, Vision vision, LEDs leds, ReefTarget target,
+        double distanceAwayInches, boolean alignCenter, Command coarseLineupCommand, Command closeLineupCommand,
+        DoubleSupplier tweakX, DoubleSupplier tweakY, Optional<BooleanSupplier> finishSequence,
+        BooleanConsumer lineupFeedback) {
 
         boolean isLeft = target.branch().isLeft;
 
@@ -122,7 +123,7 @@ public class AutoScoreCommands {
             Commands.parallel(
                 closeLineupCommand.withTimeout(1.5), // Run during final adjustment
                 // TODO: Fully line up before finishing if the finish sequence button is held
-                new CloseLineupCommand(drive, vision, reefFace.getAprilTagID(), tagRelativeOffset, getFieldRelativeOffset, finishSequence, lineupFeedback) // Final adjustment
+                new CloseLineupCommand(drive, vision, leds, reefFace.getAprilTagID(), tagRelativeOffset, getFieldRelativeOffset, finishSequence, lineupFeedback) // Final adjustment
             )
         ).finallyDo(() -> {
             Logger.recordOutput("AutoScore/RunningCloseLineup", false);
@@ -180,23 +181,18 @@ public class AutoScoreCommands {
             distanceAwayInches = robotReefLineupBranchDistance.get();
         }
 
-        Command autoAlign = autoAlignSequence(drive, vision, target, distanceAwayInches, false,
+        Command autoAlign = autoAlignSequence(drive, vision, leds, target, distanceAwayInches, false,
             // During coarse lineup
             Commands.none(),
             // During close lineup
             ScoringSequenceCommands.middleArmMovement(target.level(), arm), tweakX, tweakY, finishSequence,
-            (feedback) -> {
-                leds.setStateActive(LEDState.AutoScoreReady, feedback);
-                if(lineupFeedback != null) lineupFeedback.accept(feedback);
-            }).onlyIf(useArmLineup);
+            lineupFeedback).onlyIf(useArmLineup);
 
         return Commands.sequence(//
             autoAlign, //
             ScoringSequenceCommands.scoreAtLevel(target.level(), arm, drive, target.branch().face.getFieldAngle())
                 .raceWith(leds.runStateCommand(LEDState.AutoScoring)).onlyIf(useArmLineup)//
-        ).finallyDo(() -> {
-            leds.setStateActive(LEDState.AutoScoreReady, false);
-        }).withName("AutoScore" + target.toString());
+        ).withName("AutoScore" + target.toString());
     }
 
     /**
@@ -248,21 +244,17 @@ public class AutoScoreCommands {
      */
     public static Command removeAlgaeCommand(Drive drive, Vision vision, Arm arm, LEDs leds, ReefTarget target,
         Optional<BooleanSupplier> finishSequence, DoubleSupplier tweakX, DoubleSupplier tweakY) {
-        Command autoAlign = autoAlignSequence(drive, vision, target, 20, true,
+        Command autoAlign = autoAlignSequence(drive, vision, leds, target, 20, true,
             // During coarse lineup
             ScoringSequenceCommands.prepForAlgaeRemoval(target.level(), arm),
             // During close lineup
-            Commands.none(), tweakX, tweakY, finishSequence, (feedback) -> {
-                leds.setStateActive(LEDState.AutoScoreReady, feedback);
-            });
+            Commands.none(), tweakX, tweakY, finishSequence, null);
 
         return Commands.sequence(//
             autoAlign, //
             ScoringSequenceCommands.removeAlgae(target.level(), arm, drive, target.branch().face.getFieldAngle())
                 .raceWith(leds.runStateCommand(LEDState.AutoScoring))//
-        ).finallyDo(() -> {
-            leds.setStateActive(LEDState.AutoScoreReady, false);
-        }).withName("RemoveAlgae" + target.toString());
+        ).withName("RemoveAlgae" + target.toString());
     }
 
     /**

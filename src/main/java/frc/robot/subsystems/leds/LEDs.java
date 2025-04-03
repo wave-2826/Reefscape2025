@@ -130,16 +130,18 @@ public class LEDs extends SubsystemBase {
 
         AutoScoring((leds) -> leds.rainbow()), //
         AutoScoreReady((leds) -> leds.pulse(Color.kPurple, Color.kPink, 0.3)), //
-        Intaking((leds) -> leds.pulse(Color.kBlack, Color.kGreen, 0.5)), //
-        PieceReadyForArm((leds) -> leds.pulse(Color.kBlack, Color.kYellow, 0.5)), //
 
         HitWall(LEDs::hitWall, LEDCompositingMode.Value), // Active when the robot hits a wall
         AutonomousStart(LEDs::autonomousStart, LEDCompositingMode.Additive), // Active at the start of autonomous
 
+        Disabled((leds) -> leds.gradient(leds.allianceDark(), leds.allianceLight(), 5.0)), // Active when the robot is disabled
+
+        Intaking((leds) -> leds.pulse(Color.kBlack, Color.kGreen, 0.5)), //
+        PieceReadyForArm((leds) -> leds.pulse(Color.kBlack, Color.kYellow, 0.5)), //
+
         Teleop((leds) -> leds.gradient(leds.allianceDark(), leds.allianceLight(), 2.0)), // Active when the robot is in teleop
         Test((leds) -> leds.gradient(Color.kYellow, Color.kOrange, 5.0)), // Active when the robot is in test mode
         Autonomous((leds) -> leds.gradient(WAVE_BLUE, WAVE_GREEN, 1.5)), // Active when the robot is in autonomous
-        Disabled((leds) -> leds.gradient(leds.allianceDark(), leds.allianceLight(), 5.0)), // Active when the robot is disabled
 
         Default((leds) -> leds.gradient(WAVE_BLUE, Color.kWhite, 2.0)); // Active when no other state is active
 

@@ -11,6 +11,8 @@ import com.pathplanner.lib.auto.AutoBuilder;
 import edu.wpi.first.math.controller.HolonomicDriveController;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.ProfiledPIDController;
+import edu.wpi.first.math.filter.Debouncer;
+import edu.wpi.first.math.filter.Debouncer.DebounceType;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
@@ -22,6 +24,8 @@ import edu.wpi.first.math.util.Units;
 import edu.wpi.first.util.function.BooleanConsumer;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.drive.Drive;
+import frc.robot.subsystems.leds.LEDs;
+import frc.robot.subsystems.leds.LEDs.LEDState;
 import frc.robot.subsystems.vision.Vision;
 import frc.robot.subsystems.vision.VisionConstants;
 import frc.robot.util.LoggedTunableNumber;
@@ -31,6 +35,8 @@ public class CloseLineupCommand extends Command {
 
     private final Drive drive;
     private final Vision vision;
+    private final LEDs leds;
+
     private final int tagToTrack;
 
     private final Transform2d tagRelativeOffset;
@@ -41,28 +47,47 @@ public class CloseLineupCommand extends Command {
     private final Optional<BooleanSupplier> finishSequence;
     private final BooleanConsumer lineupFeedback;
 
-    private final static LoggedTunableNumber translationKp = new LoggedTunableNumber("CloseLineup/translationKp", 4.5);
-    private final static LoggedTunableNumber translationKi = new LoggedTunableNumber("CloseLineup/translationKi", 0.0);
-    private final static LoggedTunableNumber translationKd = new LoggedTunableNumber("CloseLineup/translationKd", 0.75);
+    private final static LoggedTunableNumber translationKp = new LoggedTunableNumber(//
+        "CloseLineup/translationKp", 7.0);
+    private final static LoggedTunableNumber translationKi = new LoggedTunableNumber(//
+        "CloseLineup/translationKi", 0.0);
+    private final static LoggedTunableNumber translationKd = new LoggedTunableNumber(//
+        "CloseLineup/translationKd", 0.75);
 
-    private final static LoggedTunableNumber thetaRotationKp = new LoggedTunableNumber("CloseLineup/thetaRotationKp",
-        7.0);
-    private final static LoggedTunableNumber thetaRotationKi = new LoggedTunableNumber("CloseLineup/thetaRotationKi",
-        0.0);
-    private final static LoggedTunableNumber thetaRotationKd = new LoggedTunableNumber("CloseLineup/thetaRotationKd",
-        0.3);
+    private final static LoggedTunableNumber thetaRotationKp = new LoggedTunableNumber(//
+        "CloseLineup/thetaRotationKp", 7.0);
+    private final static LoggedTunableNumber thetaRotationKi = new LoggedTunableNumber(//
+        "CloseLineup/thetaRotationKi", 0.0);
+    private final static LoggedTunableNumber thetaRotationKd = new LoggedTunableNumber(//
+        "CloseLineup/thetaRotationKd", 0.3);
 
-    private final static LoggedTunableNumber translationTolerance = new LoggedTunableNumber(
+    private final static LoggedTunableNumber translationTolerance = new LoggedTunableNumber(//
         "CloseLineup/translationTolerance", 0.5);
-    private final static LoggedTunableNumber thetaTolerance = new LoggedTunableNumber("CloseLineup/thetaTolerance",
-        3.0);
+    private final static LoggedTunableNumber thetaTolerance = new LoggedTunableNumber(//
+        "CloseLineup/thetaTolerance", 2.0);
 
     private final static LoggedTunableNumber maxVelocity = new LoggedTunableNumber(//
         "CloseLineup/maxThetaVelocity", 360); // deg/s
     private final static LoggedTunableNumber maxAcceleration = new LoggedTunableNumber(//
         "CloseLineup/maxThetaAcceleration", 360 * 3.); // deg/s^2
 
-    private final static LoggedTunableNumber thetaIZone = new LoggedTunableNumber("CloseLineup/thetaIZone", 1.0);
+    private final static LoggedTunableNumber thetaIZone = new LoggedTunableNumber(//
+        "CloseLineup/thetaIZone", 1.0);
+
+    private final Debouncer ledDebouncer = new Debouncer(0.3, DebounceType.kFalling);
+    private final Debouncer feedbackDebouncer = new Debouncer(0.15, DebounceType.kFalling);
+
+    private boolean inRadiusDeadband = false;
+    private boolean inThetaDeadband = false;
+
+    private final static LoggedTunableNumber radiusInnerDeadband = new LoggedTunableNumber(//
+        "CloseLineup/Deadband/RadiusInnerDeadband", 0.1); // Meters/sec
+    private final static LoggedTunableNumber radiusOuterDeadband = new LoggedTunableNumber(//
+        "CloseLineup/Deadband/RadiusOuterDeadband", 0.2); // Meters/sec
+    private final static LoggedTunableNumber thetaInnerDeadband = new LoggedTunableNumber(//
+        "CloseLineup/Deadband/ThetaInnerDeadband", 0.5); // Degrees
+    private final static LoggedTunableNumber thetaOuterDeadband = new LoggedTunableNumber(//
+        "CloseLineup/Deadband/ThetaOuterDeadband", 2); // Degrees
 
     /**
      * A command that lines up the robot based on tracking the relative position of a single tag from the vision system
@@ -83,11 +108,13 @@ public class CloseLineupCommand extends Command {
      * @param lineupFeedback A callback that is called every loop which can be used to provide feedback to the driver in
      *            teleop for when the robot is properly aligned. Can be null.
      */
-    public CloseLineupCommand(Drive drive, Vision vision, int tagToTrack, Transform2d tagRelativeOffset,
+    public CloseLineupCommand(Drive drive, Vision vision, LEDs leds, int tagToTrack, Transform2d tagRelativeOffset,
         Supplier<Transform2d> fieldRelativeOffset, Optional<BooleanSupplier> finishSequence,
         BooleanConsumer lineupFeedback) {
         this.drive = drive;
         this.vision = vision;
+        this.leds = leds;
+
         this.tagToTrack = tagToTrack;
 
         this.tagRelativeOffset = tagRelativeOffset;
@@ -112,6 +139,8 @@ public class CloseLineupCommand extends Command {
 
     @Override
     public void initialize() {
+        inRadiusDeadband = false;
+        inThetaDeadband = false;
         driveController.getThetaController().reset(drive.getRotation().getRadians());
     }
 
@@ -120,7 +149,7 @@ public class CloseLineupCommand extends Command {
     }
 
     private Transform2d flipFieldTransform(Transform2d transform) {
-        return new Transform2d(new Translation2d(-transform.getX(), transform.getY()),
+        return new Transform2d(new Translation2d(-transform.getX(), -transform.getY()),
             transform.getRotation().unaryMinus());
     }
 
@@ -169,12 +198,33 @@ public class CloseLineupCommand extends Command {
 
         Logger.recordOutput("CloseLineup/TargetPose", currentTargetPose);
 
-        if(lineupFeedback != null) {
-            lineupFeedback.accept(atSetpoint());
-        }
-
         ChassisSpeeds speed = driveController.calculate(correctedCurrentPose, currentTargetPose, 0,
             currentTargetPose.getRotation());
+
+        boolean atSetpoint = atSetpoint();
+        if(lineupFeedback != null) {
+            lineupFeedback.accept(feedbackDebouncer.calculate(atSetpoint));
+        }
+        leds.setStateActive(LEDState.AutoScoreReady, ledDebouncer.calculate(atSetpoint));
+
+        double radiusMagnitude = Math.sqrt(
+            speed.vxMetersPerSecond * speed.vxMetersPerSecond + speed.vyMetersPerSecond * speed.vyMetersPerSecond);
+
+        if(!inRadiusDeadband && radiusMagnitude < radiusInnerDeadband.get()) inRadiusDeadband = true;
+        if(inRadiusDeadband && radiusMagnitude > radiusOuterDeadband.get()) inRadiusDeadband = false;
+
+        if(!inThetaDeadband && Math.abs(speed.omegaRadiansPerSecond) < Units
+            .degreesToRadians(thetaInnerDeadband.get())) inThetaDeadband = true;
+        if(inThetaDeadband && Math.abs(speed.omegaRadiansPerSecond) > Units
+            .degreesToRadians(thetaOuterDeadband.get())) inThetaDeadband = false;
+
+        if(inRadiusDeadband) {
+            speed.vxMetersPerSecond = 0;
+            speed.vyMetersPerSecond = 0;
+        }
+        if(inThetaDeadband) {
+            speed.omegaRadiansPerSecond = 0;
+        }
 
         drive.runVelocity(speed);
     }
@@ -191,6 +241,7 @@ public class CloseLineupCommand extends Command {
 
     @Override
     public void end(boolean interrupted) {
+        leds.setStateActive(LEDState.AutoScoreReady, false);
         drive.runVelocity(new ChassisSpeeds(0, 0, 0));
     }
 }
