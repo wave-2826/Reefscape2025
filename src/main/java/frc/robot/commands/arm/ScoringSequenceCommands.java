@@ -115,7 +115,7 @@ public class ScoringSequenceCommands {
             return Commands.sequence(
                 Commands.parallel(
                     arm.goToStateCommand(scoreDownState).withTimeout(0.75),
-                    DriveCommands.driveStraightCommand(drive, Units.feetToMeters(-2.5), 0.7, fieldAngle, null)
+                    DriveCommands.driveStraightCommand(drive, Units.feetToMeters(-2.5), 0.7, () -> fieldAngle, null)
                 ),
                 arm.goToStateCommand(ArmConstants.restingState)
             );
@@ -138,11 +138,11 @@ public class ScoringSequenceCommands {
                     Commands.waitSeconds(0.2),
                     arm.goToStateCommand(scoreDownState)
                 ),
-                DriveCommands.driveStraightCommand(drive, Units.feetToMeters(2.5), 0.15, fieldAngle, null)
+                DriveCommands.driveStraightCommand(drive, Units.feetToMeters(2.5), 0.15, () -> fieldAngle, null)
             ).withTimeout(0.75),
             Commands.parallel(
                 arm.goToStateCommand(scoreDownState2).withTimeout(0.75),
-                DriveCommands.driveStraightCommand(drive, Units.feetToMeters(-2), 1.25, fieldAngle, null)
+                DriveCommands.driveStraightCommand(drive, Units.feetToMeters(-2), 1.25, () -> fieldAngle, null)
             )
         ).withName("ScoreAt" + level.name() + "Sequence");
         // @formatter:on
@@ -174,12 +174,12 @@ public class ScoringSequenceCommands {
             return Commands.parallel(
                 arm.goToStateCommand(new ArmState(Rotation2d.fromDegrees(30), Meters.of(0.65), WristRotation.Vertical,
                     EndEffectorState.velocity(12))),
-                DriveCommands.driveStraightCommand(drive, Units.feetToMeters(-2.5), 1.5, fieldAngle, null));
+                DriveCommands.driveStraightCommand(drive, Units.feetToMeters(-2.5), 1.5, () -> fieldAngle, null));
         } else {
             return Commands.parallel(
                 arm.goToStateCommand(new ArmState(Rotation2d.fromDegrees(-30), Meters.of(0.95), WristRotation.Vertical,
                     EndEffectorState.velocity(12))),
-                DriveCommands.driveStraightCommand(drive, Units.feetToMeters(-2.5), 1.5, fieldAngle, null));
+                DriveCommands.driveStraightCommand(drive, Units.feetToMeters(-2.5), 1.5, () -> fieldAngle, null));
         }
     }
 
