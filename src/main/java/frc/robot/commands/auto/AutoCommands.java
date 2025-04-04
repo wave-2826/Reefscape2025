@@ -131,13 +131,13 @@ public class AutoCommands {
             // TODO: Mirror this rotation when on the other side of the field
             DriveCommands.driveStraightCommand(
                 drive, 1.2,
-                () -> angle.value, () -> angle.value.rotateBy(Rotation2d.fromDegrees(180 - 30.))
+                () -> angle.value, () -> angle.value.rotateBy(Rotation2d.fromDegrees(180 - 20.))
             ).until(() -> {
                 if(intake.intakeSensorTriggered()) return true;
 
                 // If the robot is at risk of running into the wall, stop.
                 var robotPosition = drive.getPose();
-                var nextPosition = robotPosition.exp(drive.getChassisSpeeds().toTwist2d(0.5));
+                var nextPosition = robotPosition.exp(drive.getChassisSpeeds().toTwist2d(0.75));
                 if(nextPosition.getX() < 0.0 || nextPosition.getY() < 0.0
                     || nextPosition.getX() > FieldConstants.fieldLength
                     || nextPosition.getY() > FieldConstants.fieldWidth) {

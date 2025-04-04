@@ -36,19 +36,25 @@ import frc.robot.util.ReefTarget;
 
 public class AutoScoreCommands {
     /**
-     * The distance from the reef branch to the center of the robot when lining up to score L1 in meters.
+     * The distance from the reef branch to the center of the robot when lining up to score L1 in inches.
      */
     private static final LoggedTunableNumber robotReefLineupL1Distance = new LoggedTunableNumber(//
         "AutoScore/L1ReefLineupDistance", 33.5);
 
     /**
-     * The distance from the reef branch to the center of the robot when lining up to score L2-L4 in meters.
+     * The distance from the reef branch to the center of the robot when lining up to score L2 in inches.
      */
-    private static final LoggedTunableNumber robotReefLineupBranchDistance = new LoggedTunableNumber(//
+    private static final LoggedTunableNumber robotReefLineupL2Distance = new LoggedTunableNumber(//
         "AutoScore/BranchReefLineupDistance", 19.5);
 
     /**
-     * The distance from the reef branch to the center of the robot when lining up to score L4 in meters.
+     * The distance from the reef branch to the center of the robot when lining up to score L3 in inches.
+     */
+    private static final LoggedTunableNumber robotReefLineupL3Distance = new LoggedTunableNumber(//
+        "AutoScore/BranchReefLineupDistance", 20.75);
+
+    /**
+     * The distance from the reef branch to the center of the robot when lining up to score L4 in inches.
      */
     private static final LoggedTunableNumber robotReefLineupL4Distance = new LoggedTunableNumber(//
         "AutoScore/L4ReefLineupDistance", 24.25);
@@ -176,10 +182,12 @@ public class AutoScoreCommands {
         double distanceAwayInches;
         if(target.level() == ReefLevel.L1) {
             distanceAwayInches = robotReefLineupL1Distance.get();
-        } else if(target.level() == ReefLevel.L4) {
-            distanceAwayInches = robotReefLineupL4Distance.get();
+        } else if(target.level() == ReefLevel.L2) {
+            distanceAwayInches = robotReefLineupL2Distance.get();
+        } else if(target.level() == ReefLevel.L3) {
+            distanceAwayInches = robotReefLineupL3Distance.get();
         } else {
-            distanceAwayInches = robotReefLineupBranchDistance.get();
+            distanceAwayInches = robotReefLineupL4Distance.get();
         }
 
         return Commands.sequence(//
