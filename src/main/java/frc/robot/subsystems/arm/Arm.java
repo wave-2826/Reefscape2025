@@ -127,7 +127,7 @@ public class Arm extends SubsystemBase {
 
     public void resetToAbsolute() {
         if(!inputs.validAbsoluteMeasurement && DriverStation.isTeleop()) {
-            Controls.getInstance().controllerRumbleWhileRunning(false, true, RumbleType.kBothRumble).withTimeout(0.1)
+            Controls.getInstance().controllerRumbleWhileRunning(false, true, RumbleType.kBothRumble).withTimeout(0.2)
                 .andThen(Commands.waitSeconds(0.1)).repeatedly().withTimeout(1).schedule();
         } else {
             io.resetToAbsolute();
