@@ -5,6 +5,12 @@
     "data": {
       "commands": [
         {
+          "type": "named",
+          "data": {
+            "name": "Prep arm"
+          }
+        },
+        {
           "type": "path",
           "data": {
             "pathName": "Center simple 1 coral"

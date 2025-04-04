@@ -33,7 +33,7 @@ public final class Constants {
     /**
      * If the robot is in "tuning mode". When in tuning mode, tunable constants are added to NetworkTables.
      */
-    public static boolean tuningMode = true;
+    public static boolean tuningMode = false;
 
     public static final Mode currentMode = RobotBase.isReal() ? Mode.REAL : simMode;
 
