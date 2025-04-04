@@ -34,17 +34,17 @@ public class SimplePIDLineupCommand extends Command {
         "CloseLineup/thetaRotationTolerance");
 
     static {
-        translationKp.initDefault(4.0);
+        translationKp.initDefault(5.0);
         translationKi.initDefault(0.0);
-        translationKd.initDefault(0.75);
+        translationKd.initDefault(1.5);
 
-        thetaRotationKp.initDefault(4.0);
+        thetaRotationKp.initDefault(7.0);
         thetaRotationKi.initDefault(0.0);
-        thetaRotationKd.initDefault(0.25);
+        thetaRotationKd.initDefault(0.75);
 
         xTranslationTolerance.initDefault(Units.inchesToMeters(3.0));
         yTranslationTolerance.initDefault(Units.inchesToMeters(3.0));
-        thetaRotationTolerance.initDefault(Units.degreesToRadians(20));
+        thetaRotationTolerance.initDefault(Units.degreesToRadians(10));
     }
 
     public SimplePIDLineupCommand(Drive drive, Pose2d pose) {

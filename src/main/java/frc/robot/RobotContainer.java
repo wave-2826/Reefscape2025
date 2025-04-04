@@ -183,7 +183,7 @@ public class RobotContainer {
         VisionTuningCommands.addTuningCommandsToAutoChooser(vision, autoChooser);
 
         autoChooser.addOption("omg why is auto not working",
-            DriveCommands.driveStraightCommand(drive, Units.feetToMeters(1), 2));
+            DriveCommands.driveStraightCommand(drive, Units.feetToMeters(1), 2, null));
 
         autoChooser.addOption("Odometry Test 1", Commands.runOnce(() -> {
             drive.setPose(new Pose2d(7.169, 3.989, Rotation2d.kZero));

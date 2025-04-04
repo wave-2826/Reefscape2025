@@ -28,7 +28,7 @@ public final class Constants {
      * there are spooky issues going on with the robot, disabling this (if enabled) is a good first step. Only use this
      * as a last resort. Here be dragons.
      */
-    public static boolean useSuperDangerousRTThreadPriority = false;
+    public static boolean useSuperDangerousRTThreadPriority = true;
 
     /**
      * If the robot is in "tuning mode". When in tuning mode, tunable constants are added to NetworkTables.

@@ -62,7 +62,7 @@ public class CloseLineupCommand extends Command {
         "CloseLineup/thetaRotationKd", 0.3);
 
     private final static LoggedTunableNumber translationTolerance = new LoggedTunableNumber(//
-        "CloseLineup/translationTolerance", 0.5);
+        "CloseLineup/translationTolerance", 0.65);
     private final static LoggedTunableNumber thetaTolerance = new LoggedTunableNumber(//
         "CloseLineup/thetaTolerance", 2.0);
 
@@ -210,11 +210,12 @@ public class CloseLineupCommand extends Command {
         double radiusMagnitude = Math.sqrt(
             speed.vxMetersPerSecond * speed.vxMetersPerSecond + speed.vyMetersPerSecond * speed.vyMetersPerSecond);
 
-        if(!inRadiusDeadband && radiusMagnitude < radiusInnerDeadband.get()) inRadiusDeadband = true;
+        if(!inRadiusDeadband && radiusMagnitude < radiusInnerDeadband.get()
+            && driveController.atReference()) inRadiusDeadband = true;
         if(inRadiusDeadband && radiusMagnitude > radiusOuterDeadband.get()) inRadiusDeadband = false;
 
-        if(!inThetaDeadband && Math.abs(speed.omegaRadiansPerSecond) < Units
-            .degreesToRadians(thetaInnerDeadband.get())) inThetaDeadband = true;
+        if(!inThetaDeadband && Math.abs(speed.omegaRadiansPerSecond) < Units.degreesToRadians(thetaInnerDeadband.get())
+            && driveController.atReference()) inThetaDeadband = true;
         if(inThetaDeadband && Math.abs(speed.omegaRadiansPerSecond) > Units
             .degreesToRadians(thetaOuterDeadband.get())) inThetaDeadband = false;
 

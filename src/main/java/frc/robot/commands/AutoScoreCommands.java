@@ -16,6 +16,7 @@ import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.util.function.BooleanConsumer;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.FieldConstants;
@@ -181,17 +182,17 @@ public class AutoScoreCommands {
             distanceAwayInches = robotReefLineupBranchDistance.get();
         }
 
-        Command autoAlign = autoAlignSequence(drive, vision, leds, target, distanceAwayInches, false,
-            // During coarse lineup
-            Commands.none(),
-            // During close lineup
-            ScoringSequenceCommands.middleArmMovement(target.level(), arm), tweakX, tweakY, finishSequence,
-            lineupFeedback).onlyIf(useArmLineup);
-
         return Commands.sequence(//
-            autoAlign, //
+            Commands.defer(() -> {
+                return autoAlignSequence(drive, vision, leds, target, distanceAwayInches, false,
+                    // During coarse lineup
+                    Commands.none(),
+                    // During close lineup
+                    ScoringSequenceCommands.middleArmMovement(target.level(), arm), tweakX, tweakY, finishSequence,
+                    lineupFeedback).onlyIf(useArmLineup).withTimeout(DriverStation.isAutonomous() ? 4.25 : 10000);
+            }, Set.of(drive)), //
             ScoringSequenceCommands.scoreAtLevel(target.level(), arm, drive, target.branch().face.getFieldAngle())
-                .raceWith(leds.runStateCommand(LEDState.AutoScoring)).onlyIf(useArmLineup)//
+                .raceWith(leds.runStateCommand(LEDState.AutoScoring)).onlyIf(useArmLineup) //
         ).withName("AutoScore" + target.toString());
     }
 

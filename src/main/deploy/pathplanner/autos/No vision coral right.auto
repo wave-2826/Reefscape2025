@@ -37,6 +37,18 @@
         {
           "type": "named",
           "data": {
+            "name": "Intake That John"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "No vision coral right.2"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
             "name": "Wait/Score B L4"
           }
         },
@@ -49,7 +61,19 @@
         {
           "type": "path",
           "data": {
-            "pathName": "No vision coral right.2"
+            "pathName": "No vision coral right.3"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Intake That John"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "No vision coral right.4"
           }
         },
         {

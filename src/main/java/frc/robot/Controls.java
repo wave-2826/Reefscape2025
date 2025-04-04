@@ -202,9 +202,6 @@ public class Controls {
             wristRotation.value = wristRotation.value.next();
         }));
 
-        operator.leftStick().and(operator.rightStick()).and(operatorManual)
-            .onTrue(Commands.runOnce(arm::resetToBottom));
-
         operator.b().and(operatorManual).onTrue(Commands.sequence(//
             Commands.runOnce(() -> operatorMode = OperatorMode.Normal), //
             arm.goToStateCommand(ArmConstants.restingState)//
@@ -228,6 +225,9 @@ public class Controls {
             pitch.value = scoringPosition.pitch().getDegrees();
             wristRotation.value = scoringPosition.wristRotation();
         }));
+
+        operator.leftStick().and(operator.rightStick()).and(operatorOverride)
+            .onTrue(Commands.runOnce(arm::resetToBottom));
 
         operatorManual.and(intakeManualOverride.negate()).whileTrue(arm.setTargetStateCommand(() -> {
             double eeSpeed = MathUtil.applyDeadband(operator.getLeftTriggerAxis() - operator.getRightTriggerAxis(), 0.2)
@@ -260,6 +260,11 @@ public class Controls {
         climberOverride.whileTrue(climber.run(() -> {
             climber.runClimberOpenLoop(MathUtil.applyDeadband(operator.getLeftY(), 0.2));
         }).withName("ClimberOverrideControls"));
+
+        operator.b().and(operatorOverride).onTrue(Commands.sequence(//
+            Commands.runOnce(() -> operatorMode = OperatorMode.Normal), //
+            arm.goToStateCommand(ArmConstants.restingState)//
+        ));
 
         operatorOverride.and(intakeOverride.negate()).and(climberOverride.negate()).whileTrue(arm.run(() -> {
             // Arm control mode

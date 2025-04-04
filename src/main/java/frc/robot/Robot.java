@@ -11,7 +11,10 @@ import edu.wpi.first.wpilibj.Watchdog;
 import edu.wpi.first.wpilibj.simulation.DriverStationSim;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import frc.robot.subsystems.vision.VisionConstants;
+import frc.robot.util.Elastic;
 import frc.robot.util.LoggedTracer;
 import frc.robot.util.LoggedTunableSparkPID;
 import frc.robot.util.NTClientLogger;
@@ -170,7 +173,11 @@ public class Robot extends LoggedRobot {
 
         robotContainer.resetSimulatedRobot();
 
+        // Elastic dashboard utilities and setup
         WebServer.start(5800, Filesystem.getDeployDirectory().getPath());
+        RobotModeTriggers.teleop().onTrue(Commands.runOnce(() -> {
+            Elastic.selectTab("Teleoperated");
+        }));
 
         if(Constants.currentMode == Constants.Mode.REAL && Constants.useSuperDangerousRTThreadPriority) {
             // Switch the thread to high priority to improve loop timing.

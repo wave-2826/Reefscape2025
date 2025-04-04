@@ -68,6 +68,7 @@ public class ArmIOReal implements ArmIO {
     private Alert laserCANWeakSignal = new Alert("Elevator Laser CAN weak signal", AlertType.kWarning);
     private Alert laserCANOutOfBounds = new Alert("Elevator Laser CAN out of bounds", AlertType.kWarning);
     private Alert laserCANWraparound = new Alert("Elevator Laser CAN wraparound", AlertType.kWarning);
+    private Alert laserCANInvalidHeight = new Alert("Elevator Laser CAN reading invalid height", AlertType.kWarning);
 
     // This holding logic is in the IO implementation because we don't recreate it in
     // simulation.
@@ -116,11 +117,6 @@ public class ArmIOReal implements ArmIO {
             .inverted(ArmConstants.ElevatorConstants.elevatorMotorInverted);
         elevatorMotorLeaderConfig.signals.apply(SparkUtil.defaultSignals).primaryEncoderPositionAlwaysOn(true)
             .primaryEncoderVelocityAlwaysOn(true).primaryEncoderPositionPeriodMs(20).primaryEncoderVelocityPeriodMs(20);
-        double bottomSoftStopMarginMeters = ArmConstants.ElevatorConstants.softStopMarginBottom.in(Meters);
-        double topSoftStopMarginMeters = ArmConstants.ElevatorConstants.softStopMarginTop.in(Meters);
-        elevatorMotorLeaderConfig.softLimit.forwardSoftLimitEnabled(true).reverseSoftLimitEnabled(true)
-            .forwardSoftLimit(ArmConstants.ElevatorConstants.maxElevatorHeight.in(Meters) - topSoftStopMarginMeters)
-            .reverseSoftLimit(bottomSoftStopMarginMeters);
 
         SparkFlexConfig elevatorMotorFollowerConfig = new SparkFlexConfig();
         elevatorMotorFollowerConfig.encoder
@@ -279,9 +275,12 @@ public class ArmIOReal implements ArmIO {
         inputs.elevatorHeightSensorConnected = elevatorHeightSensorConnectedDebouncer.calculate(measurement != null);
         if(measurement != null) {
             inputs.absoluteHeightMeters = (float) measurement.distance_mm / 1000.;
-            inputs.validAbsoluteMeasurement = measurement.status == LaserCan.LASERCAN_STATUS_VALID_MEASUREMENT;
+            boolean invalidHeight = inputs.absoluteHeightMeters < ArmConstants.ElevatorConstants.bottomResetHeightMeters;
+            inputs.validAbsoluteMeasurement = measurement.status == LaserCan.LASERCAN_STATUS_VALID_MEASUREMENT
+                && !invalidHeight;
 
             Logger.recordOutput("Arm/ElevatorNeedsToReset", needsToReset);
+
             // For some reason, this doens't work with simulated sparks. We do this in ArmIOSim instead.
             if(needsToReset && inputs.validAbsoluteMeasurement && Constants.currentMode != Constants.Mode.SIM) {
                 // TODO: Use ifOk and only adjust once this works?
@@ -296,6 +295,7 @@ public class ArmIOReal implements ArmIO {
             laserCANWeakSignal.set(measurement.status == LaserCan.LASERCAN_STATUS_WEAK_SIGNAL);
             laserCANOutOfBounds.set(measurement.status == LaserCan.LASERCAN_STATUS_OUT_OF_BOUNDS);
             laserCANWraparound.set(measurement.status == LaserCan.LASERCAN_STATUS_WRAPAROUND);
+            laserCANInvalidHeight.set(invalidHeight);
 
             Logger.recordOutput("Arm/ElevatorAmbientLight", measurement.ambient);
         }

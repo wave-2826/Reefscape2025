@@ -34,7 +34,7 @@ public class GetCoralCommand {
     private static final LoggedTunableNumber thetaControllerD = new LoggedTunableNumber(//
         "GetCoral/thetaControllerD", 0.5);
 
-    private static final LoggedTunableNumber lineFollowSpeed = new LoggedTunableNumber(//
+    public static final LoggedTunableNumber lineFollowSpeed = new LoggedTunableNumber(//
         "GetCoral/lineFollowSpeed", DriveConstants.maxSpeedMetersPerSec * 0.7);
 
     public static Command getCoral(PieceVision pieceVision, Drive drive, Intake intake, Arm arm,
