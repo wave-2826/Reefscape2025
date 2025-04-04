@@ -169,6 +169,9 @@ public class Controls {
         operator.b().and(normalOperator).onTrue(arm.goToStateCommand(ArmConstants.restingState));
         operator.x().and(normalOperator).onTrue(arm.goToStateCommand(ArmConstants.prepForScoringState));
 
+        operator.leftBumper().and(normalOperator).onTrue(arm.adjustWrist(false));
+        operator.rightBumper().and(normalOperator).onTrue(arm.adjustWrist(true));
+
         // Go to active scoring position
         operator.a().and(normalOperator).whileTrue(arm.goToStateCommand(() -> {
             return ScoringSequenceCommands

@@ -57,6 +57,18 @@ public class Arm extends SubsystemBase {
         this.inputs = new ArmIOInputsAutoLogged();
     }
 
+    public Command adjustWrist(boolean next) {
+        return Commands.defer(() -> {
+            WristRotation newWrist;
+            if(next) {
+                newWrist = targetState.wristRotation().next();
+            } else {
+                newWrist = targetState.wristRotation().previous();
+            }
+            return goToStateCommand(targetState.withWrist(newWrist)).withTimeout(0.5);
+        }, Set.of(this));
+    }
+
     public Command goToStateCommand(ArmState state, double timeoutSeconds) {
         return this.run(() -> {
             targetState = state;

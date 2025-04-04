@@ -74,8 +74,6 @@ public class DriveCommands {
         Supplier<Rotation2d> fieldAngle, Supplier<Rotation2d> robotAngle) {
         Container<Rotation2d> fieldAngleTarget = new Container<>(Rotation2d.kZero);
 
-        if(robotAngle != null) System.out.println("**** ROBOT ANGLE: **** " + robotAngle.get().getDegrees());
-        else System.out.println("**** ROBOT ANGLE: null**** ");
         try(PIDController thetaController = new PIDController(7.0, 0.0, 0.3)) {
             thetaController.enableContinuousInput(0, Math.PI * 2);
             return Commands.sequence(Commands.runOnce(() -> {
@@ -85,9 +83,6 @@ public class DriveCommands {
             }), Commands.run(() -> {
                 double thetaSpeed = robotAngle == null ? 0.
                     : thetaController.calculate(drive.getRotation().getRadians());
-
-                System.out.println("**** DRIVE ROTATION: **** " + drive.getRotation().getDegrees());
-                System.out.println("**** ThEtA SPEED: **** " + thetaSpeed);
 
                 drive.runVelocity(
                     ChassisSpeeds.fromFieldRelativeSpeeds(fieldAngleTarget.value.getCos() * speedMetersPerSecond,

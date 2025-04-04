@@ -69,7 +69,7 @@ public class AutoScoreCommands {
      * A tweaking factor added to our horizontal lineup distance from the center between two branches.
      */
     private static final LoggedTunableNumber centerDistanceTweak = new LoggedTunableNumber(//
-        "AutoScore/CenterDistanceTweak", 0.75);
+        "AutoScore/CenterDistanceTweak", 0.5);
 
     /**
      * Gets a command that pathfinds to the target pose and precisely aligns to it. Because PathPlanner's default

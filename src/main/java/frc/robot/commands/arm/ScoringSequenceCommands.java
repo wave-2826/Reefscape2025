@@ -123,12 +123,13 @@ public class ScoringSequenceCommands {
         }
 
         ArmState startState = getStartingState(level);
+        WristRotation wristRotation = arm.getCurrentTargetState().wristRotation();
         ArmState scoreDownState = new ArmState(startState.pitch(),
-            startState.height().minus(Inches.of(elevatorScoreHeightReduction.get())), startState.wristRotation(),
+            startState.height().minus(Inches.of(elevatorScoreHeightReduction.get())), wristRotation,
             Constants.isSim ? EndEffectorState.velocity(gamePieceEjectVelocity.get()) : EndEffectorState.hold());
         ArmState scoreDownState2 = new ArmState(
             startState.pitch().minus(Rotation2d.fromDegrees(branchScorePitchDown.get())),
-            startState.height().minus(Inches.of(elevatorScoreHeightReduction.get())), startState.wristRotation(),
+            startState.height().minus(Inches.of(elevatorScoreHeightReduction.get())), wristRotation,
             EndEffectorState.velocity(gamePieceEjectVelocity.get()));
 
         // @formatter:off

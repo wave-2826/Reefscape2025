@@ -28,10 +28,10 @@ public class ArmConstants {
         WristRotation.Horizontal, EndEffectorState.velocity(-20));
 
     /** The state when the arm is intaking from the source. */
-    public static final ArmState sourceIntakeState = new ArmState(Rotation2d.fromDegrees(75), Inches.of(5),
+    public static final ArmState sourceIntakeState = new ArmState(Rotation2d.fromDegrees(75), Inches.of(4),
         WristRotation.Vertical, EndEffectorState.velocity(-20));
     /** The state when the arm is intaking from the source but stopped. */
-    public static final ArmState sourceIntakeStoppedState = new ArmState(Rotation2d.fromDegrees(75), Inches.of(5),
+    public static final ArmState sourceIntakeStoppedState = new ArmState(Rotation2d.fromDegrees(75), Inches.of(4),
         WristRotation.Vertical, EndEffectorState.hold());
 
     /** The state when the arm is preparing for scoring. */
