@@ -22,6 +22,7 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.util.function.BooleanConsumer;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.leds.LEDs;
@@ -31,7 +32,7 @@ import frc.robot.subsystems.vision.VisionConstants;
 import frc.robot.util.LoggedTunableNumber;
 
 public class CloseLineupCommand extends Command {
-    private static final boolean USE_SINGLE_TAG = false;
+    private static final BooleanSupplier useSingleTag = DriverStation::isAutonomous;
 
     private final Drive drive;
     private final Vision vision;
@@ -175,7 +176,7 @@ public class CloseLineupCommand extends Command {
         }, maxVelocity, maxAcceleration);
 
         Pose2d correctedCurrentPose = drive.getPose();
-        Transform3d robotToTag = USE_SINGLE_TAG ? vision.getRobotToTag(tagToTrack) : null;
+        Transform3d robotToTag = useSingleTag.getAsBoolean() ? vision.getRobotToTag(tagToTrack) : null;
         Pose2d fieldTagPose = VisionConstants.aprilTagLayout.getTagPose(tagToTrack).get().toPose2d();
 
         Logger.recordOutput("CloseLineup/UsingSingleTag", robotToTag != null);

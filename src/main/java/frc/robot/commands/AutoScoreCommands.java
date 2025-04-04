@@ -45,13 +45,13 @@ public class AutoScoreCommands {
      * The distance from the reef branch to the center of the robot when lining up to score L2 in inches.
      */
     private static final LoggedTunableNumber robotReefLineupL2Distance = new LoggedTunableNumber(//
-        "AutoScore/BranchReefLineupDistance", 19.5);
+        "AutoScore/L2ReefLineupDistance", 19.5);
 
     /**
      * The distance from the reef branch to the center of the robot when lining up to score L3 in inches.
      */
     private static final LoggedTunableNumber robotReefLineupL3Distance = new LoggedTunableNumber(//
-        "AutoScore/BranchReefLineupDistance", 20.75);
+        "AutoScore/L3ReefLineupDistance", 20.75);
 
     /**
      * The distance from the reef branch to the center of the robot when lining up to score L4 in inches.
@@ -69,7 +69,7 @@ public class AutoScoreCommands {
      * A tweaking factor added to our horizontal lineup distance from the center between two branches.
      */
     private static final LoggedTunableNumber centerDistanceTweak = new LoggedTunableNumber(//
-        "AutoScore/CenterDistanceTweak", 0.25);
+        "AutoScore/CenterDistanceTweak", 0.75);
 
     /**
      * Gets a command that pathfinds to the target pose and precisely aligns to it. Because PathPlanner's default
