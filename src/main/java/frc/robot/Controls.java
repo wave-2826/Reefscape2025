@@ -114,11 +114,11 @@ public class Controls {
         // Used to account for swerve belts slipping.
         driver.back().whileTrue(Commands.run(drive::resetToAbsolute));
 
-        var intakeTrigger = driver.rightTrigger(0.3).or(operator.rightBumper().and(normalOperator));
+        var intakeTrigger = driver.rightTrigger(0.3);
         intakeTrigger.onTrue(arm.goToStateCommand(ArmConstants.restingState));
         intake.setDefaultCommand(IntakeCommands.intakeCommand(intake, arm, // 
             intakeTrigger, // Intake
-            driver.leftTrigger(0.3).or(operator.leftBumper().and(normalOperator)), // Outtake
+            driver.leftTrigger(0.3), // Outtake
             operator.povRight().and(normalOperator) // Outtake trough
         ));
 
