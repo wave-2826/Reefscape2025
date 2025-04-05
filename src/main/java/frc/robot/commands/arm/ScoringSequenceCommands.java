@@ -34,7 +34,7 @@ public class ScoringSequenceCommands {
     private static LoggedTunableNumber L4ScorePitch = new LoggedTunableNumber(//
         "AutoScore/L4ScorePitch", 43.);
     private static LoggedTunableNumber L1ScoreHeight = new LoggedTunableNumber(//
-        "AutoScore/L1ScoreHeight", 14);
+        "AutoScore/L1ScoreHeight", 11);
     private static LoggedTunableNumber L2ScoreHeight = new LoggedTunableNumber(//
         "AutoScore/L2ScoreHeight", 6);
     private static LoggedTunableNumber L3ScoreHeight = new LoggedTunableNumber(//
@@ -240,7 +240,7 @@ public class ScoringSequenceCommands {
      */
     private static Command troughScoringSequence(Arm arm) {
         return Commands.sequence(arm.goToStateCommand(new ArmState(Rotation2d.fromDegrees(0),
-            Inches.of(L1ScoreHeight.get()), WristRotation.Vertical, EndEffectorState.velocity(10.))))
+            Inches.of(L1ScoreHeight.get()), WristRotation.Vertical, EndEffectorState.velocity(2.))))
             .withName("TroughScoringSequence");
     }
 }
