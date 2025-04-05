@@ -55,7 +55,7 @@ public class DriveConstants {
 
     // Drive motor configuration
     public static final int driveMotorCurrentLimit = 75;
-    public static final double wheelRadiusMeters = Units.inchesToMeters(1.999); // "Magic" number from wheel radius characterization
+    public static final double wheelRadiusMeters = Units.inchesToMeters(1.953); // "Magic" number from wheel radius characterization
     public static final double driveMotorReduction = Mk4Reductions.L2.reduction;
     public static final DCMotor driveSimMotor = DCMotor.getNeoVortex(1);
 
