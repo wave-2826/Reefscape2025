@@ -22,7 +22,6 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.util.function.BooleanConsumer;
-import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.leds.LEDs;
@@ -32,7 +31,7 @@ import frc.robot.subsystems.vision.VisionConstants;
 import frc.robot.util.LoggedTunableNumber;
 
 public class CloseLineupCommand extends Command {
-    private static final BooleanSupplier useSingleTag = DriverStation::isAutonomous;
+    private static final BooleanSupplier useSingleTag = () -> true;
 
     private final Drive drive;
     private final Vision vision;
@@ -63,9 +62,9 @@ public class CloseLineupCommand extends Command {
         "CloseLineup/thetaRotationKd", 0.3);
 
     private final static LoggedTunableNumber translationTolerance = new LoggedTunableNumber(//
-        "CloseLineup/translationTolerance", 0.65);
+        "CloseLineup/translationTolerance", 0.35);
     private final static LoggedTunableNumber thetaTolerance = new LoggedTunableNumber(//
-        "CloseLineup/thetaTolerance", 2.0);
+        "CloseLineup/thetaTolerance", 1.0);
 
     private final static LoggedTunableNumber maxVelocity = new LoggedTunableNumber(//
         "CloseLineup/maxThetaVelocity", 360); // deg/s
@@ -82,13 +81,13 @@ public class CloseLineupCommand extends Command {
     private boolean inThetaDeadband = false;
 
     private final static LoggedTunableNumber radiusInnerDeadband = new LoggedTunableNumber(//
-        "CloseLineup/Deadband/RadiusInnerDeadband", 0.1); // Meters/sec
+        "CloseLineup/Deadband/RadiusInnerDeadband", 0.06); // Meters/sec
     private final static LoggedTunableNumber radiusOuterDeadband = new LoggedTunableNumber(//
-        "CloseLineup/Deadband/RadiusOuterDeadband", 0.2); // Meters/sec
+        "CloseLineup/Deadband/RadiusOuterDeadband", 0.15); // Meters/sec
     private final static LoggedTunableNumber thetaInnerDeadband = new LoggedTunableNumber(//
-        "CloseLineup/Deadband/ThetaInnerDeadband", 0.5); // Degrees
+        "CloseLineup/Deadband/ThetaInnerDeadband", 0.3); // Degrees/sec
     private final static LoggedTunableNumber thetaOuterDeadband = new LoggedTunableNumber(//
-        "CloseLineup/Deadband/ThetaOuterDeadband", 2); // Degrees
+        "CloseLineup/Deadband/ThetaOuterDeadband", 1.5); // Degrees/sec
 
     private final Debouncer atSetpointDebouncer = new Debouncer(0.25, DebounceType.kRising);
 
@@ -157,7 +156,6 @@ public class CloseLineupCommand extends Command {
     }
 
     @Override
-    @SuppressWarnings("unused")
     public void execute() {
         LoggedTunableNumber.ifChanged(hashCode(), (double[] values) -> {
             driveController.getXController().setPID(values[0], values[1], values[2]);

@@ -84,8 +84,9 @@ public class AutoCommands {
         return Commands.sequence(Commands.runOnce(() -> {
             grabbingCoralFailed = false;
             scoringPositionsAvailable.clear();
+            var bluePose = AutoBuilder.shouldFlip() ? FlippingUtil.flipFieldPose(drive.getPose()) : drive.getPose();
 
-            if(FlippingUtil.flipFieldPose(drive.getPose()).getY() > FieldConstants.fieldWidth / 2.) {
+            if(bluePose.getY() > FieldConstants.fieldWidth / 2.) {
                 // If on the left side of the field
                 scoringPositionsAvailable.add(new ReefTarget(ReefBranch.J, ReefLevel.L4));
                 scoringPositionsAvailable.add(new ReefTarget(ReefBranch.K, ReefLevel.L4));
@@ -126,7 +127,9 @@ public class AutoCommands {
         Container<Boolean> isLeft = new Container<>(false);
         return Commands.sequence(
             Commands.runOnce(() -> {
-                isLeft.value = FlippingUtil.flipFieldPose(drive.getPose()).getY() > FieldConstants.fieldWidth / 2.;
+                var bluePose = AutoBuilder.shouldFlip() ? FlippingUtil.flipFieldPose(drive.getPose()) : drive.getPose();
+
+                isLeft.value = bluePose.getY() > FieldConstants.fieldWidth / 2.;
                 angle.value = DriverStation.getAlliance().orElse(Alliance.Red) == Alliance.Red ? Rotation2d.kZero : Rotation2d.k180deg;
                 endPose.value = new Pose2d(drive.getPose().getTranslation(), angle.value.rotateBy(Rotation2d.fromDegrees(180 + (isLeft.value ? -20 : 20))));
             }),

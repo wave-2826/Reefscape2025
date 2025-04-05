@@ -2,6 +2,7 @@ package frc.robot.commands;
 
 import static edu.wpi.first.units.Units.Meters;
 
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.BooleanSupplier;
@@ -127,11 +128,14 @@ public class AutoScoreCommands {
                 coarseLineupCommand.withTimeout(2),
                 drive.runOnce(drive::stopWithX)
             ),
-            Commands.parallel(
-                closeLineupCommand.withTimeout(1.5), // Run during final adjustment
-                // TODO: Fully line up before finishing if the finish sequence button is held
-                new CloseLineupCommand(drive, vision, leds, reefFace.getAprilTagID(), tagRelativeOffset, getFieldRelativeOffset, finishSequence, lineupFeedback) // Final adjustment
-            )
+            closeLineupCommand.withDeadline(
+                new CloseLineupCommand(
+                    drive, vision, leds,
+                    reefFace.getAprilTagID(),
+                    tagRelativeOffset, getFieldRelativeOffset,
+                    finishSequence, lineupFeedback
+                ) // Final adjustment
+            ) // Run during final adjustment
         ).finallyDo(() -> {
             Logger.recordOutput("AutoScore/RunningCloseLineup", false);
             Logger.recordOutput("AutoScore/InitialLineupPose", Pose2d.kZero);
@@ -157,7 +161,8 @@ public class AutoScoreCommands {
      * @return
      */
     public static Command autoScoreCommand(Drive drive, Vision vision, Arm arm, LEDs leds, ReefTarget target) {
-        return autoScoreCommand(drive, vision, arm, leds, target, Optional.empty(), () -> 0, () -> 0, null, () -> true);
+        return autoScoreCommand(drive, vision, arm, leds, target, Optional.empty(), () -> false, () -> 0, () -> 0, null,
+            () -> true);
     }
 
     /**
@@ -170,6 +175,8 @@ public class AutoScoreCommands {
      * @param target The target to score at
      * @param finishSequence If present, the close lineup waits for this to be true before finishing. If not present,
      *            the close lineup finishes when the target is fully aligned.
+     * @param finishSequenceSlow If not null, this acts like finishSequence but finishes with a slow move downward. This
+     *            is pretty hacky, and only works if finishSequence is present.
      * @param tweakX The amount to tweak the X position during close lineup
      * @param tweakY The amount to tweak the Y position during close lineup
      * @param lineupFeedback A function to call during close lineup with whether the controller is at its target. Can be
@@ -177,8 +184,8 @@ public class AutoScoreCommands {
      * @return
      */
     public static Command autoScoreCommand(Drive drive, Vision vision, Arm arm, LEDs leds, ReefTarget target,
-        Optional<BooleanSupplier> finishSequence, DoubleSupplier tweakX, DoubleSupplier tweakY,
-        BooleanConsumer lineupFeedback, BooleanSupplier useArmLineup) {
+        Optional<BooleanSupplier> finishSequence, BooleanSupplier finishSequenceSlow, DoubleSupplier tweakX,
+        DoubleSupplier tweakY, BooleanConsumer lineupFeedback, BooleanSupplier useArmLineup) {
         double distanceAwayInches;
         if(target.level() == ReefLevel.L1) {
             distanceAwayInches = robotReefLineupL1Distance.get();
@@ -190,18 +197,25 @@ public class AutoScoreCommands {
             distanceAwayInches = robotReefLineupL4Distance.get();
         }
 
+        Optional<BooleanSupplier> finish = finishSequence
+            .map(f -> (() -> f.getAsBoolean() || finishSequenceSlow.getAsBoolean()));
+
         return Commands.sequence(//
-            Commands.defer(() -> {
+            Commands.runOnce(() -> ScoringSequenceCommands.wristOverride = null), Commands.defer(() -> {
                 return autoAlignSequence(drive, vision, leds, target, distanceAwayInches, false,
                     // During coarse lineup
                     Commands.none(),
                     // During close lineup
-                    ScoringSequenceCommands.middleArmMovement(target.level(), arm), tweakX, tweakY, finishSequence,
+                    ScoringSequenceCommands.middleArmMovement(target.level(), arm), tweakX, tweakY, finish,
                     lineupFeedback).onlyIf(useArmLineup).withTimeout(DriverStation.isAutonomous() ? 4.25 : 10000);
             }, Set.of(drive)), //
-            ScoringSequenceCommands.scoreAtLevel(target.level(), arm, drive, target.branch().face.getFieldAngle())
-                .raceWith(leds.runStateCommand(LEDState.AutoScoring)).onlyIf(useArmLineup) //
-        ).withName("AutoScore" + target.toString());
+            Commands.select(Map.of(//
+                false,
+                ScoringSequenceCommands.scoreAtLevel(target.level(), arm, drive, target.branch().face.getFieldAngle())
+                    .raceWith(leds.runStateCommand(LEDState.AutoScoring)).onlyIf(useArmLineup),
+                true, ScoringSequenceCommands.scoreAtLevelSlowly(target.level(), arm)
+                    .raceWith(leds.runStateCommand(LEDState.AutoScoring)).onlyIf(useArmLineup) //
+            ), finishSequenceSlow::getAsBoolean)).withName("AutoScore" + target.toString());
     }
 
     /**
@@ -219,13 +233,13 @@ public class AutoScoreCommands {
      * @return
      */
     public static Command autoScoreTeleopCommand(Drive drive, Vision vision, Arm arm, LEDs leds,
-        BooleanSupplier finishSequence, DoubleSupplier tweakX, DoubleSupplier tweakY, BooleanConsumer lineupFeedback,
-        BooleanSupplier useArmLineup) {
+        BooleanSupplier finishSequence, BooleanSupplier finishSequenceSlow, DoubleSupplier tweakX,
+        DoubleSupplier tweakY, BooleanConsumer lineupFeedback, BooleanSupplier useArmLineup) {
         AutoScoreState state = new AutoScoreState(DriverStationInterface.getInstance().getReefTarget());
 
         return new RestartWhenCommand(
-            () -> autoScoreCommand(drive, vision, arm, leds, state.target, Optional.of(finishSequence), tweakX, tweakY,
-                lineupFeedback, useArmLineup),
+            () -> autoScoreCommand(drive, vision, arm, leds, state.target, Optional.of(finishSequence),
+                finishSequenceSlow, tweakX, tweakY, lineupFeedback, useArmLineup),
 
             // Restart when our target changes
             () -> {
@@ -260,6 +274,7 @@ public class AutoScoreCommands {
             Commands.none(), tweakX, tweakY, finishSequence, null);
 
         return Commands.sequence(//
+            Commands.runOnce(() -> ScoringSequenceCommands.wristOverride = null), //
             autoAlign, //
             ScoringSequenceCommands.removeAlgae(target.level(), arm, drive, target.branch().face.getFieldAngle())
                 .raceWith(leds.runStateCommand(LEDState.AutoScoring))//

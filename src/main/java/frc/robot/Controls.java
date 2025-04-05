@@ -87,7 +87,7 @@ public class Controls {
         // Auto score
         driver.b().debounce(Controls.debounceTime, DebounceType.kFalling)
             .whileTrue(AutoScoreCommands.autoScoreTeleopCommand(drive, vision, arm, leds, driver.rightBumper(),
-                driver::getLeftX, driver::getLeftY, (aligned) -> {
+                driver.leftBumper(), driver::getLeftX, driver::getLeftY, (aligned) -> {
                     setDriverRumble(RumbleType.kLeftRumble, aligned ? 1.0 : 0.0, 1);
                 }, () -> operatorMode == OperatorMode.Normal).finallyDo(() -> {
                     setDriverRumble(RumbleType.kLeftRumble, 0.0, 1);
@@ -169,8 +169,8 @@ public class Controls {
         operator.b().and(normalOperator).onTrue(arm.goToStateCommand(ArmConstants.restingState));
         operator.x().and(normalOperator).onTrue(arm.goToStateCommand(ArmConstants.prepForScoringState));
 
-        operator.leftBumper().and(normalOperator).onTrue(arm.adjustWrist(false));
-        operator.rightBumper().and(normalOperator).onTrue(arm.adjustWrist(true));
+        operator.leftBumper().and(normalOperator).onTrue(ScoringSequenceCommands.adjustWrist(arm, false));
+        operator.rightBumper().and(normalOperator).onTrue(ScoringSequenceCommands.adjustWrist(arm, true));
 
         // Go to active scoring position
         operator.a().and(normalOperator).whileTrue(arm.goToStateCommand(() -> {

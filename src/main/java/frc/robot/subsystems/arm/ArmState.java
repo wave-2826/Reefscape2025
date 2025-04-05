@@ -54,4 +54,21 @@ public record ArmState(Rotation2d pitch, Distance height, WristRotation wristRot
     public ArmState withWrist(WristRotation newRotation) {
         return new ArmState(pitch, height, newRotation, endEffectorState);
     }
+
+    private static double lerp(double a, double b, double t) {
+        return (b - a) * t + a;
+    }
+
+    private static Rotation2d lerp(Rotation2d a, Rotation2d b, double t) {
+        return Rotation2d.fromRadians(lerp(a.getRadians(), b.getRadians(), t));
+    }
+
+    private static Distance lerp(Distance a, Distance b, double t) {
+        return b.minus(a).times(t).plus(a);
+    }
+
+    public ArmState lerp(ArmState finalState, double t) {
+        return new ArmState(lerp(pitch, finalState.pitch, t), lerp(height, finalState.height, t),
+            finalState.wristRotation, finalState.endEffectorState);
+    }
 }
