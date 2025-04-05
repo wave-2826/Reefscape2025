@@ -173,7 +173,7 @@ public class ScoringSequenceCommands {
             ArmState startState = getStartingState(level);
             ArmState scoreDownState = new ArmState(startState.pitch().minus(Rotation2d.fromDegrees(L4PitchDown.get())),
                 startState.height().minus(Inches.of(elevatorScoreHeightReduction.get())), startState.wristRotation(),
-                EndEffectorState.velocity(gamePieceEjectVelocity.get()));
+                EndEffectorState.velocity(1.));
 
             // @formatter:off
             return Commands.sequence(
@@ -188,7 +188,7 @@ public class ScoringSequenceCommands {
         ArmState scoreDownState = new ArmState(
             startState.pitch().minus(Rotation2d.fromDegrees(branchScorePitchDown.get())),
             startState.height().minus(Inches.of(elevatorScoreHeightReduction.get())), startState.wristRotation(),
-            EndEffectorState.velocity(gamePieceEjectVelocity.get()));
+            EndEffectorState.velocity(1.));
 
         // @formatter:off
         return Commands.sequence(
