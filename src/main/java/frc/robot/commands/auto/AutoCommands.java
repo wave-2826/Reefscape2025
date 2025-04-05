@@ -123,15 +123,17 @@ public class AutoCommands {
         // @formatter:off
         Container<Pose2d> endPose = new Container<>(Pose2d.kZero);
         Container<Rotation2d> angle = new Container<>(Rotation2d.kZero);
+        Container<Boolean> isLeft = new Container<>(false);
         return Commands.sequence(
             Commands.runOnce(() -> {
+                isLeft.value = FlippingUtil.flipFieldPose(drive.getPose()).getY() > FieldConstants.fieldWidth / 2.;
                 angle.value = DriverStation.getAlliance().orElse(Alliance.Red) == Alliance.Red ? Rotation2d.kZero : Rotation2d.k180deg;
-                endPose.value = new Pose2d(drive.getPose().getTranslation(), angle.value.rotateBy(Rotation2d.fromDegrees(180 + 20.)));
+                endPose.value = new Pose2d(drive.getPose().getTranslation(), angle.value.rotateBy(Rotation2d.fromDegrees(180 + (isLeft.value ? -20 : 20))));
             }),
             // TODO: Mirror this rotation when on the other side of the field
             DriveCommands.driveStraightCommand(
                 drive, 1.3,
-                () -> angle.value, () -> angle.value.rotateBy(Rotation2d.fromDegrees(180 - 20.))
+                () -> angle.value, () -> angle.value.rotateBy(Rotation2d.fromDegrees(180 + (isLeft.value ? 20 : -20)))
             ).until(() -> {
                 if(intake.intakeSensorTriggered()) return true;
 

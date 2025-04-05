@@ -90,6 +90,8 @@ public class CloseLineupCommand extends Command {
     private final static LoggedTunableNumber thetaOuterDeadband = new LoggedTunableNumber(//
         "CloseLineup/Deadband/ThetaOuterDeadband", 2); // Degrees
 
+    private final Debouncer atSetpointDebouncer = new Debouncer(0.25, DebounceType.kRising);
+
     /**
      * A command that lines up the robot based on tracking the relative position of a single tag from the vision system
      * with PID control. We found this to be the most reliable mechanism to automatically align because it doesn't
@@ -234,7 +236,7 @@ public class CloseLineupCommand extends Command {
     @Override
     public boolean isFinished() {
         if(finishSequence.isEmpty()) {
-            if(atSetpoint()) return true;
+            if(atSetpointDebouncer.calculate(atSetpoint())) return true;
         } else {
             if(finishSequence.get().getAsBoolean()) return true;
         }
