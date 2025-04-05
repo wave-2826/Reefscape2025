@@ -48,11 +48,11 @@ public class CloseLineupCommand extends Command {
     private final BooleanConsumer lineupFeedback;
 
     private final static LoggedTunableNumber translationKp = new LoggedTunableNumber(//
-        "CloseLineup/translationKp", 7.0);
+        "CloseLineup/translationKp", 7.5);
     private final static LoggedTunableNumber translationKi = new LoggedTunableNumber(//
         "CloseLineup/translationKi", 0.0);
     private final static LoggedTunableNumber translationKd = new LoggedTunableNumber(//
-        "CloseLineup/translationKd", 0.75);
+        "CloseLineup/translationKd", 2.5);
 
     private final static LoggedTunableNumber thetaRotationKp = new LoggedTunableNumber(//
         "CloseLineup/thetaRotationKp", 7.0);
