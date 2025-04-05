@@ -47,15 +47,20 @@ public class AutoCommands {
         for(var branch : ReefBranch.values()) {
             for(var level : ReefLevel.values()) {
                 ReefTarget target = new ReefTarget(branch, level);
+                // @formatter:off
                 registerLoggedNamedCommand("Wait/Score " + branch.toString() + " " + level.toString(),
-                    Commands.defer(() -> Commands.sequence(//
-                        drive.runOnce(drive::stop), IntakeCommands.waitForPieceInArm().withTimeout(3.0), //
+                    Commands.defer(() -> Commands.sequence(
+                        drive.runOnce(drive::stop),
+                        Commands.waitUntil(() -> !IntakeCommands.waitingForPiece).withTimeout(2.5),
                         AutoScoreCommands.autoScoreCommand(drive, vision, arm, leds, target)
-                            .onlyIf(() -> !IntakeCommands.waitingForPiece)),
-                        Set.of(drive, vision, arm)));
-                registerLoggedNamedCommand("Score " + branch.toString() + " " + level.toString(),
-                    Commands.defer(() -> AutoScoreCommands.autoScoreCommand(drive, vision, arm, leds, target),
-                        Set.of(drive, vision, arm)));
+                            .onlyIf(() -> !IntakeCommands.waitingForPiece)
+                    ), Set.of(drive, vision, arm))
+                );
+                registerLoggedNamedCommand("Score " + branch.toString() + " " + level.toString(), Commands.defer(() ->
+                    AutoScoreCommands.autoScoreCommand(drive, vision, arm, leds, target),
+                    Set.of(drive, vision, arm)
+                ));
+                // @formatter:on
             }
         }
 
@@ -63,7 +68,9 @@ public class AutoCommands {
             Commands.defer(() -> scoreUntilFailure(drive, vision, arm, pieceVision, intake, leds),
                 Set.of(drive, vision, arm, pieceVision, intake)));
 
-        registerLoggedNamedCommand("Start intake", new ScheduleCommand(IntakeCommands.autoIntake(intake, arm)));
+        registerLoggedNamedCommand("Start intake",
+            new ScheduleCommand(Commands.sequence(Commands.runOnce(() -> IntakeCommands.waitingForPiece = true),
+                IntakeCommands.autoIntake(intake, arm))));
         registerLoggedNamedCommand("Intake That John", intakeThatJohn(drive, intake));
 
         registerLoggedNamedCommand("Prep arm",
