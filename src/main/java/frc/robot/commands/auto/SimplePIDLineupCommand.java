@@ -33,7 +33,7 @@ public class SimplePIDLineupCommand extends Command {
         "SimplePIDLineup/thetaRotationKd", 0.75);
 
     private final static LoggedTunableNumber translationTolerance = new LoggedTunableNumber(//
-        "SimplePIDLineup/translationTolerance", Units.inchesToMeters(3.0));
+        "SimplePIDLineup/translationTolerance", Units.inchesToMeters(6.0));
     private final static LoggedTunableNumber thetaRotationTolerance = new LoggedTunableNumber(//
         "SimplePIDLineup/thetaRotationTolerance", Units.degreesToRadians(10));
 
