@@ -74,7 +74,7 @@ public class DriveCommands {
         Supplier<Rotation2d> fieldAngle, Supplier<Rotation2d> robotAngle) {
         Container<Rotation2d> fieldAngleTarget = new Container<>(Rotation2d.kZero);
 
-        try(PIDController thetaController = new PIDController(7.0, 0.0, 0.3)) {
+        try(PIDController thetaController = new PIDController(6.5, 0.0, 0.3)) {
             thetaController.enableContinuousInput(0, Math.PI * 2);
             return Commands.sequence(Commands.runOnce(() -> {
                 thetaController.reset();

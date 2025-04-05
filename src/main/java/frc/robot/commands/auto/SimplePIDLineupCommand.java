@@ -18,34 +18,24 @@ public class SimplePIDLineupCommand extends Command {
 
     private final Pose2d targetPose;
 
-    private final static LoggedTunableNumber translationKp = new LoggedTunableNumber("CloseLineup/translationKp");
-    private final static LoggedTunableNumber translationKi = new LoggedTunableNumber("CloseLineup/translationKi");
-    private final static LoggedTunableNumber translationKd = new LoggedTunableNumber("CloseLineup/translationKd");
+    private final static LoggedTunableNumber translationKp = new LoggedTunableNumber(//
+        "SimplePIDLineup/translationKp", 7.5);
+    private final static LoggedTunableNumber translationKi = new LoggedTunableNumber(//
+        "SimplePIDLineup/translationKi", 0.0);
+    private final static LoggedTunableNumber translationKd = new LoggedTunableNumber(//
+        "SimplePIDLineup/translationKd", 1.25);
 
-    private final static LoggedTunableNumber thetaRotationKp = new LoggedTunableNumber("CloseLineup/thetaRotationKp");
-    private final static LoggedTunableNumber thetaRotationKi = new LoggedTunableNumber("CloseLineup/thetaRotationKi");
-    private final static LoggedTunableNumber thetaRotationKd = new LoggedTunableNumber("CloseLineup/thetaRotationKd");
+    private final static LoggedTunableNumber thetaRotationKp = new LoggedTunableNumber(//
+        "SimplePIDLineup/thetaRotationKp", 7.0);
+    private final static LoggedTunableNumber thetaRotationKi = new LoggedTunableNumber(//
+        "SimplePIDLineup/thetaRotationKi", 0.0);
+    private final static LoggedTunableNumber thetaRotationKd = new LoggedTunableNumber(//
+        "SimplePIDLineup/thetaRotationKd", 0.75);
 
-    private final static LoggedTunableNumber xTranslationTolerance = new LoggedTunableNumber(
-        "CloseLineup/xTranslationTolerance");
-    private final static LoggedTunableNumber yTranslationTolerance = new LoggedTunableNumber(
-        "CloseLineup/yTranslationTolerance");
-    private final static LoggedTunableNumber thetaRotationTolerance = new LoggedTunableNumber(
-        "CloseLineup/thetaRotationTolerance");
-
-    static {
-        translationKp.initDefault(5.0);
-        translationKi.initDefault(0.0);
-        translationKd.initDefault(1.5);
-
-        thetaRotationKp.initDefault(7.0);
-        thetaRotationKi.initDefault(0.0);
-        thetaRotationKd.initDefault(0.75);
-
-        xTranslationTolerance.initDefault(Units.inchesToMeters(3.0));
-        yTranslationTolerance.initDefault(Units.inchesToMeters(3.0));
-        thetaRotationTolerance.initDefault(Units.degreesToRadians(10));
-    }
+    private final static LoggedTunableNumber translationTolerance = new LoggedTunableNumber(//
+        "SimplePIDLineup/translationTolerance", Units.inchesToMeters(3.0));
+    private final static LoggedTunableNumber thetaRotationTolerance = new LoggedTunableNumber(//
+        "SimplePIDLineup/thetaRotationTolerance", Units.degreesToRadians(10));
 
     public SimplePIDLineupCommand(Drive drive, Pose2d pose) {
         this.drive = drive;
@@ -54,8 +44,8 @@ public class SimplePIDLineupCommand extends Command {
         thetaController = new PIDController(thetaRotationKp.get(), thetaRotationKi.get(), thetaRotationKd.get());
         thetaController.enableContinuousInput(0.0, Math.PI * 2);
 
-        xController.setTolerance(xTranslationTolerance.get());
-        yController.setTolerance(yTranslationTolerance.get());
+        xController.setTolerance(translationTolerance.get());
+        yController.setTolerance(translationTolerance.get());
         thetaController.setTolerance(thetaRotationTolerance.get());
 
         targetPose = pose;
@@ -86,15 +76,15 @@ public class SimplePIDLineupCommand extends Command {
         }, thetaRotationKp, thetaRotationKi, thetaRotationKd);
         LoggedTunableNumber.ifChanged(hashCode(), (double[] values) -> {
             xController.setTolerance(values[0]);
-            yController.setTolerance(values[1]);
-            thetaController.setTolerance(values[2]);
-        }, xTranslationTolerance, yTranslationTolerance, thetaRotationTolerance);
+            yController.setTolerance(values[0]);
+            thetaController.setTolerance(values[1]);
+        }, translationTolerance, thetaRotationTolerance);
 
         xController.setSetpoint(targetPose.getX());
         yController.setSetpoint(targetPose.getY());
         thetaController.setSetpoint(targetPose.getRotation().getRadians());
 
-        Logger.recordOutput("Auto/CloseLineup/TargetPose", targetPose);
+        Logger.recordOutput("Auto/SimplePIDLineup/TargetPose", targetPose);
 
         Pose2d currentPose = drive.getPose();
 

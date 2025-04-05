@@ -49,7 +49,7 @@ public class AutoCommands {
                 ReefTarget target = new ReefTarget(branch, level);
                 registerLoggedNamedCommand("Wait/Score " + branch.toString() + " " + level.toString(),
                     Commands.defer(() -> Commands.sequence(//
-                        drive.runOnce(drive::stop), IntakeCommands.waitForPieceInArm().withTimeout(1.5), //
+                        drive.runOnce(drive::stop), IntakeCommands.waitForPieceInArm().withTimeout(3.0), //
                         AutoScoreCommands.autoScoreCommand(drive, vision, arm, leds, target)
                             .onlyIf(() -> !IntakeCommands.waitingForPiece)),
                         Set.of(drive, vision, arm)));
@@ -120,17 +120,17 @@ public class AutoCommands {
     }
 
     public static Command intakeThatJohn(Drive drive, Intake intake) {
-        // @formatter:off 
-        Container<Pose2d> startPose = new Container<>(Pose2d.kZero);
+        // @formatter:off
+        Container<Pose2d> endPose = new Container<>(Pose2d.kZero);
         Container<Rotation2d> angle = new Container<>(Rotation2d.kZero);
         return Commands.sequence(
             Commands.runOnce(() -> {
-                startPose.value = drive.getPose();
                 angle.value = DriverStation.getAlliance().orElse(Alliance.Red) == Alliance.Red ? Rotation2d.kZero : Rotation2d.k180deg;
+                endPose.value = new Pose2d(drive.getPose().getTranslation(), angle.value.rotateBy(Rotation2d.fromDegrees(180 + 20.)));
             }),
             // TODO: Mirror this rotation when on the other side of the field
             DriveCommands.driveStraightCommand(
-                drive, 1.2,
+                drive, 1.3,
                 () -> angle.value, () -> angle.value.rotateBy(Rotation2d.fromDegrees(180 - 20.))
             ).until(() -> {
                 if(intake.intakeSensorTriggered()) return true;
@@ -146,7 +146,7 @@ public class AutoCommands {
                 
                 return false;
             }).withTimeout(3.0),
-            Commands.defer(() -> new SimplePIDLineupCommand(drive, startPose.value), Set.of(drive)).withTimeout(2.0)
+            Commands.defer(() -> new SimplePIDLineupCommand(drive, endPose.value), Set.of(drive)).withTimeout(2.0)
         );
         // @formatter:on
     }
