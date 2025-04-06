@@ -3,6 +3,8 @@ package frc.robot.commands.arm;
 import static edu.wpi.first.units.Units.Inches;
 import static edu.wpi.first.units.Units.Meters;
 
+import java.util.Optional;
+
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.units.measure.Distance;
@@ -113,10 +115,10 @@ public class ScoringSequenceCommands {
      * the middle arm movement before this command is run.
      * @param level
      * @param arm
-     * @param drive
+     * @param drive If null, no "drive back" is performed.
      * @return
      */
-    public static Command scoreAtLevel(ReefLevel level, Arm arm, Drive drive, Rotation2d fieldAngle) {
+    public static Command scoreAtLevel(ReefLevel level, Arm arm, Optional<Drive> drive, Rotation2d fieldAngle) {
         if(level == ReefLevel.L1) return troughScoringSequence(arm);
 
         if(level == ReefLevel.L4) {
@@ -129,7 +131,9 @@ public class ScoringSequenceCommands {
             return Commands.sequence(
                 Commands.parallel(
                     arm.goToStateCommand(scoreDownState).withTimeout(0.75),
-                    DriveCommands.driveStraightCommand(drive, Units.feetToMeters(-2.5), 0.7, () -> fieldAngle, null)
+                    drive.isPresent() 
+                        ? DriveCommands.driveStraightCommand(drive.get(), Units.feetToMeters(-2.5), 0.7, () -> fieldAngle, null)
+                        : Commands.none()
                 ),
                 arm.goToStateCommand(ArmConstants.restingState)
             );
@@ -152,11 +156,15 @@ public class ScoringSequenceCommands {
                     Commands.waitSeconds(0.2),
                     arm.goToStateCommand(scoreDownState)
                 ),
-                DriveCommands.driveStraightCommand(drive, Units.feetToMeters(2.5), 0.15, () -> fieldAngle, null)
+                drive.isPresent()
+                    ? DriveCommands.driveStraightCommand(drive.get(), Units.feetToMeters(2.5), 0.15, () -> fieldAngle, null)
+                    : Commands.none()
             ).withTimeout(0.75),
             Commands.parallel(
                 arm.goToStateCommand(scoreDownState2).withTimeout(0.75),
-                DriveCommands.driveStraightCommand(drive, Units.feetToMeters(-2), 1.25, () -> fieldAngle, null)
+                drive.isPresent()
+                    ? DriveCommands.driveStraightCommand(drive.get(), Units.feetToMeters(-2), 1.25, () -> fieldAngle, null)
+                    : Commands.none()
             )
         ).withName("ScoreAt" + level.name() + "Sequence");
         // @formatter:on

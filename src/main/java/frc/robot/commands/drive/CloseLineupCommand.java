@@ -52,7 +52,7 @@ public class CloseLineupCommand extends Command {
     private final static LoggedTunableNumber translationKi = new LoggedTunableNumber(//
         "CloseLineup/translationKi", 0.0);
     private final static LoggedTunableNumber translationKd = new LoggedTunableNumber(//
-        "CloseLineup/translationKd", 2.5);
+        "CloseLineup/translationKd", 2.0);
 
     private final static LoggedTunableNumber thetaRotationKp = new LoggedTunableNumber(//
         "CloseLineup/thetaRotationKp", 7.0);
@@ -62,7 +62,7 @@ public class CloseLineupCommand extends Command {
         "CloseLineup/thetaRotationKd", 0.3);
 
     private final static LoggedTunableNumber translationTolerance = new LoggedTunableNumber(//
-        "CloseLineup/translationTolerance", 0.35);
+        "CloseLineup/translationTolerance", 0.42);
     private final static LoggedTunableNumber thetaTolerance = new LoggedTunableNumber(//
         "CloseLineup/thetaTolerance", 1.0);
 
@@ -76,6 +76,7 @@ public class CloseLineupCommand extends Command {
 
     private final Debouncer ledDebouncer = new Debouncer(0.3, DebounceType.kFalling);
     private final Debouncer feedbackDebouncer = new Debouncer(0.15, DebounceType.kFalling);
+    private final Debouncer atSetpointDebouncer = new Debouncer(0.2, DebounceType.kRising);
 
     private boolean inRadiusDeadband = false;
     private boolean inThetaDeadband = false;
@@ -88,8 +89,6 @@ public class CloseLineupCommand extends Command {
         "CloseLineup/Deadband/ThetaInnerDeadband", 0.3); // Degrees/sec
     private final static LoggedTunableNumber thetaOuterDeadband = new LoggedTunableNumber(//
         "CloseLineup/Deadband/ThetaOuterDeadband", 1.5); // Degrees/sec
-
-    private final Debouncer atSetpointDebouncer = new Debouncer(0.25, DebounceType.kRising);
 
     /**
      * A command that lines up the robot based on tracking the relative position of a single tag from the vision system

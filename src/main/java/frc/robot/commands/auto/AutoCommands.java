@@ -52,12 +52,25 @@ public class AutoCommands {
                     Commands.defer(() -> Commands.sequence(
                         drive.runOnce(drive::stop),
                         Commands.waitUntil(() -> !IntakeCommands.waitingForPiece).withTimeout(2.5),
-                        AutoScoreCommands.autoScoreCommand(drive, vision, arm, leds, target)
+                        AutoScoreCommands.autoScoreCommand(drive, vision, arm, leds, target, true)
                             .onlyIf(() -> !IntakeCommands.waitingForPiece)
                     ), Set.of(drive, vision, arm))
                 );
                 registerLoggedNamedCommand("Score " + branch.toString() + " " + level.toString(), Commands.defer(() ->
-                    AutoScoreCommands.autoScoreCommand(drive, vision, arm, leds, target),
+                    AutoScoreCommands.autoScoreCommand(drive, vision, arm, leds, target, true),
+                    Set.of(drive, vision, arm)
+                ));
+                
+                registerLoggedNamedCommand("Fast Wait/Score " + branch.toString() + " " + level.toString(),
+                    Commands.defer(() -> Commands.sequence(
+                        drive.runOnce(drive::stop),
+                        Commands.waitUntil(() -> !IntakeCommands.waitingForPiece).withTimeout(2.5),
+                        AutoScoreCommands.autoScoreCommand(drive, vision, arm, leds, target, false)
+                            .onlyIf(() -> !IntakeCommands.waitingForPiece)
+                    ), Set.of(drive, vision, arm))
+                );
+                registerLoggedNamedCommand("Fast Score " + branch.toString() + " " + level.toString(), Commands.defer(() ->
+                    AutoScoreCommands.autoScoreCommand(drive, vision, arm, leds, target, false),
                     Set.of(drive, vision, arm)
                 ));
                 // @formatter:on
@@ -122,7 +135,7 @@ public class AutoCommands {
                     // Should never happen... 
                 }
 
-                return AutoScoreCommands.autoScoreCommand(drive, vision, arm, leds, nextAvailableTarget);
+                return AutoScoreCommands.autoScoreCommand(drive, vision, arm, leds, nextAvailableTarget, true);
             }, Set.of(drive, vision, arm)).unless(() -> grabbingCoralFailed) //
         ).repeatedly().until(() -> grabbingCoralFailed)).withName("ScoreUntilFailure");
     }

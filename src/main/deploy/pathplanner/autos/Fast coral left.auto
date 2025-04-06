@@ -1,0 +1,91 @@
+{
+  "version": "2025.0",
+  "command": {
+    "type": "sequential",
+    "data": {
+      "commands": [
+        {
+          "type": "named",
+          "data": {
+            "name": "Prep arm"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Fast coral left.0"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Fast Score K L4"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Start intake"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Fast coral left.2"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Intake That John"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Fast coral left.3"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Fast Wait/Score A L4"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Start intake"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Fast coral left.5"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Intake That John"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Fast coral left.6"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Wait/Score B L4"
+          }
+        }
+      ]
+    }
+  },
+  "resetOdom": true,
+  "folder": null,
+  "choreoAuto": true
+}

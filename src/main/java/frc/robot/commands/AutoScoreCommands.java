@@ -153,16 +153,20 @@ public class AutoScoreCommands {
     /**
      * Gets a command that automatically scores at the selected level on the driver station interface. This is the
      * version of our automatic scoring mechanism intended for use in autonomous.
+     * <p>
+     * Unlike the teleop version, this doesn't drive backward after scoring.
      * @param drive The drive subsystem
      * @param vision The vision subsystem
      * @param arm The arm subsystem
      * @param leds The LEDs subsystem
      * @param target The target to score at
+     * @param driveBackward If the robot should drive backward after scoring.
      * @return
      */
-    public static Command autoScoreCommand(Drive drive, Vision vision, Arm arm, LEDs leds, ReefTarget target) {
+    public static Command autoScoreCommand(Drive drive, Vision vision, Arm arm, LEDs leds, ReefTarget target,
+        boolean driveBackward) {
         return autoScoreCommand(drive, vision, arm, leds, target, Optional.empty(), () -> false, () -> 0, () -> 0, null,
-            () -> true);
+            () -> true, driveBackward);
     }
 
     /**
@@ -185,7 +189,7 @@ public class AutoScoreCommands {
      */
     public static Command autoScoreCommand(Drive drive, Vision vision, Arm arm, LEDs leds, ReefTarget target,
         Optional<BooleanSupplier> finishSequence, BooleanSupplier finishSequenceSlow, DoubleSupplier tweakX,
-        DoubleSupplier tweakY, BooleanConsumer lineupFeedback, BooleanSupplier useArmLineup) {
+        DoubleSupplier tweakY, BooleanConsumer lineupFeedback, BooleanSupplier useArmLineup, boolean driveBackward) {
         double distanceAwayInches;
         if(target.level() == ReefLevel.L1) {
             distanceAwayInches = robotReefLineupL1Distance.get();
@@ -207,11 +211,13 @@ public class AutoScoreCommands {
                     Commands.none(),
                     // During close lineup
                     ScoringSequenceCommands.middleArmMovement(target.level(), arm), tweakX, tweakY, finish,
-                    lineupFeedback).onlyIf(useArmLineup).withTimeout(DriverStation.isAutonomous() ? 4.25 : 10000);
+                    lineupFeedback).onlyIf(useArmLineup).withTimeout(DriverStation.isAutonomous() ? 4. : 10000);
             }, Set.of(drive)), //
             Commands.select(Map.of(//
                 false,
-                ScoringSequenceCommands.scoreAtLevel(target.level(), arm, drive, target.branch().face.getFieldAngle())
+                ScoringSequenceCommands
+                    .scoreAtLevel(target.level(), arm, driveBackward ? Optional.of(drive) : Optional.empty(),
+                        target.branch().face.getFieldAngle())
                     .raceWith(leds.runStateCommand(LEDState.AutoScoring)).onlyIf(useArmLineup),
                 true, ScoringSequenceCommands.scoreAtLevelSlowly(target.level(), arm)
                     .raceWith(leds.runStateCommand(LEDState.AutoScoring)).onlyIf(useArmLineup) //
@@ -239,7 +245,7 @@ public class AutoScoreCommands {
 
         return new RestartWhenCommand(
             () -> autoScoreCommand(drive, vision, arm, leds, state.target, Optional.of(finishSequence),
-                finishSequenceSlow, tweakX, tweakY, lineupFeedback, useArmLineup),
+                finishSequenceSlow, tweakX, tweakY, lineupFeedback, useArmLineup, true),
 
             // Restart when our target changes
             () -> {
