@@ -52,7 +52,7 @@ public class CloseLineupCommand extends Command {
     private final static LoggedTunableNumber translationKi = new LoggedTunableNumber(//
         "CloseLineup/translationKi", 0.0);
     private final static LoggedTunableNumber translationKd = new LoggedTunableNumber(//
-        "CloseLineup/translationKd", 1.3);
+        "CloseLineup/translationKd", 1.5);
 
     private final static LoggedTunableNumber thetaRotationKp = new LoggedTunableNumber(//
         "CloseLineup/thetaRotationKp", 7.0);
@@ -62,7 +62,7 @@ public class CloseLineupCommand extends Command {
         "CloseLineup/thetaRotationKd", 0.3);
 
     private final static LoggedTunableNumber translationTolerance = new LoggedTunableNumber(//
-        "CloseLineup/translationTolerance", 0.45);
+        "CloseLineup/translationTolerance", 0.5);
     private final static LoggedTunableNumber thetaTolerance = new LoggedTunableNumber(//
         "CloseLineup/thetaTolerance", 1.0);
 
@@ -76,7 +76,7 @@ public class CloseLineupCommand extends Command {
 
     private final Debouncer ledDebouncer = new Debouncer(0.3, DebounceType.kFalling);
     private final Debouncer feedbackDebouncer = new Debouncer(0.15, DebounceType.kFalling);
-    private final Debouncer atSetpointDebouncer = new Debouncer(0.1, DebounceType.kRising);
+    private final Debouncer atSetpointDebouncer = new Debouncer(0.05, DebounceType.kRising);
 
     private boolean inRadiusDeadband = false;
     private boolean inThetaDeadband = false;
