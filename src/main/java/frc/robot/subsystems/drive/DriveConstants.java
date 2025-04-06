@@ -54,8 +54,8 @@ public class DriveConstants {
     public static final boolean USE_SETPOINT_GENERATOR = false;
 
     // Drive motor configuration
-    public static final int driveMotorCurrentLimit = 75;
-    public static final double wheelRadiusMeters = Units.inchesToMeters(1.953); // "Magic" number from wheel radius characterization
+    public static final int driveMotorCurrentLimit = 70;
+    public static final double wheelRadiusMeters = Units.inchesToMeters(1.962); // "Magic" number from wheel radius characterization
     public static final double driveMotorReduction = Mk4Reductions.L2.reduction;
     public static final DCMotor driveSimMotor = DCMotor.getNeoVortex(1);
 
@@ -122,7 +122,7 @@ public class DriveConstants {
      * Currently roughly ~8.95.
      */
     public static final double robotMOIKgSqM = robotMassKg * driveBaseRadius * driveKa / 0.042656;
-    public static final double wheelCOF = 1.355; // "Magic" number from slip current measurement
+    public static final double wheelCOF = 1.048; // "Magic" number from slip current measurement
 
     public static final RobotConfig pathplannerConfig = new RobotConfig(robotMassKg, robotMOIKgSqM,
         new ModuleConfig(wheelRadiusMeters, maxSpeedMetersPerSec, wheelCOF,
