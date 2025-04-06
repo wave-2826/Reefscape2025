@@ -65,7 +65,7 @@ public class AutoCommands {
                 registerLoggedNamedCommand("Fast Wait/Score " + branch.toString() + " " + level.toString(),
                     Commands.defer(() -> Commands.sequence(
                         drive.runOnce(drive::stop),
-                        Commands.waitUntil(() -> !IntakeCommands.waitingForPiece).withTimeout(2.5),
+                        Commands.waitUntil(() -> !IntakeCommands.waitingForPiece).withTimeout(1.5),
                         AutoScoreCommands.autoScoreCommand(drive, vision, arm, leds, target, false)
                             .onlyIf(() -> !IntakeCommands.waitingForPiece)
                     ), Set.of(drive, vision, arm))
@@ -146,6 +146,7 @@ public class AutoCommands {
         Container<Pose2d> endPose = new Container<>(Pose2d.kZero);
         Container<Rotation2d> angle = new Container<>(Rotation2d.kZero);
         Container<Boolean> isLeft = new Container<>(false);
+        double moveSpeedMPS = Units.feetToMeters(5);
         return Commands.sequence(
             Commands.runOnce(() -> {
                 var bluePose = AutoBuilder.shouldFlip() ? FlippingUtil.flipFieldPose(drive.getPose()) : drive.getPose();
@@ -156,7 +157,7 @@ public class AutoCommands {
             }),
             // TODO: Mirror this rotation when on the other side of the field
             DriveCommands.driveStraightCommand(
-                drive, Units.feetToMeters(5),
+                drive, moveSpeedMPS,
                 () -> angle.value, () -> angle.value.rotateBy(Rotation2d.fromDegrees(180 + (isLeft.value ? 20 : -20)))
             ).until(() -> {
                 if(intake.intakeSensorTriggered()) return true;
