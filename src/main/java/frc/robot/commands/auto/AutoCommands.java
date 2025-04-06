@@ -146,7 +146,7 @@ public class AutoCommands {
         Container<Pose2d> endPose = new Container<>(Pose2d.kZero);
         Container<Rotation2d> angle = new Container<>(Rotation2d.kZero);
         Container<Boolean> isLeft = new Container<>(false);
-        double moveSpeedMPS = Units.feetToMeters(5);
+        double moveSpeedMPS = Units.feetToMeters(6);
         return Commands.sequence(
             Commands.runOnce(() -> {
                 var bluePose = AutoBuilder.shouldFlip() ? FlippingUtil.flipFieldPose(drive.getPose()) : drive.getPose();

@@ -114,7 +114,7 @@ public class DriveConstants {
     public static final double turnPIDMaxInput = Math.PI; // Radians
 
     // PathPlanner configuration
-    public static final double robotMassKg = Units.lbsToKilograms(114.5 + 13 + 13);
+    public static final double robotMassKg = Units.lbsToKilograms(114.6 + 13 + 13);
     /**
      * The moment of inertia of the robot, in KG*M^2. Based on SysId:
      * https://pathplanner.dev/robot-config.html#calculating-moi-through-sysid-recommended
