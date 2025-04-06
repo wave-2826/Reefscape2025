@@ -12,6 +12,7 @@ import com.pathplanner.lib.util.FlippingUtil;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -155,7 +156,7 @@ public class AutoCommands {
             }),
             // TODO: Mirror this rotation when on the other side of the field
             DriveCommands.driveStraightCommand(
-                drive, 1.3,
+                drive, Units.feetToMeters(5),
                 () -> angle.value, () -> angle.value.rotateBy(Rotation2d.fromDegrees(180 + (isLeft.value ? 20 : -20)))
             ).until(() -> {
                 if(intake.intakeSensorTriggered()) return true;

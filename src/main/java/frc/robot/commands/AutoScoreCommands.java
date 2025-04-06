@@ -216,8 +216,7 @@ public class AutoScoreCommands {
             Commands.select(Map.of(//
                 false,
                 ScoringSequenceCommands
-                    .scoreAtLevel(target.level(), arm, driveBackward ? Optional.of(drive) : Optional.empty(),
-                        target.branch().face.getFieldAngle())
+                    .scoreAtLevel(target.level(), arm, drive, target.branch().face.getFieldAngle(), !driveBackward)
                     .raceWith(leds.runStateCommand(LEDState.AutoScoring)).onlyIf(useArmLineup),
                 true, ScoringSequenceCommands.scoreAtLevelSlowly(target.level(), arm)
                     .raceWith(leds.runStateCommand(LEDState.AutoScoring)).onlyIf(useArmLineup) //

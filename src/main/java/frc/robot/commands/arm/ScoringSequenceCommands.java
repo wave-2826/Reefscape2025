@@ -3,14 +3,13 @@ package frc.robot.commands.arm;
 import static edu.wpi.first.units.Units.Inches;
 import static edu.wpi.first.units.Units.Meters;
 
-import java.util.Optional;
-
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.ScheduleCommand;
 import frc.robot.Constants;
 import frc.robot.FieldConstants.ReefLevel;
 import frc.robot.commands.drive.DriveCommands;
@@ -118,7 +117,8 @@ public class ScoringSequenceCommands {
      * @param drive If null, no "drive back" is performed.
      * @return
      */
-    public static Command scoreAtLevel(ReefLevel level, Arm arm, Optional<Drive> drive, Rotation2d fieldAngle) {
+    public static Command scoreAtLevel(ReefLevel level, Arm arm, Drive drive, Rotation2d fieldAngle,
+        boolean minimalBackUp) {
         if(level == ReefLevel.L1) return troughScoringSequence(arm);
 
         if(level == ReefLevel.L4) {
@@ -131,11 +131,14 @@ public class ScoringSequenceCommands {
             return Commands.sequence(
                 Commands.parallel(
                     arm.goToStateCommand(scoreDownState).withTimeout(0.75),
-                    drive.isPresent() 
-                        ? DriveCommands.driveStraightCommand(drive.get(), Units.feetToMeters(-2.5), 0.7, () -> fieldAngle, null)
-                        : Commands.none()
+                    DriveCommands.driveStraightCommand(drive, Units.feetToMeters(minimalBackUp ? -4 : -2.5), minimalBackUp ? 0.2 : 0.7, () -> fieldAngle, null)
                 ),
-                arm.goToStateCommand(ArmConstants.restingState)
+                minimalBackUp
+                    ? new ScheduleCommand(Commands.sequence(
+                        Commands.waitSeconds(0.25),
+                        arm.goToStateCommand(ArmConstants.restingState)
+                    ))
+                    : arm.goToStateCommand(ArmConstants.restingState)
             );
             // @formatter:on
         }
@@ -156,15 +159,11 @@ public class ScoringSequenceCommands {
                     Commands.waitSeconds(0.2),
                     arm.goToStateCommand(scoreDownState)
                 ),
-                drive.isPresent()
-                    ? DriveCommands.driveStraightCommand(drive.get(), Units.feetToMeters(2.5), 0.15, () -> fieldAngle, null)
-                    : Commands.none()
+                DriveCommands.driveStraightCommand(drive, Units.feetToMeters(2.5), 0.15, () -> fieldAngle, null)
             ).withTimeout(0.75),
             Commands.parallel(
                 arm.goToStateCommand(scoreDownState2).withTimeout(0.75),
-                drive.isPresent()
-                    ? DriveCommands.driveStraightCommand(drive.get(), Units.feetToMeters(-2), 1.25, () -> fieldAngle, null)
-                    : Commands.none()
+                DriveCommands.driveStraightCommand(drive, Units.feetToMeters(minimalBackUp ? -4 : -2), minimalBackUp ? 0.3 : 1.25, () -> fieldAngle, null)
             )
         ).withName("ScoreAt" + level.name() + "Sequence");
         // @formatter:on
