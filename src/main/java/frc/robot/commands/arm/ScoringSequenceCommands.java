@@ -131,11 +131,11 @@ public class ScoringSequenceCommands {
             return Commands.sequence(
                 Commands.parallel(
                     arm.goToStateCommand(scoreDownState).withTimeout(0.75),
-                    DriveCommands.driveStraightCommand(drive, Units.feetToMeters(minimalBackUp ? -2.75 : -2.5), minimalBackUp ? 0.2 : 0.7, () -> fieldAngle, null)
+                    DriveCommands.driveStraightCommand(drive, -2.5, 0.7, () -> fieldAngle, null).onlyIf(() -> !minimalBackUp)
                 ),
                 minimalBackUp
                     ? new ScheduleCommand(Commands.sequence(
-                        Commands.waitSeconds(0.25),
+                        Commands.waitSeconds(0.4),
                         arm.goToStateCommand(ArmConstants.restingState)
                     ))
                     : arm.goToStateCommand(ArmConstants.restingState)

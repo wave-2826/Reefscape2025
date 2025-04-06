@@ -134,7 +134,10 @@ public class AutoScoreCommands {
                     reefFace.getAprilTagID(),
                     tagRelativeOffset, getFieldRelativeOffset,
                     finishSequence, lineupFeedback
-                ) // Final adjustment
+                ).withTimeout(DriverStation.isAutonomous() ? 4.0 : 10000).until(() -> {
+                    // Last ditch effort at the end of auto
+                    return DriverStation.isAutonomous() && DriverStation.getMatchTime() < 1.;
+                }) // Final adjustment
             ) // Run during final adjustment
         ).finallyDo(() -> {
             Logger.recordOutput("AutoScore/RunningCloseLineup", false);

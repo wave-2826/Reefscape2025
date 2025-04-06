@@ -49,7 +49,7 @@ public class Controls {
     private final CommandXboxController operator = new CommandXboxController(1);
 
     private final LoggedTunableNumber endgameAlert1Time = new LoggedTunableNumber("Controls/EndgameAlert1Time", 30.0);
-    private final LoggedTunableNumber endgameAlert2Time = new LoggedTunableNumber("Controls/EndgameAlert2Time", 15.0);
+    private final LoggedTunableNumber endgameAlert2Time = new LoggedTunableNumber("Controls/EndgameAlert2Time", 20.0);
 
     private final Trigger normalOperator;
     private final Trigger operatorOverride;
@@ -154,9 +154,9 @@ public class Controls {
         Trigger endgameAlert2Trigger = new Trigger(() -> DriverStation.isTeleopEnabled()
             && DriverStation.getMatchTime() > 0 && DriverStation.getMatchTime() <= endgameAlert2Time.get());
 
-        endgameAlert1Trigger.onTrue(controllerRumbleWhileRunning(true, false, RumbleType.kLeftRumble).withTimeout(0.5));
-        endgameAlert2Trigger.onTrue(controllerRumbleWhileRunning(true, false, RumbleType.kLeftRumble).withTimeout(0.2)
-            .andThen(Commands.waitSeconds(0.1)).repeatedly().withTimeout(0.9)); // Rumble three times
+        endgameAlert1Trigger.onTrue(controllerRumbleWhileRunning(true, true, RumbleType.kBothRumble).withTimeout(0.5));
+        endgameAlert2Trigger.onTrue(controllerRumbleWhileRunning(true, true, RumbleType.kBothRumble).withTimeout(0.4)
+            .andThen(Commands.waitSeconds(0.3)).repeatedly().withTimeout(2.0));
     }
 
     private void configureNormalOperatorControls(Drive drive, SwerveDriveSimulation driveSimulation, Arm arm,
