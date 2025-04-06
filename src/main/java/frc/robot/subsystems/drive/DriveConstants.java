@@ -122,7 +122,7 @@ public class DriveConstants {
      * Currently roughly ~8.95.
      */
     public static final double robotMOIKgSqM = robotMassKg * driveBaseRadius * driveKa / 0.042656;
-    public static final double wheelCOF = 1.048; // "Magic" number from slip current measurement
+    public static final double wheelCOF = 1.121; // "Magic" number from slip current measurement
 
     public static final RobotConfig pathplannerConfig = new RobotConfig(robotMassKg, robotMOIKgSqM,
         new ModuleConfig(wheelRadiusMeters, maxSpeedMetersPerSec, wheelCOF,
