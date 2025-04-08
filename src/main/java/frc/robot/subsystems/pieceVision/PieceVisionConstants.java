@@ -12,7 +12,7 @@ public class PieceVisionConstants {
         Units.inchesToMeters(0.0), // Left is +Y
         Units.inchesToMeters(33.5) // Up is +Z
     ), // TODO
-        new Rotation3d(0, Units.degreesToRadians(15.), 0).rotateBy(new Rotation3d(0, 0, Math.PI)));
+        new Rotation3d(0, Units.degreesToRadians(35.), 0).rotateBy(new Rotation3d(0, 0, Math.PI)));
 
     /** The hostname of the camera. */
     public static final String cameraHostname = "limelight";
