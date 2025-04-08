@@ -9,4 +9,7 @@ Features:
 - Full field simulation with [maple-sim](https://github.com/Shenzhen-Robotics-Alliance/maple-sim)
 - Vision-based ground piece acquisition in autonomous using a custom AI model
 
-![uppercut](https://github.com/user-attachments/assets/d6c4f154-b9a6-4b5d-bf53-8ec521317418)
+<br />
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/d6c4f154-b9a6-4b5d-bf53-8ec521317418" height="700px" />
+</p>
