@@ -21,6 +21,7 @@ import edu.wpi.first.wpilibj2.command.ScheduleCommand;
 import frc.robot.FieldConstants;
 import frc.robot.FieldConstants.ReefBranch;
 import frc.robot.FieldConstants.ReefLevel;
+import frc.robot.RobotState;
 import frc.robot.commands.AutoScoreCommands;
 import frc.robot.commands.LoggedCommand;
 import frc.robot.commands.drive.DriveCommands;
@@ -105,7 +106,8 @@ public class AutoCommands {
         return Commands.sequence(Commands.runOnce(() -> {
             grabbingCoralFailed = false;
             scoringPositionsAvailable.clear();
-            var bluePose = AutoBuilder.shouldFlip() ? FlippingUtil.flipFieldPose(drive.getPose()) : drive.getPose();
+            var bluePose = AutoBuilder.shouldFlip() ? FlippingUtil.flipFieldPose(RobotState.getInstance().getPose())
+                : RobotState.getInstance().getPose();
 
             if(bluePose.getY() > FieldConstants.fieldWidth / 2.) {
                 // If on the left side of the field
@@ -149,11 +151,11 @@ public class AutoCommands {
         double moveSpeedMPS = Units.feetToMeters(6);
         return Commands.sequence(
             Commands.runOnce(() -> {
-                var bluePose = AutoBuilder.shouldFlip() ? FlippingUtil.flipFieldPose(drive.getPose()) : drive.getPose();
+                var bluePose = AutoBuilder.shouldFlip() ? FlippingUtil.flipFieldPose(RobotState.getInstance().getPose()) : RobotState.getInstance().getPose();
 
                 isLeft.value = bluePose.getY() > FieldConstants.fieldWidth / 2.;
                 angle.value = DriverStation.getAlliance().orElse(Alliance.Red) == Alliance.Red ? Rotation2d.kZero : Rotation2d.k180deg;
-                endPose.value = new Pose2d(drive.getPose().getTranslation(), angle.value.rotateBy(Rotation2d.fromDegrees(180 + (isLeft.value ? -20 : 20))));
+                endPose.value = new Pose2d(RobotState.getInstance().getPose().getTranslation(), angle.value.rotateBy(Rotation2d.fromDegrees(180 + (isLeft.value ? -20 : 20))));
             }),
             // TODO: Mirror this rotation when on the other side of the field
             DriveCommands.driveStraightCommand(
@@ -163,7 +165,7 @@ public class AutoCommands {
                 if(intake.intakeSensorTriggered()) return true;
 
                 // If the robot is at risk of running into the wall, stop.
-                var robotPosition = drive.getPose();
+                var robotPosition = RobotState.getInstance().getPose();
                 var nextPosition = robotPosition.exp(drive.getChassisSpeeds().toTwist2d(0.75));
                 if(nextPosition.getX() < 0.0 || nextPosition.getY() < 0.0
                     || nextPosition.getX() > FieldConstants.fieldLength

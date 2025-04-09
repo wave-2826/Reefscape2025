@@ -23,6 +23,7 @@ import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.util.function.BooleanConsumer;
 import edu.wpi.first.wpilibj2.command.Command;
+import frc.robot.RobotState;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.leds.LEDs;
 import frc.robot.subsystems.leds.LEDs.LEDState;
@@ -142,7 +143,7 @@ public class CloseLineupCommand extends Command {
     public void initialize() {
         inRadiusDeadband = false;
         inThetaDeadband = false;
-        driveController.getThetaController().reset(drive.getRotation().getRadians());
+        driveController.getThetaController().reset(RobotState.getInstance().getRotation().getRadians());
     }
 
     private boolean atSetpoint() {
@@ -174,7 +175,7 @@ public class CloseLineupCommand extends Command {
             driveController.getThetaController().setConstraints(new TrapezoidProfile.Constraints(values[0], values[1]));
         }, maxVelocity, maxAcceleration);
 
-        Pose2d correctedCurrentPose = drive.getPose();
+        Pose2d correctedCurrentPose = RobotState.getInstance().getPose();
         Transform3d robotToTag = useSingleTag.getAsBoolean() ? vision.getRobotToTag(tagToTrack) : null;
         Pose2d fieldTagPose = VisionConstants.aprilTagLayout.getTagPose(tagToTrack).get().toPose2d();
 

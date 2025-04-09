@@ -20,7 +20,7 @@ import edu.wpi.first.wpilibj.simulation.DCMotorSim;
 import edu.wpi.first.wpilibj.simulation.DIOSim;
 import edu.wpi.first.wpilibj.simulation.RoboRioSim;
 import edu.wpi.first.wpilibj.simulation.SingleJointedArmSim;
-import frc.robot.SimRobotGamePiece;
+import frc.robot.util.sim.SimRobotGamePiece;
 
 public class IntakeIOSim extends IntakeIOReal {
     /** The maximum pitch above the ground that allows us to intake a game piece. */

@@ -3,8 +3,6 @@ package frc.robot.subsystems.arm;
 import static edu.wpi.first.units.Units.Meters;
 import static frc.robot.util.SparkUtil.*;
 
-import java.util.function.DoubleSupplier;
-
 import org.littletonrobotics.junction.Logger;
 
 import com.revrobotics.AbsoluteEncoder;
@@ -12,7 +10,6 @@ import com.revrobotics.RelativeEncoder;
 import com.revrobotics.spark.SparkClosedLoopController;
 import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.ClosedLoopSlot;
-import com.revrobotics.spark.SparkBase;
 import com.revrobotics.spark.SparkBase.ControlType;
 import com.revrobotics.spark.SparkBase.PersistMode;
 import com.revrobotics.spark.SparkBase.ResetMode;
@@ -361,7 +358,7 @@ public class ArmIOReal implements ArmIO {
         // Positive velocity is outward.
         var velocity = state.getVelocityControl();
         if(velocity.isPresent()) {
-            endEffectorController.setReference(velocity.get(), ControlType.kVelocity,
+            endEffectorController.setReference(velocity.getAsDouble(), ControlType.kVelocity,
                 ArmConstants.EndEffectorConstants.endEffectorVelocitySlot);
             endEffectorWasHolding = false;
         } else {

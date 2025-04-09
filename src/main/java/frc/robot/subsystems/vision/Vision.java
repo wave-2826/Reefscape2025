@@ -2,31 +2,25 @@ package frc.robot.subsystems.vision;
 
 import static frc.robot.subsystems.vision.VisionConstants.*;
 
-import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.VecBuilder;
-import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
-import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform3d;
-import edu.wpi.first.math.numbers.N1;
-import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
+import frc.robot.RobotState;
 import frc.robot.subsystems.vision.VisionIO.SingleApriltagResult;
 import frc.robot.util.LoggedTracer;
 
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.function.Supplier;
 
 import org.littletonrobotics.junction.Logger;
 
 public class Vision extends SubsystemBase {
-    private final VisionConsumer consumer;
     private final VisionIO[] io;
     private final VisionIOInputsAutoLogged[] inputs;
     private final Alert[] disconnectedAlerts;
@@ -42,16 +36,8 @@ public class Vision extends SubsystemBase {
      */
     private final HashMap<Integer, RobotToTag> robotToIndividualTags = new HashMap<>();
 
-    /**
-     * Used to get the current gyro reading so we can reject poses whose angle is sufficiently far from our current
-     * predicted angle.
-     */
-    private final Supplier<Rotation2d> getSwerveRotation;
-
-    public Vision(VisionConsumer consumer, Supplier<Rotation2d> getSwerveRotation, VisionIO... io) {
-        this.consumer = consumer;
+    public Vision(VisionIO... io) {
         this.io = io;
-        this.getSwerveRotation = getSwerveRotation;
 
         // Initialize inputs
         this.inputs = new VisionIOInputsAutoLogged[io.length];
@@ -172,7 +158,7 @@ public class Vision extends SubsystemBase {
                     || pose.getX() < 0.0 || pose.getX() > aprilTagLayout.getFieldLength() || pose.getY() < 0.0
                     || pose.getY() > aprilTagLayout.getFieldWidth()
 
-                    || Math.abs(pose.getRotation().toRotation2d().minus(getSwerveRotation.get())
+                    || Math.abs(pose.getRotation().toRotation2d().minus(RobotState.getInstance().getRotation())
                         .getDegrees()) > maxRotationError;
 
                 // Add pose to log
@@ -193,7 +179,7 @@ public class Vision extends SubsystemBase {
                 }
 
                 // Send vision observation
-                consumer.accept(pose.toPose2d(), observation.timestamp(),
+                RobotState.getInstance().addVisionMeasurement(pose.toPose2d(), observation.timestamp(),
                     VecBuilder.fill(linearStdDev, linearStdDev, angularStdDev));
             }
 
@@ -264,11 +250,5 @@ public class Vision extends SubsystemBase {
             names[cameraIndex] = io[cameraIndex].getName();
         }
         return names;
-    }
-
-    @FunctionalInterface
-    public static interface VisionConsumer {
-        public void accept(Pose2d visionRobotPoseMeters, double timestampSeconds,
-            Matrix<N3, N1> visionMeasurementStdDevs);
     }
 }

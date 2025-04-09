@@ -17,6 +17,7 @@ import frc.robot.subsystems.drive.DriveConstants;
 import frc.robot.subsystems.intake.Intake;
 import frc.robot.util.Container;
 import frc.robot.FieldConstants;
+import frc.robot.RobotState;
 import frc.robot.commands.intake.IntakeCommands;
 
 public class GetCoralCommand {
@@ -74,7 +75,7 @@ public class GetCoralCommand {
                         var positionOnPath = (Timer.getTimestamp() - startTime.value) * lineFollowSpeed.get();
 
                         // Get the robot's position relative to the line.
-                        var robotPosition = drive.getPose();
+                        var robotPosition = RobotState.getInstance().getPose();
                         var linePosition = targetLine.getPoseAtDistance(positionOnPath);
                         Logger.recordOutput("Auto/GetCoralTargetPose", linePosition);
 
@@ -99,7 +100,7 @@ public class GetCoralCommand {
                         }
 
                         // If the robot is at risk of running into the wall, stop.
-                        var robotPosition = drive.getPose();
+                        var robotPosition = RobotState.getInstance().getPose();
                         var nextPosition = robotPosition.exp(drive.getChassisSpeeds().toTwist2d(0.3));
                         if(nextPosition.getX() < 0.0 || nextPosition.getY() < 0.0
                             || nextPosition.getX() > FieldConstants.fieldLength

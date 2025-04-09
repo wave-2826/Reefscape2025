@@ -1,6 +1,5 @@
 package frc.robot.subsystems.drive;
 
-import static frc.robot.subsystems.drive.DriveConstants.driveBaseRadius;
 import static frc.robot.subsystems.drive.DriveConstants.maxSpeedMetersPerSec;
 import static frc.robot.subsystems.drive.DriveConstants.maxSteerVelocity;
 import static frc.robot.subsystems.drive.DriveConstants.moduleTranslations;
@@ -13,18 +12,13 @@ import com.pathplanner.lib.util.DriveFeedforwards;
 import com.pathplanner.lib.util.PathPlannerLogging;
 import com.pathplanner.lib.util.swerve.SwerveSetpoint;
 import com.pathplanner.lib.util.swerve.SwerveSetpointGenerator;
-import edu.wpi.first.math.Matrix;
-import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Twist2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
-import edu.wpi.first.math.numbers.N1;
-import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj.DriverStation;
@@ -34,15 +28,15 @@ import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 import frc.robot.FieldConstants;
+import frc.robot.RobotState;
 import frc.robot.Constants.Mode;
 import frc.robot.subsystems.leds.LEDs;
-import frc.robot.util.DriverStationInterface;
 import frc.robot.util.LocalADStarAK;
 import frc.robot.util.LoggedTracer;
 
+import java.util.Optional;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.function.Consumer;
 
 import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
@@ -59,12 +53,7 @@ public class Drive extends SubsystemBase {
     private final Alert gyroDisconnectedAlert = new Alert("Disconnected gyro, using kinematics as fallback.",
         AlertType.kError);
 
-    private SwerveDriveKinematics kinematics = new SwerveDriveKinematics(moduleTranslations);
-    private Rotation2d rawGyroRotation = Rotation2d.kZero;
-    // For delta tracking
-    private SwerveModulePosition[] lastModulePositions = new SwerveModulePosition[] {
-        new SwerveModulePosition(), new SwerveModulePosition(), new SwerveModulePosition(), new SwerveModulePosition()
-    };
+    public SwerveDriveKinematics kinematics = new SwerveDriveKinematics(DriveConstants.moduleTranslations);
 
     // See https://pathplanner.dev/pplib-swerve-setpoint-generator.html
     // We use PathPlanner's variation of 254's setpoint generator which takes a prior setpoint,
@@ -81,10 +70,6 @@ public class Drive extends SubsystemBase {
     /** The latest speed setpoint for velocity control. */
     private ChassisSpeeds latestSpeedSetpoint = new ChassisSpeeds();
 
-    private SwerveDrivePoseEstimator poseEstimator = new SwerveDrivePoseEstimator(kinematics, rawGyroRotation,
-        lastModulePositions, Pose2d.kZero);
-
-    private final Consumer<Pose2d> resetSimulationPoseCallBack;
     /** The acceleration that needs to be experienced for an "abrupt stop". */
     private final static double ABRUPT_STOP_THRESHOLD_GS = 7.0;
     /** Whether the robot experienced an abrupt stop last loop iteration. Used to avoid multiple callbacks. */
@@ -111,10 +96,8 @@ public class Drive extends SubsystemBase {
      * @param resetSimulationPoseCallBack A callback that will be called when the robot pose is updated, like at the
      *            start of autonomous. This is used to also reset the pose in simulation.
      */
-    public Drive(GyroIO gyroIO, ModuleIO flModuleIO, ModuleIO frModuleIO, ModuleIO blModuleIO, ModuleIO brModuleIO,
-        Consumer<Pose2d> resetSimulationPoseCallBack) {
+    public Drive(GyroIO gyroIO, ModuleIO flModuleIO, ModuleIO frModuleIO, ModuleIO blModuleIO, ModuleIO brModuleIO) {
         this.gyroIO = gyroIO;
-        this.resetSimulationPoseCallBack = resetSimulationPoseCallBack;
 
         modules[0] = new Module(flModuleIO, "FrontLeft");
         modules[1] = new Module(frModuleIO, "FrontRight");
@@ -125,7 +108,9 @@ public class Drive extends SubsystemBase {
         SparkOdometryThread.getInstance().start();
 
         // Configure AutoBuilder for PathPlanner
-        AutoBuilder.configure(this::getPose, this::setPose, this::getChassisSpeeds, this::runVelocityWithFeedforward,
+        var robotState = RobotState.getInstance();
+        AutoBuilder.configure(robotState::getPose, this::setPose, this::getChassisSpeeds,
+            this::runVelocityWithFeedforward,
             Constants.isSim ? DriveConstants.simHolonomicDriveController : DriveConstants.realHolonomicDriveController,
             // TODO: WHY DOESN'T THIS FLIP ON THE FMS?? ahghghghhhh
             pathplannerConfig, () -> DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red, this);
@@ -271,6 +256,14 @@ public class Drive extends SubsystemBase {
         return states;
     }
 
+    /**
+     * Resets the odometry to the specified pose. Used at the start of autonomous to tell the robot where it is.
+     * @return
+     */
+    public void setPose(Pose2d pose) {
+        RobotState.getInstance().setPose(pose, getModulePositions());
+    }
+
     /** Returns the measured chassis speeds of the robot. */
     @AutoLogOutput(key = "SwerveChassisSpeeds/Measured")
     public ChassisSpeeds getChassisSpeeds() {
@@ -314,45 +307,6 @@ public class Drive extends SubsystemBase {
         for(int i = 0; i < 4; i++) modules[i].setSlipMeasurementCurrentLimit(amps);
     }
 
-    /** Returns the current odometry pose. */
-    @AutoLogOutput(key = "Odometry/Robot")
-    public Pose2d getPose() {
-        return poseEstimator.getEstimatedPosition();
-    }
-
-    /** Returns the current odometry rotation. */
-    public Rotation2d getRotation() {
-        return getPose().getRotation();
-    }
-
-    /**
-     * Resets the current odometry pose. Called at the start of autonomous so the robot knows what the routine's
-     * starting pose is.
-     */
-    public void setPose(Pose2d pose) {
-        resetSimulationPoseCallBack.accept(pose);
-        poseEstimator.resetPosition(rawGyroRotation, getModulePositions(), pose);
-    }
-
-    /** Adds a new timestamped vision measurement. */
-    public void addVisionMeasurement(Pose2d visionRobotPoseMeters, double timestampSeconds,
-        Matrix<N3, N1> visionMeasurementStdDevs) {
-        // Logger.recordOutput("Vision/StdDevs1", visionMeasurementStdDevs.get(0, 0));
-        // Logger.recordOutput("Vision/StdDevs2", visionMeasurementStdDevs.get(1, 0));
-        // Logger.recordOutput("Vision/StdDevs3", visionMeasurementStdDevs.get(2, 0));
-        poseEstimator.addVisionMeasurement(visionRobotPoseMeters, timestampSeconds, visionMeasurementStdDevs);
-    }
-
-    /** Returns the maximum linear speed in meters per sec. */
-    public double getMaxLinearSpeedMetersPerSec() {
-        return maxSpeedMetersPerSec;
-    }
-
-    /** Returns the maximum angular speed in radians per sec. */
-    public double getMaxAngularSpeedRadPerSec() {
-        return maxSpeedMetersPerSec / driveBaseRadius;
-    }
-
     @Override
     public void periodic() {
         odometryLock.lock(); // Prevents odometry updates while reading data
@@ -382,31 +336,18 @@ public class Drive extends SubsystemBase {
         // Update odometry
         double[] sampleTimestamps = modules[0].getOdometryTimestamps(); // All signals are sampled together
         int sampleCount = sampleTimestamps.length;
+        var robotState = RobotState.getInstance();
         for(int i = 0; i < sampleCount; i++) {
             // Read wheel positions and deltas from each module
             SwerveModulePosition[] modulePositions = new SwerveModulePosition[4];
-            SwerveModulePosition[] moduleDeltas = new SwerveModulePosition[4];
             for(int moduleIndex = 0; moduleIndex < 4; moduleIndex++) {
                 modulePositions[moduleIndex] = modules[moduleIndex].getOdometryPositions()[i];
-                moduleDeltas[moduleIndex] = new SwerveModulePosition(
-                    modulePositions[moduleIndex].distanceMeters - lastModulePositions[moduleIndex].distanceMeters,
-                    modulePositions[moduleIndex].angle);
-                lastModulePositions[moduleIndex] = modulePositions[moduleIndex];
             }
 
-            // Update gyro angle
-            if(gyroInputs.connected) {
-                // Use the real gyro angle
-                rawGyroRotation = gyroInputs.odometryYawPositions[i];
-            } else {
-                // Use the angle delta from the kinematics and module deltas
-                Twist2d twist = kinematics.toTwist2d(moduleDeltas);
-                rawGyroRotation = rawGyroRotation.plus(new Rotation2d(twist.dtheta));
-            }
-
-            // Apply update
-            poseEstimator.updateWithTime(sampleTimestamps[i], rawGyroRotation, modulePositions);
+            robotState.applyOdometryUpdate(sampleTimestamps[i], modulePositions,
+                gyroInputs.connected ? Optional.of(gyroInputs.odometryYawPositions[i]) : Optional.empty());
         }
+        robotState.addDriveSpeeds(getChassisSpeeds());
 
         // Call the abrupt stop callback if needed
         if(abruptStopCallback != null) {
@@ -420,9 +361,6 @@ public class Drive extends SubsystemBase {
 
         // Update gyro alert
         gyroDisconnectedAlert.set(!gyroInputs.connected && Constants.currentMode != Mode.SIM);
-
-        // Update the driver station interface
-        DriverStationInterface.getInstance().updateRobotPose(getPose());
 
         // Subsystems are updated first, so this adds a bit of latency. Therefore,
         // we only update when our commands already didn't immediately update.

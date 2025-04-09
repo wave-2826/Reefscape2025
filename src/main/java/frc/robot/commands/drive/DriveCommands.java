@@ -13,7 +13,9 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import frc.robot.RobotState;
 import frc.robot.subsystems.drive.Drive;
+import frc.robot.subsystems.drive.DriveConstants;
 import frc.robot.util.Container;
 
 import java.util.function.DoubleSupplier;
@@ -47,6 +49,7 @@ public class DriveCommands {
      */
     public static Command joystickDrive(Drive drive, DoubleSupplier xSupplier, DoubleSupplier ySupplier,
         DoubleSupplier omegaSupplier) {
+        var robotState = RobotState.getInstance();
         return Commands.run(() -> {
             // Get linear velocity
             Translation2d linearVelocity = getLinearVelocityFromJoysticks(xSupplier.getAsDouble(),
@@ -59,13 +62,13 @@ public class DriveCommands {
             omega = Math.copySign(omega * omega, omega);
 
             // Convert to field relative speeds & send command
-            ChassisSpeeds speeds = new ChassisSpeeds(linearVelocity.getX() * drive.getMaxLinearSpeedMetersPerSec(),
-                linearVelocity.getY() * drive.getMaxLinearSpeedMetersPerSec(),
-                omega * drive.getMaxAngularSpeedRadPerSec());
+            ChassisSpeeds speeds = new ChassisSpeeds(linearVelocity.getX() * DriveConstants.maxSpeedMetersPerSec,
+                linearVelocity.getY() * DriveConstants.maxSpeedMetersPerSec,
+                omega * DriveConstants.maxAngularSpeedRadPerSec);
             boolean isFlipped = DriverStation.getAlliance().isPresent()
                 && DriverStation.getAlliance().get() == Alliance.Red;
             drive.runVelocity(ChassisSpeeds.fromFieldRelativeSpeeds(speeds,
-                isFlipped ? drive.getRotation().plus(new Rotation2d(Math.PI)) : drive.getRotation()));
+                isFlipped ? robotState.getRotation().plus(new Rotation2d(Math.PI)) : robotState.getRotation()));
         }, drive);
     }
 
@@ -74,6 +77,7 @@ public class DriveCommands {
         Supplier<Rotation2d> fieldAngle, Supplier<Rotation2d> robotAngle) {
         Container<Rotation2d> fieldAngleTarget = new Container<>(Rotation2d.kZero);
 
+        var robotState = RobotState.getInstance();
         try(PIDController thetaController = new PIDController(6.5, 0.0, 0.3)) {
             thetaController.enableContinuousInput(0, Math.PI * 2);
             return Commands.sequence(Commands.runOnce(() -> {
@@ -82,11 +86,11 @@ public class DriveCommands {
                 if(robotAngle != null) thetaController.setSetpoint(robotAngle.get().getRadians());
             }), Commands.run(() -> {
                 double thetaSpeed = robotAngle == null ? 0.
-                    : thetaController.calculate(drive.getRotation().getRadians());
+                    : thetaController.calculate(robotState.getRotation().getRadians());
 
                 drive.runVelocity(
                     ChassisSpeeds.fromFieldRelativeSpeeds(fieldAngleTarget.value.getCos() * speedMetersPerSecond,
-                        fieldAngleTarget.value.getSin() * speedMetersPerSecond, thetaSpeed, drive.getRotation()));
+                        fieldAngleTarget.value.getSin() * speedMetersPerSecond, thetaSpeed, robotState.getRotation()));
             }, drive)).withName("DriveStraight");
         }
     }
@@ -96,7 +100,7 @@ public class DriveCommands {
      */
     public static Command driveStraightCommand(Drive drive, double speedMetersPerSecond,
         Supplier<Rotation2d> robotAngle) {
-        return driveStraightCommand(drive, speedMetersPerSecond, drive::getRotation, robotAngle);
+        return driveStraightCommand(drive, speedMetersPerSecond, RobotState.getInstance()::getRotation, robotAngle);
     }
 
     /**
@@ -105,7 +109,7 @@ public class DriveCommands {
      */
     public static Command driveStraightCommand(Drive drive, double speedMetersPerSecond, double timeSeconds,
         Supplier<Rotation2d> robotAngle) {
-        return driveStraightCommand(drive, speedMetersPerSecond, drive::getRotation, robotAngle)
+        return driveStraightCommand(drive, speedMetersPerSecond, RobotState.getInstance()::getRotation, robotAngle)
             .withTimeout(timeSeconds);
     }
 
@@ -129,24 +133,24 @@ public class DriveCommands {
             new TrapezoidProfile.Constraints(ANGLE_MAX_VELOCITY, ANGLE_MAX_ACCELERATION));
         angleController.enableContinuousInput(-Math.PI, Math.PI);
 
-        // Construct command
+        var robotState = RobotState.getInstance();
         return Commands.run(() -> {
             // Get linear velocity
             Translation2d linearVelocity = getLinearVelocityFromJoysticks(xSupplier.getAsDouble(),
                 ySupplier.getAsDouble());
 
             // Calculate angular speed
-            double omega = angleController.calculate(drive.getRotation().getRadians(),
+            double omega = angleController.calculate(robotState.getRotation().getRadians(),
                 rotationSupplier.get().getRadians());
 
             // Convert to field relative speeds & send command
-            ChassisSpeeds speeds = new ChassisSpeeds(linearVelocity.getX() * drive.getMaxLinearSpeedMetersPerSec(),
-                linearVelocity.getY() * drive.getMaxLinearSpeedMetersPerSec(), omega);
+            ChassisSpeeds speeds = new ChassisSpeeds(linearVelocity.getX() * DriveConstants.maxSpeedMetersPerSec,
+                linearVelocity.getY() * DriveConstants.maxSpeedMetersPerSec, omega);
             boolean isFlipped = DriverStation.getAlliance().isPresent()
                 && DriverStation.getAlliance().get() == Alliance.Red;
             drive.runVelocity(ChassisSpeeds.fromFieldRelativeSpeeds(speeds,
-                isFlipped ? drive.getRotation().plus(new Rotation2d(Math.PI)) : drive.getRotation()));
+                isFlipped ? robotState.getRotation().plus(new Rotation2d(Math.PI)) : robotState.getRotation()));
         }, drive).beforeStarting( // Reset PID controller when command starts
-            () -> angleController.reset(drive.getRotation().getRadians()));
+            () -> angleController.reset(robotState.getRotation().getRadians()));
     }
 }

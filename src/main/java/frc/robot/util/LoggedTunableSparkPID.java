@@ -3,7 +3,7 @@ package frc.robot.util;
 import static frc.robot.util.SparkUtil.tryUntilOk;
 
 import java.util.ArrayList;
-import java.util.Optional;
+import java.util.OptionalDouble;
 
 import com.revrobotics.spark.ClosedLoopSlot;
 import com.revrobotics.spark.SparkBase;
@@ -32,15 +32,16 @@ public class LoggedTunableSparkPID {
         public LoggedTunableNumber f = null;
         public ClosedLoopSlot slot;
 
-        public InternalPIDConstants(Optional<Double> p, Optional<Double> i, Optional<Double> iZone, Optional<Double> d,
-            Optional<Double> f, ClosedLoopSlot slot) {
-            if(p.isPresent()) this.p = new LoggedTunableNumber(tunablePath + slot.toString() + "P", p.get());
-            if(i.isPresent()) this.i = new LoggedTunableNumber(tunablePath + slot.toString() + "I", i.get());
-            if(i.isPresent()) this.i = new LoggedTunableNumber(tunablePath + slot.toString() + "IZone", i.get());
-            if(iZone
-                .isPresent()) this.iZone = new LoggedTunableNumber(tunablePath + slot.toString() + "IZone", i.get());
-            if(d.isPresent()) this.d = new LoggedTunableNumber(tunablePath + slot.toString() + "D", d.get());
-            if(f.isPresent()) this.f = new LoggedTunableNumber(tunablePath + slot.toString() + "F", f.get());
+        public InternalPIDConstants(OptionalDouble p, OptionalDouble i, OptionalDouble iZone, OptionalDouble d,
+            OptionalDouble f, ClosedLoopSlot slot) {
+            if(p.isPresent()) this.p = new LoggedTunableNumber(tunablePath + slot.toString() + "P", p.getAsDouble());
+            if(i.isPresent()) this.i = new LoggedTunableNumber(tunablePath + slot.toString() + "I", i.getAsDouble());
+            if(i.isPresent()) this.i = new LoggedTunableNumber(tunablePath + slot.toString() + "IZone",
+                i.getAsDouble());
+            if(iZone.isPresent()) this.iZone = new LoggedTunableNumber(tunablePath + slot.toString() + "IZone",
+                i.getAsDouble());
+            if(d.isPresent()) this.d = new LoggedTunableNumber(tunablePath + slot.toString() + "D", d.getAsDouble());
+            if(f.isPresent()) this.f = new LoggedTunableNumber(tunablePath + slot.toString() + "F", f.getAsDouble());
             this.slot = slot;
         }
 

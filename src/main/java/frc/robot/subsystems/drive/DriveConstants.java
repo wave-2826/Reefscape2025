@@ -25,7 +25,6 @@ public class DriveConstants {
     public record SwerveModuleConfiguration(int driveMotorCanID, int turnMotorCanID, Rotation2d zeroOffset) {
     }
 
-    public static final double maxSpeedMetersPerSec = 3.7; // "Magic" number from max speed measurement
     public static final double odometryFrequency = 100.0; // Hz
     public static final double bumperSizeMeters = Units.inchesToMeters(37.625);
     public static final double trackWidth = Units.inchesToMeters(24.);
@@ -35,6 +34,9 @@ public class DriveConstants {
         new Translation2d(trackWidth / 2.0, wheelBase / 2.0), new Translation2d(trackWidth / 2.0, -wheelBase / 2.0),
         new Translation2d(-trackWidth / 2.0, wheelBase / 2.0), new Translation2d(-trackWidth / 2.0, -wheelBase / 2.0)
     };
+
+    public static final double maxSpeedMetersPerSec = 3.7; // "Magic" number from max speed measurement
+    public static final double maxAngularSpeedRadPerSec = maxSpeedMetersPerSec / driveBaseRadius;
 
     public static final int pigeonCanId = 10;
 

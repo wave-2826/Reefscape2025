@@ -1,6 +1,6 @@
 package frc.robot.util;
 
-import java.util.Optional;
+import java.util.OptionalDouble;
 
 import com.revrobotics.spark.ClosedLoopSlot;
 
@@ -8,15 +8,15 @@ import frc.robot.util.LoggedTunableSparkPID.InternalPIDConstants;
 
 /** A set of PID constants with tunable numbers for each for logged tunable PIDs. */
 public class PIDConstants {
-    public Optional<Double> p;
-    public Optional<Double> i;
-    public Optional<Double> iZone;
-    public Optional<Double> d;
-    public Optional<Double> f;
+    public OptionalDouble p;
+    public OptionalDouble i;
+    public OptionalDouble iZone;
+    public OptionalDouble d;
+    public OptionalDouble f;
     public ClosedLoopSlot slot;
 
-    public PIDConstants(Optional<Double> p, Optional<Double> i, Optional<Double> iZone, Optional<Double> d,
-        Optional<Double> f, ClosedLoopSlot slot) {
+    public PIDConstants(OptionalDouble p, OptionalDouble i, OptionalDouble iZone, OptionalDouble d, OptionalDouble f,
+        ClosedLoopSlot slot) {
         this.p = p;
         this.i = i;
         this.i = i;
@@ -27,15 +27,18 @@ public class PIDConstants {
     }
 
     public PIDConstants(double p, double i, double iZone, double d, double f, ClosedLoopSlot slot) {
-        this(Optional.of(p), Optional.of(i), Optional.of(iZone), Optional.of(d), Optional.of(f), slot);
+        this(OptionalDouble.of(p), OptionalDouble.of(i), OptionalDouble.of(iZone), OptionalDouble.of(d),
+            OptionalDouble.of(f), slot);
     }
 
     public PIDConstants(double p, double i, double d, double f, ClosedLoopSlot slot) {
-        this(Optional.of(p), Optional.of(i), Optional.empty(), Optional.of(d), Optional.of(f), slot);
+        this(OptionalDouble.of(p), OptionalDouble.of(i), OptionalDouble.empty(), OptionalDouble.of(d),
+            OptionalDouble.of(f), slot);
     }
 
     public PIDConstants(double p, double i, double d, ClosedLoopSlot slot) {
-        this(Optional.of(p), Optional.of(i), Optional.empty(), Optional.of(d), Optional.empty(), slot);
+        this(OptionalDouble.of(p), OptionalDouble.of(i), OptionalDouble.empty(), OptionalDouble.of(d),
+            OptionalDouble.empty(), slot);
     }
 
     public PIDConstants(double p, double i, double iZone, double d, double f) {
@@ -51,7 +54,7 @@ public class PIDConstants {
     }
 
     public PIDConstants iZone(double iZone) {
-        this.iZone = Optional.of(iZone);
+        this.iZone = OptionalDouble.of(iZone);
         return this;
     }
 

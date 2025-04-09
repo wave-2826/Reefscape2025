@@ -21,9 +21,9 @@ import edu.wpi.first.wpilibj.simulation.DCMotorSim;
 import edu.wpi.first.wpilibj.simulation.ElevatorSim;
 import edu.wpi.first.wpilibj.simulation.RoboRioSim;
 import edu.wpi.first.wpilibj.simulation.SingleJointedArmSim;
-import frc.robot.SimRobotGamePiece;
 import frc.robot.subsystems.intake.IntakeIOSim;
 import frc.robot.util.sim.LaserCanSim;
+import frc.robot.util.sim.SimRobotGamePiece;
 
 public class ArmIOSim extends ArmIOReal {
     private final ElevatorSim elevatorSim;

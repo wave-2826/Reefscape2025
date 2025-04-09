@@ -47,6 +47,7 @@ import frc.robot.subsystems.vision.VisionIO;
 import frc.robot.subsystems.vision.VisionIOPhotonVision;
 import frc.robot.subsystems.vision.VisionIOPhotonVisionSim;
 import frc.robot.util.DriverStationInterface;
+import frc.robot.util.sim.SimRobotGamePiece;
 
 import org.ironmaple.simulation.SimulatedArena;
 import org.ironmaple.simulation.drivesims.SwerveDriveSimulation;
@@ -78,16 +79,14 @@ public class RobotContainer {
                 // Real robot, instantiate hardware IO implementations
                 drive = new Drive(new GyroIOPigeon2(), new ModuleIOSpark(DriveConstants.frontLeftModule),
                     new ModuleIOSpark(DriveConstants.frontRightModule),
-                    new ModuleIOSpark(DriveConstants.backLeftModule), new ModuleIOSpark(DriveConstants.backRightModule),
-                    (pose) -> {
-                    });
-                vision = new Vision(drive::addVisionMeasurement, drive::getRotation,
+                    new ModuleIOSpark(DriveConstants.backLeftModule),
+                    new ModuleIOSpark(DriveConstants.backRightModule));
+                vision = new Vision(
                     new VisionIOPhotonVision(VisionConstants.camera0Name, VisionConstants.robotToCamera0),
                     new VisionIOPhotonVision(VisionConstants.camera1Name, VisionConstants.robotToCamera1),
                     new VisionIOPhotonVision(VisionConstants.camera2Name, VisionConstants.robotToCamera2),
                     new VisionIOPhotonVision(VisionConstants.camera3Name, VisionConstants.robotToCamera3));
-                pieceVision = new PieceVision(new PieceVisionIOLimelight(PieceVisionConstants.cameraHostname),
-                    drive::getChassisSpeeds, drive::getPose);
+                pieceVision = new PieceVision(new PieceVisionIOLimelight(PieceVisionConstants.cameraHostname));
                 arm = new Arm(new ArmIOReal());
                 climber = new Climber(new ClimberIOReal());
                 intake = new Intake(new IntakeIOReal());
@@ -106,10 +105,10 @@ public class RobotContainer {
                     new GyroIOSim(driveSimulation.getGyroSimulation(),
                         driveSimulation::getDriveTrainSimulatedChassisSpeedsRobotRelative),
                     new ModuleIOSim(driveSimulation.getModules()[0]), new ModuleIOSim(driveSimulation.getModules()[1]),
-                    new ModuleIOSim(driveSimulation.getModules()[2]), new ModuleIOSim(driveSimulation.getModules()[3]),
-                    driveSimulation::setSimulationWorldPose);
+                    new ModuleIOSim(driveSimulation.getModules()[2]), new ModuleIOSim(driveSimulation.getModules()[3]));
+                RobotState.getInstance().resetSimulationPoseCallback = driveSimulation::setSimulationWorldPose;
 
-                vision = new Vision(drive::addVisionMeasurement, drive::getRotation,
+                vision = new Vision(
                     new VisionIOPhotonVisionSim(VisionConstants.camera0Name, VisionConstants.robotToCamera0,
                         driveSimulation::getSimulatedDriveTrainPose),
                     new VisionIOPhotonVisionSim(VisionConstants.camera1Name, VisionConstants.robotToCamera1,
@@ -118,8 +117,7 @@ public class RobotContainer {
                         driveSimulation::getSimulatedDriveTrainPose),
                     new VisionIOPhotonVisionSim(VisionConstants.camera3Name, VisionConstants.robotToCamera3,
                         driveSimulation::getSimulatedDriveTrainPose));
-                pieceVision = new PieceVision(new PieceVisionIOSim(driveSimulation::getSimulatedDriveTrainPose),
-                    drive::getChassisSpeeds, drive::getPose);
+                pieceVision = new PieceVision(new PieceVisionIOSim(driveSimulation::getSimulatedDriveTrainPose));
                 arm = new Arm(new ArmIOSim(driveSimulation::getSimulatedDriveTrainPose,
                     driveSimulation::getDriveTrainSimulatedChassisSpeedsFieldRelative));
                 climber = new Climber(new ClimberIOSim());
@@ -139,10 +137,9 @@ public class RobotContainer {
                     /** Replayed robot doesn't have IO */
                 }, new ModuleIO() {
                     /** Replayed robot doesn't have IO */
-                }, (pose) -> {
                 });
                 // Needs to use the same number of dummy implementations as the real robot has cameras
-                vision = new Vision(drive::addVisionMeasurement, drive::getRotation, new VisionIO() {
+                vision = new Vision(new VisionIO() {
                     /** Replayed robot doesn't have IO */
                 }, new VisionIO() {
                     /** Replayed robot doesn't have IO */
@@ -153,7 +150,7 @@ public class RobotContainer {
                 });
                 pieceVision = new PieceVision(new PieceVisionIO() {
                     /** Replayed robot doesn't have IO */
-                }, drive::getChassisSpeeds, drive::getPose);
+                });
                 arm = new Arm(new ArmIO() {
                     /** Replayed robot doesn't have IO */
                 });
@@ -220,8 +217,8 @@ public class RobotContainer {
         SimRobotGamePiece.update(driveSimulation.getSimulatedDriveTrainPose());
 
         if(!VisionConstants.enableVisionSimulation) {
-            drive.addVisionMeasurement(driveSimulation.getSimulatedDriveTrainPose(), Timer.getTimestamp(),
-                VecBuilder.fill(0, 0, 0));
+            RobotState.getInstance().addVisionMeasurement(driveSimulation.getSimulatedDriveTrainPose(),
+                Timer.getTimestamp(), VecBuilder.fill(0, 0, 0));
         }
     }
 }
