@@ -31,7 +31,7 @@ import frc.robot.subsystems.vision.VisionConstants;
 import frc.robot.util.LoggedTunableNumber;
 
 public class CloseLineupCommand extends Command {
-    private static final boolean USE_SINGLE_TAG = false;
+    private static final BooleanSupplier useSingleTag = () -> true;
 
     private final Drive drive;
     private final Vision vision;
@@ -48,11 +48,11 @@ public class CloseLineupCommand extends Command {
     private final BooleanConsumer lineupFeedback;
 
     private final static LoggedTunableNumber translationKp = new LoggedTunableNumber(//
-        "CloseLineup/translationKp", 7.0);
+        "CloseLineup/translationKp", 7.5);
     private final static LoggedTunableNumber translationKi = new LoggedTunableNumber(//
         "CloseLineup/translationKi", 0.0);
     private final static LoggedTunableNumber translationKd = new LoggedTunableNumber(//
-        "CloseLineup/translationKd", 0.75);
+        "CloseLineup/translationKd", 1.5);
 
     private final static LoggedTunableNumber thetaRotationKp = new LoggedTunableNumber(//
         "CloseLineup/thetaRotationKp", 7.0);
@@ -62,9 +62,9 @@ public class CloseLineupCommand extends Command {
         "CloseLineup/thetaRotationKd", 0.3);
 
     private final static LoggedTunableNumber translationTolerance = new LoggedTunableNumber(//
-        "CloseLineup/translationTolerance", 0.65);
+        "CloseLineup/translationTolerance", 0.5);
     private final static LoggedTunableNumber thetaTolerance = new LoggedTunableNumber(//
-        "CloseLineup/thetaTolerance", 2.0);
+        "CloseLineup/thetaTolerance", 1.0);
 
     private final static LoggedTunableNumber maxVelocity = new LoggedTunableNumber(//
         "CloseLineup/maxThetaVelocity", 360); // deg/s
@@ -76,18 +76,19 @@ public class CloseLineupCommand extends Command {
 
     private final Debouncer ledDebouncer = new Debouncer(0.3, DebounceType.kFalling);
     private final Debouncer feedbackDebouncer = new Debouncer(0.15, DebounceType.kFalling);
+    private final Debouncer atSetpointDebouncer = new Debouncer(0.05, DebounceType.kRising);
 
     private boolean inRadiusDeadband = false;
     private boolean inThetaDeadband = false;
 
     private final static LoggedTunableNumber radiusInnerDeadband = new LoggedTunableNumber(//
-        "CloseLineup/Deadband/RadiusInnerDeadband", 0.1); // Meters/sec
+        "CloseLineup/Deadband/RadiusInnerDeadband", 0.06); // Meters/sec
     private final static LoggedTunableNumber radiusOuterDeadband = new LoggedTunableNumber(//
-        "CloseLineup/Deadband/RadiusOuterDeadband", 0.2); // Meters/sec
+        "CloseLineup/Deadband/RadiusOuterDeadband", 0.15); // Meters/sec
     private final static LoggedTunableNumber thetaInnerDeadband = new LoggedTunableNumber(//
-        "CloseLineup/Deadband/ThetaInnerDeadband", 0.5); // Degrees
+        "CloseLineup/Deadband/ThetaInnerDeadband", 0.3); // Degrees/sec
     private final static LoggedTunableNumber thetaOuterDeadband = new LoggedTunableNumber(//
-        "CloseLineup/Deadband/ThetaOuterDeadband", 2); // Degrees
+        "CloseLineup/Deadband/ThetaOuterDeadband", 1.5); // Degrees/sec
 
     /**
      * A command that lines up the robot based on tracking the relative position of a single tag from the vision system
@@ -154,7 +155,6 @@ public class CloseLineupCommand extends Command {
     }
 
     @Override
-    @SuppressWarnings("unused")
     public void execute() {
         LoggedTunableNumber.ifChanged(hashCode(), (double[] values) -> {
             driveController.getXController().setPID(values[0], values[1], values[2]);
@@ -175,7 +175,7 @@ public class CloseLineupCommand extends Command {
         }, maxVelocity, maxAcceleration);
 
         Pose2d correctedCurrentPose = drive.getPose();
-        Transform3d robotToTag = USE_SINGLE_TAG ? vision.getRobotToTag(tagToTrack) : null;
+        Transform3d robotToTag = useSingleTag.getAsBoolean() ? vision.getRobotToTag(tagToTrack) : null;
         Pose2d fieldTagPose = VisionConstants.aprilTagLayout.getTagPose(tagToTrack).get().toPose2d();
 
         Logger.recordOutput("CloseLineup/UsingSingleTag", robotToTag != null);
@@ -233,7 +233,7 @@ public class CloseLineupCommand extends Command {
     @Override
     public boolean isFinished() {
         if(finishSequence.isEmpty()) {
-            if(atSetpoint()) return true;
+            if(atSetpointDebouncer.calculate(atSetpoint())) return true;
         } else {
             if(finishSequence.get().getAsBoolean()) return true;
         }

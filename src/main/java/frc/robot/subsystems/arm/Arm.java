@@ -10,11 +10,14 @@ import org.littletonrobotics.junction.Logger;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.Alert;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Alert.AlertType;
+import edu.wpi.first.wpilibj.GenericHID.RumbleType;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
+import frc.robot.Controls;
 import frc.robot.subsystems.arm.ArmState.WristRotation;
 import frc.robot.util.LoggedTracer;
 import frc.robot.util.LoggedTunableNumber;
@@ -111,7 +114,12 @@ public class Arm extends SubsystemBase {
     }
 
     public void resetToAbsolute() {
-        io.resetToAbsolute();
+        if(!inputs.validAbsoluteMeasurement && DriverStation.isTeleop()) {
+            Controls.getInstance().controllerRumbleWhileRunning(false, true, RumbleType.kBothRumble).withTimeout(0.2)
+                .andThen(Commands.waitSeconds(0.1)).repeatedly().withTimeout(1).schedule();
+        } else {
+            io.resetToAbsolute();
+        }
     }
 
     public void resetToBottom() {

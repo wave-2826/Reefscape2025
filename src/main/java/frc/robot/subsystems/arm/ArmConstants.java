@@ -28,10 +28,10 @@ public class ArmConstants {
         WristRotation.Horizontal, EndEffectorState.velocity(-20));
 
     /** The state when the arm is intaking from the source. */
-    public static final ArmState sourceIntakeState = new ArmState(Rotation2d.fromDegrees(75), Inches.of(5),
+    public static final ArmState sourceIntakeState = new ArmState(Rotation2d.fromDegrees(75), Inches.of(4),
         WristRotation.Vertical, EndEffectorState.velocity(-20));
     /** The state when the arm is intaking from the source but stopped. */
-    public static final ArmState sourceIntakeStoppedState = new ArmState(Rotation2d.fromDegrees(75), Inches.of(5),
+    public static final ArmState sourceIntakeStoppedState = new ArmState(Rotation2d.fromDegrees(75), Inches.of(4),
         WristRotation.Vertical, EndEffectorState.hold());
 
     /** The state when the arm is preparing for scoring. */
@@ -40,7 +40,7 @@ public class ArmConstants {
 
     public class ElevatorConstants {
         public static final double elevatorStartingHeightMeters = 0.34;
-        public static final double bottomResetHeightMeters = 0.022;
+        public static final double bottomResetHeightMeters = 0.085;
 
         public static final int elevatorHeightMotor1Id = 50;
         public static final int elevatorHeightMotor2Id = 51;
@@ -126,7 +126,7 @@ public class ArmConstants {
         public static final int armWristMotorId = 53;
 
         /** The wrist absolute encoder zero offset, in radians. */
-        public static final double wristZeroOffset = 0.0087384;
+        public static final double wristZeroOffset = 0.1882066;
         /** The pitch absolute encoder zero offset, in radians. */
         public static final double pitchZeroOffset = 0.3511382;
 

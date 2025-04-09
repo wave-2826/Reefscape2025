@@ -12,6 +12,7 @@ import com.pathplanner.lib.util.FlippingUtil;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -47,15 +48,33 @@ public class AutoCommands {
         for(var branch : ReefBranch.values()) {
             for(var level : ReefLevel.values()) {
                 ReefTarget target = new ReefTarget(branch, level);
+                // @formatter:off
                 registerLoggedNamedCommand("Wait/Score " + branch.toString() + " " + level.toString(),
-                    Commands.defer(() -> Commands.sequence(//
-                        drive.runOnce(drive::stop), IntakeCommands.waitForPieceInArm().withTimeout(1.5), //
-                        AutoScoreCommands.autoScoreCommand(drive, vision, arm, leds, target)
-                            .onlyIf(() -> !IntakeCommands.waitingForPiece)),
-                        Set.of(drive, vision, arm)));
-                registerLoggedNamedCommand("Score " + branch.toString() + " " + level.toString(),
-                    Commands.defer(() -> AutoScoreCommands.autoScoreCommand(drive, vision, arm, leds, target),
-                        Set.of(drive, vision, arm)));
+                    Commands.defer(() -> Commands.sequence(
+                        drive.runOnce(drive::stop),
+                        Commands.waitUntil(() -> !IntakeCommands.waitingForPiece).withTimeout(2.5),
+                        AutoScoreCommands.autoScoreCommand(drive, vision, arm, leds, target, true)
+                            .onlyIf(() -> !IntakeCommands.waitingForPiece)
+                    ), Set.of(drive, vision, arm))
+                );
+                registerLoggedNamedCommand("Score " + branch.toString() + " " + level.toString(), Commands.defer(() ->
+                    AutoScoreCommands.autoScoreCommand(drive, vision, arm, leds, target, true),
+                    Set.of(drive, vision, arm)
+                ));
+                
+                registerLoggedNamedCommand("Fast Wait/Score " + branch.toString() + " " + level.toString(),
+                    Commands.defer(() -> Commands.sequence(
+                        drive.runOnce(drive::stop),
+                        Commands.waitUntil(() -> !IntakeCommands.waitingForPiece).withTimeout(1.5),
+                        AutoScoreCommands.autoScoreCommand(drive, vision, arm, leds, target, false)
+                            .onlyIf(() -> !IntakeCommands.waitingForPiece)
+                    ), Set.of(drive, vision, arm))
+                );
+                registerLoggedNamedCommand("Fast Score " + branch.toString() + " " + level.toString(), Commands.defer(() ->
+                    AutoScoreCommands.autoScoreCommand(drive, vision, arm, leds, target, false),
+                    Set.of(drive, vision, arm)
+                ));
+                // @formatter:on
             }
         }
 
@@ -63,7 +82,9 @@ public class AutoCommands {
             Commands.defer(() -> scoreUntilFailure(drive, vision, arm, pieceVision, intake, leds),
                 Set.of(drive, vision, arm, pieceVision, intake)));
 
-        registerLoggedNamedCommand("Start intake", new ScheduleCommand(IntakeCommands.autoIntake(intake, arm)));
+        registerLoggedNamedCommand("Start intake",
+            new ScheduleCommand(Commands.sequence(Commands.runOnce(() -> IntakeCommands.waitingForPiece = true),
+                IntakeCommands.autoIntake(intake, arm))));
         registerLoggedNamedCommand("Intake That John", intakeThatJohn(drive, intake));
 
         registerLoggedNamedCommand("Prep arm",
@@ -84,8 +105,9 @@ public class AutoCommands {
         return Commands.sequence(Commands.runOnce(() -> {
             grabbingCoralFailed = false;
             scoringPositionsAvailable.clear();
+            var bluePose = AutoBuilder.shouldFlip() ? FlippingUtil.flipFieldPose(drive.getPose()) : drive.getPose();
 
-            if(FlippingUtil.flipFieldPose(drive.getPose()).getY() > FieldConstants.fieldWidth / 2.) {
+            if(bluePose.getY() > FieldConstants.fieldWidth / 2.) {
                 // If on the left side of the field
                 scoringPositionsAvailable.add(new ReefTarget(ReefBranch.J, ReefLevel.L4));
                 scoringPositionsAvailable.add(new ReefTarget(ReefBranch.K, ReefLevel.L4));
@@ -114,27 +136,35 @@ public class AutoCommands {
                     // Should never happen... 
                 }
 
-                return AutoScoreCommands.autoScoreCommand(drive, vision, arm, leds, nextAvailableTarget);
+                return AutoScoreCommands.autoScoreCommand(drive, vision, arm, leds, nextAvailableTarget, true);
             }, Set.of(drive, vision, arm)).unless(() -> grabbingCoralFailed) //
         ).repeatedly().until(() -> grabbingCoralFailed)).withName("ScoreUntilFailure");
     }
 
     public static Command intakeThatJohn(Drive drive, Intake intake) {
-        // @formatter:off 
-        Container<Pose2d> startPose = new Container<>(Pose2d.kZero);
+        // @formatter:off
+        Container<Pose2d> endPose = new Container<>(Pose2d.kZero);
         Container<Rotation2d> angle = new Container<>(Rotation2d.kZero);
+        Container<Boolean> isLeft = new Container<>(false);
+        double moveSpeedMPS = Units.feetToMeters(6);
         return Commands.sequence(
             Commands.runOnce(() -> {
-                startPose.value = drive.getPose();
+                var bluePose = AutoBuilder.shouldFlip() ? FlippingUtil.flipFieldPose(drive.getPose()) : drive.getPose();
+
+                isLeft.value = bluePose.getY() > FieldConstants.fieldWidth / 2.;
                 angle.value = DriverStation.getAlliance().orElse(Alliance.Red) == Alliance.Red ? Rotation2d.kZero : Rotation2d.k180deg;
+                endPose.value = new Pose2d(drive.getPose().getTranslation(), angle.value.rotateBy(Rotation2d.fromDegrees(180 + (isLeft.value ? -20 : 20))));
             }),
             // TODO: Mirror this rotation when on the other side of the field
-            DriveCommands.driveStraightCommand(drive, 1.2, angle.value, angle.value.rotateBy(Rotation2d.fromDegrees(180 - 30.))).until(() -> {
+            DriveCommands.driveStraightCommand(
+                drive, moveSpeedMPS,
+                () -> angle.value, () -> angle.value.rotateBy(Rotation2d.fromDegrees(180 + (isLeft.value ? 20 : -20)))
+            ).until(() -> {
                 if(intake.intakeSensorTriggered()) return true;
 
                 // If the robot is at risk of running into the wall, stop.
                 var robotPosition = drive.getPose();
-                var nextPosition = robotPosition.exp(drive.getChassisSpeeds().toTwist2d(0.5));
+                var nextPosition = robotPosition.exp(drive.getChassisSpeeds().toTwist2d(0.75));
                 if(nextPosition.getX() < 0.0 || nextPosition.getY() < 0.0
                     || nextPosition.getX() > FieldConstants.fieldLength
                     || nextPosition.getY() > FieldConstants.fieldWidth) {
@@ -143,7 +173,7 @@ public class AutoCommands {
                 
                 return false;
             }).withTimeout(3.0),
-            Commands.defer(() -> new SimplePIDLineupCommand(drive, startPose.value), Set.of(drive)).withTimeout(2.0)
+            Commands.defer(() -> new SimplePIDLineupCommand(drive, endPose.value), Set.of(drive)).withTimeout(2.0)
         );
         // @formatter:on
     }

@@ -25,7 +25,7 @@ public class ClimbCommands {
             if(climber.getPitch().getDegrees() < 8) {
                 climbSpeed = Math.min(0, climbSpeed);
             }
-            if(climber.getPitch().getDegrees() > 93) {
+            if(climber.getPitch().getDegrees() > 90) {
                 climbSpeed = Math.max(0, climbSpeed);
             }
 

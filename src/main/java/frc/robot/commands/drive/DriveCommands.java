@@ -14,6 +14,8 @@ import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.subsystems.drive.Drive;
+import frc.robot.util.Container;
+
 import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
 
@@ -68,18 +70,23 @@ public class DriveCommands {
     }
 
     /** Returns a command that drives straight at the specified speed. Positive numbers are forward. */
-    public static Command driveStraightCommand(Drive drive, double speedMetersPerSecond, Rotation2d fieldAngle,
-        Rotation2d robotAngle) {
-        try(PIDController thetaController = new PIDController(7.0, 0.0, 0.3)) {
+    public static Command driveStraightCommand(Drive drive, double speedMetersPerSecond,
+        Supplier<Rotation2d> fieldAngle, Supplier<Rotation2d> robotAngle) {
+        Container<Rotation2d> fieldAngleTarget = new Container<>(Rotation2d.kZero);
+
+        try(PIDController thetaController = new PIDController(6.5, 0.0, 0.3)) {
             thetaController.enableContinuousInput(0, Math.PI * 2);
             return Commands.sequence(Commands.runOnce(() -> {
                 thetaController.reset();
-                if(robotAngle != null) thetaController.setSetpoint(robotAngle.getRadians());
+                fieldAngleTarget.value = fieldAngle.get();
+                if(robotAngle != null) thetaController.setSetpoint(robotAngle.get().getRadians());
             }), Commands.run(() -> {
                 double thetaSpeed = robotAngle == null ? 0.
                     : thetaController.calculate(drive.getRotation().getRadians());
-                drive.runVelocity(ChassisSpeeds.fromFieldRelativeSpeeds(fieldAngle.getCos() * speedMetersPerSecond,
-                    fieldAngle.getSin() * speedMetersPerSecond, thetaSpeed, drive.getRotation()));
+
+                drive.runVelocity(
+                    ChassisSpeeds.fromFieldRelativeSpeeds(fieldAngleTarget.value.getCos() * speedMetersPerSecond,
+                        fieldAngleTarget.value.getSin() * speedMetersPerSecond, thetaSpeed, drive.getRotation()));
             }, drive)).withName("DriveStraight");
         }
     }
@@ -87,8 +94,9 @@ public class DriveCommands {
     /**
      * Returns a command that drives straight at the specified speed until stopped. Positive numbers are forward.
      */
-    public static Command driveStraightCommand(Drive drive, double speedMetersPerSecond, Rotation2d robotAngle) {
-        return driveStraightCommand(drive, speedMetersPerSecond, drive.getRotation(), robotAngle);
+    public static Command driveStraightCommand(Drive drive, double speedMetersPerSecond,
+        Supplier<Rotation2d> robotAngle) {
+        return driveStraightCommand(drive, speedMetersPerSecond, drive::getRotation, robotAngle);
     }
 
     /**
@@ -96,8 +104,8 @@ public class DriveCommands {
      * forward.
      */
     public static Command driveStraightCommand(Drive drive, double speedMetersPerSecond, double timeSeconds,
-        Rotation2d robotAngle) {
-        return driveStraightCommand(drive, speedMetersPerSecond, drive.getRotation(), robotAngle)
+        Supplier<Rotation2d> robotAngle) {
+        return driveStraightCommand(drive, speedMetersPerSecond, drive::getRotation, robotAngle)
             .withTimeout(timeSeconds);
     }
 
@@ -106,7 +114,7 @@ public class DriveCommands {
      * forward.
      */
     public static Command driveStraightCommand(Drive drive, double speedMetersPerSecond, double timeSeconds,
-        Rotation2d fieldAngle, Rotation2d robotAngle) {
+        Supplier<Rotation2d> fieldAngle, Supplier<Rotation2d> robotAngle) {
         return driveStraightCommand(drive, speedMetersPerSecond, fieldAngle, robotAngle).withTimeout(timeSeconds);
     }
 

@@ -47,15 +47,15 @@ public class DriveConstants {
     public static final SwerveModuleConfiguration frontRightModule = new SwerveModuleConfiguration(11, 12,
         Rotation2d.fromRadians(1.407));
     public static final SwerveModuleConfiguration backLeftModule = new SwerveModuleConfiguration(21, 22,
-        Rotation2d.fromRadians(3.755));
+        Rotation2d.fromRadians(5.973));
     public static final SwerveModuleConfiguration backRightModule = new SwerveModuleConfiguration(31, 32,
         Rotation2d.fromRadians(3.983));
 
     public static final boolean USE_SETPOINT_GENERATOR = false;
 
     // Drive motor configuration
-    public static final int driveMotorCurrentLimit = 75;
-    public static final double wheelRadiusMeters = Units.inchesToMeters(1.999); // "Magic" number from wheel radius characterization
+    public static final int driveMotorCurrentLimit = 70;
+    public static final double wheelRadiusMeters = Units.inchesToMeters(1.962); // "Magic" number from wheel radius characterization
     public static final double driveMotorReduction = Mk4Reductions.L2.reduction;
     public static final DCMotor driveSimMotor = DCMotor.getNeoVortex(1);
 
@@ -82,7 +82,7 @@ public class DriveConstants {
 
     // Turn motor configuration
     public static final boolean turnInverted = false;
-    public static final int turnMotorCurrentLimit = 30;
+    public static final int turnMotorCurrentLimit = 35;
     public static final double turnMotorReduction = Mk4Reductions.Turn.reduction;
     public static final DCMotor turnSimMotor = DCMotor.getNeoVortex(1);
     public static final AngularVelocity maxSteerVelocity = RadiansPerSecond.of(100);
@@ -114,7 +114,7 @@ public class DriveConstants {
     public static final double turnPIDMaxInput = Math.PI; // Radians
 
     // PathPlanner configuration
-    public static final double robotMassKg = Units.lbsToKilograms(114.5 + 13 + 13);
+    public static final double robotMassKg = Units.lbsToKilograms(114.6 + 13 + 13);
     /**
      * The moment of inertia of the robot, in KG*M^2. Based on SysId:
      * https://pathplanner.dev/robot-config.html#calculating-moi-through-sysid-recommended
@@ -122,7 +122,7 @@ public class DriveConstants {
      * Currently roughly ~8.95.
      */
     public static final double robotMOIKgSqM = robotMassKg * driveBaseRadius * driveKa / 0.042656;
-    public static final double wheelCOF = 1.355; // "Magic" number from slip current measurement
+    public static final double wheelCOF = 1.121; // "Magic" number from slip current measurement
 
     public static final RobotConfig pathplannerConfig = new RobotConfig(robotMassKg, robotMOIKgSqM,
         new ModuleConfig(wheelRadiusMeters, maxSpeedMetersPerSec, wheelCOF,

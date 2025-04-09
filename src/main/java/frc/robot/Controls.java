@@ -49,7 +49,7 @@ public class Controls {
     private final CommandXboxController operator = new CommandXboxController(1);
 
     private final LoggedTunableNumber endgameAlert1Time = new LoggedTunableNumber("Controls/EndgameAlert1Time", 30.0);
-    private final LoggedTunableNumber endgameAlert2Time = new LoggedTunableNumber("Controls/EndgameAlert2Time", 15.0);
+    private final LoggedTunableNumber endgameAlert2Time = new LoggedTunableNumber("Controls/EndgameAlert2Time", 20.0);
 
     private final Trigger normalOperator;
     private final Trigger operatorOverride;
@@ -87,7 +87,7 @@ public class Controls {
         // Auto score
         driver.b().debounce(Controls.debounceTime, DebounceType.kFalling)
             .whileTrue(AutoScoreCommands.autoScoreTeleopCommand(drive, vision, arm, leds, driver.rightBumper(),
-                driver::getLeftX, driver::getLeftY, (aligned) -> {
+                driver.leftBumper(), driver::getLeftX, driver::getLeftY, (aligned) -> {
                     setDriverRumble(RumbleType.kLeftRumble, aligned ? 1.0 : 0.0, 1);
                 }, () -> operatorMode == OperatorMode.Normal).finallyDo(() -> {
                     setDriverRumble(RumbleType.kLeftRumble, 0.0, 1);
@@ -114,11 +114,11 @@ public class Controls {
         // Used to account for swerve belts slipping.
         driver.back().whileTrue(Commands.run(drive::resetToAbsolute));
 
-        var intakeTrigger = driver.rightTrigger(0.3).or(operator.rightBumper().and(normalOperator));
+        var intakeTrigger = driver.rightTrigger(0.3);
         intakeTrigger.onTrue(arm.goToStateCommand(ArmConstants.restingState));
         intake.setDefaultCommand(IntakeCommands.intakeCommand(intake, arm, // 
             intakeTrigger, // Intake
-            driver.leftTrigger(0.3).or(operator.leftBumper().and(normalOperator)), // Outtake
+            driver.leftTrigger(0.3), // Outtake
             operator.povRight().and(normalOperator) // Outtake trough
         ));
 
@@ -154,9 +154,9 @@ public class Controls {
         Trigger endgameAlert2Trigger = new Trigger(() -> DriverStation.isTeleopEnabled()
             && DriverStation.getMatchTime() > 0 && DriverStation.getMatchTime() <= endgameAlert2Time.get());
 
-        endgameAlert1Trigger.onTrue(controllerRumbleWhileRunning(true, false, RumbleType.kLeftRumble).withTimeout(0.5));
-        endgameAlert2Trigger.onTrue(controllerRumbleWhileRunning(true, false, RumbleType.kLeftRumble).withTimeout(0.2)
-            .andThen(Commands.waitSeconds(0.1)).repeatedly().withTimeout(0.9)); // Rumble three times
+        endgameAlert1Trigger.onTrue(controllerRumbleWhileRunning(true, true, RumbleType.kBothRumble).withTimeout(0.5));
+        endgameAlert2Trigger.onTrue(controllerRumbleWhileRunning(true, true, RumbleType.kBothRumble).withTimeout(0.4)
+            .andThen(Commands.waitSeconds(0.3)).repeatedly().withTimeout(2.0));
     }
 
     private void configureNormalOperatorControls(Drive drive, SwerveDriveSimulation driveSimulation, Arm arm,
@@ -168,6 +168,9 @@ public class Controls {
 
         operator.b().and(normalOperator).onTrue(arm.goToStateCommand(ArmConstants.restingState));
         operator.x().and(normalOperator).onTrue(arm.goToStateCommand(ArmConstants.prepForScoringState));
+
+        operator.leftBumper().and(normalOperator).onTrue(ScoringSequenceCommands.adjustWrist(arm, false));
+        operator.rightBumper().and(normalOperator).onTrue(ScoringSequenceCommands.adjustWrist(arm, true));
 
         // Go to active scoring position
         operator.a().and(normalOperator).whileTrue(arm.goToStateCommand(() -> {

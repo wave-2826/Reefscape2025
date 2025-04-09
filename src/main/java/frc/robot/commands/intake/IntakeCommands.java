@@ -3,7 +3,6 @@ package frc.robot.commands.intake;
 import java.util.function.BooleanSupplier;
 
 import org.littletonrobotics.junction.AutoLogOutput;
-import org.littletonrobotics.junction.Logger;
 
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
@@ -14,12 +13,12 @@ import frc.robot.subsystems.intake.Intake;
 import frc.robot.subsystems.intake.Intake.IntakeState;
 
 public class IntakeCommands {
+    @AutoLogOutput(key = "Auto/WaitingForPiece")
     public static boolean waitingForPiece = false;
 
     public static Command waitForPieceInArm() {
-        return Commands.sequence(Commands.runOnce(() -> Logger.recordOutput("Auto/WaitingForPiece", true)),
-            Commands.runOnce(() -> waitingForPiece = true), Commands.waitUntil(() -> waitingForPiece == false),
-            Commands.runOnce(() -> Logger.recordOutput("Auto/WaitingForPiece", false)));
+        return Commands.sequence(Commands.runOnce(() -> waitingForPiece = true),
+            Commands.waitUntil(() -> !waitingForPiece));
     }
 
     public static Command getPieceFromIntake(Arm arm) {

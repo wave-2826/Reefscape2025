@@ -13,13 +13,13 @@
         {
           "type": "path",
           "data": {
-            "pathName": "No vision coral right.0"
+            "pathName": "Fast coral left.0"
           }
         },
         {
           "type": "named",
           "data": {
-            "name": "Score D L4"
+            "name": "Fast Score K L4"
           }
         },
         {
@@ -31,7 +31,7 @@
         {
           "type": "path",
           "data": {
-            "pathName": "No vision coral right.1"
+            "pathName": "Fast coral left.2"
           }
         },
         {
@@ -43,43 +43,43 @@
         {
           "type": "path",
           "data": {
-            "pathName": "No vision coral right.2"
+            "pathName": "Fast coral left.3"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Fast Wait/Score A L4"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Start intake"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Fast coral left.5"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Intake That John"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Fast coral left.6"
           }
         },
         {
           "type": "named",
           "data": {
             "name": "Wait/Score B L4"
-          }
-        },
-        {
-          "type": "named",
-          "data": {
-            "name": "Start intake"
-          }
-        },
-        {
-          "type": "path",
-          "data": {
-            "pathName": "No vision coral right.3"
-          }
-        },
-        {
-          "type": "named",
-          "data": {
-            "name": "Intake That John"
-          }
-        },
-        {
-          "type": "path",
-          "data": {
-            "pathName": "No vision coral right.4"
-          }
-        },
-        {
-          "type": "named",
-          "data": {
-            "name": "Wait/Score A L1"
           }
         }
       ]

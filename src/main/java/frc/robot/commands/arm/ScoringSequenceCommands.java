@@ -6,8 +6,10 @@ import static edu.wpi.first.units.Units.Meters;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.units.measure.Distance;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.ScheduleCommand;
 import frc.robot.Constants;
 import frc.robot.FieldConstants.ReefLevel;
 import frc.robot.commands.drive.DriveCommands;
@@ -17,6 +19,7 @@ import frc.robot.subsystems.arm.ArmState;
 import frc.robot.subsystems.arm.EndEffectorState;
 import frc.robot.subsystems.arm.ArmState.WristRotation;
 import frc.robot.subsystems.drive.Drive;
+import frc.robot.util.Container;
 import frc.robot.util.LoggedTunableNumber;
 
 /**
@@ -32,7 +35,7 @@ public class ScoringSequenceCommands {
     private static LoggedTunableNumber L4ScorePitch = new LoggedTunableNumber(//
         "AutoScore/L4ScorePitch", 43.);
     private static LoggedTunableNumber L1ScoreHeight = new LoggedTunableNumber(//
-        "AutoScore/L1ScoreHeight", 14);
+        "AutoScore/L1ScoreHeight", 10);
     private static LoggedTunableNumber L2ScoreHeight = new LoggedTunableNumber(//
         "AutoScore/L2ScoreHeight", 6);
     private static LoggedTunableNumber L3ScoreHeight = new LoggedTunableNumber(//
@@ -43,6 +46,20 @@ public class ScoringSequenceCommands {
         "AutoScore/BranchScorePitchDown", 35);
     private static LoggedTunableNumber L4PitchDown = new LoggedTunableNumber(//
         "AutoScore/L4PitchDown", 40);
+
+    // HACK ..?
+    public static WristRotation wristOverride = null;
+
+    public static Command adjustWrist(Arm arm, boolean next) {
+        return Commands.runOnce(() -> {
+            if(wristOverride == null) wristOverride = arm.getCurrentTargetState().wristRotation();
+            if(next) {
+                wristOverride = wristOverride.next();
+            } else {
+                wristOverride = wristOverride.previous();
+            }
+        });
+    }
 
     /**
      * Gets the starting state for scoring at level 1.
@@ -78,20 +95,18 @@ public class ScoringSequenceCommands {
                 return getL1StartingState();
         }
 
-        return new ArmState(pitch, height, flipped ? WristRotation.HorizontalFlipped : WristRotation.Horizontal,
-            EndEffectorState.hold());
+        WristRotation rotation = flipped ? WristRotation.HorizontalFlipped : WristRotation.Horizontal;
+        if(wristOverride != null) rotation = wristOverride;
+        return new ArmState(pitch, height, rotation, EndEffectorState.hold());
     }
 
     /**
-     * The middle movement as part of the scoring sequence. Should be run during close alignment after prepForScoring.
-     * This is the "main" arm position as part of the scoring sequence; the arm will be lined up with the branch post.
+     * The middle movement as part of the scoring sequence. Should be run during close alignment. This is the "main" arm
+     * position as part of the scoring sequence; the arm will be lined up with the branch post.
      * @return
      */
     public static Command middleArmMovement(ReefLevel level, Arm arm) {
-        if(level == ReefLevel.L1) { return arm.goToStateCommand(getL1StartingState()); }
-
-        ArmState startingState = getStartingState(level);
-        return arm.goToStateCommand(startingState).withTimeout(0.75);
+        return arm.goToStateCommand(() -> getStartingState(level)).withTimeout(0.75);
     }
 
     /**
@@ -99,10 +114,11 @@ public class ScoringSequenceCommands {
      * the middle arm movement before this command is run.
      * @param level
      * @param arm
-     * @param drive
+     * @param drive If null, no "drive back" is performed.
      * @return
      */
-    public static Command scoreAtLevel(ReefLevel level, Arm arm, Drive drive, Rotation2d fieldAngle) {
+    public static Command scoreAtLevel(ReefLevel level, Arm arm, Drive drive, Rotation2d fieldAngle,
+        boolean minimalBackUp) {
         if(level == ReefLevel.L1) return troughScoringSequence(arm);
 
         if(level == ReefLevel.L4) {
@@ -115,9 +131,14 @@ public class ScoringSequenceCommands {
             return Commands.sequence(
                 Commands.parallel(
                     arm.goToStateCommand(scoreDownState).withTimeout(0.75),
-                    DriveCommands.driveStraightCommand(drive, Units.feetToMeters(-2.5), 0.7, fieldAngle, null)
+                    DriveCommands.driveStraightCommand(drive, -2.5, 0.7, () -> fieldAngle, null).onlyIf(() -> !minimalBackUp)
                 ),
-                arm.goToStateCommand(ArmConstants.restingState)
+                minimalBackUp
+                    ? new ScheduleCommand(Commands.sequence(
+                        Commands.waitSeconds(0.4),
+                        arm.goToStateCommand(ArmConstants.restingState)
+                    ))
+                    : arm.goToStateCommand(ArmConstants.restingState)
             );
             // @formatter:on
         }
@@ -138,13 +159,49 @@ public class ScoringSequenceCommands {
                     Commands.waitSeconds(0.2),
                     arm.goToStateCommand(scoreDownState)
                 ),
-                DriveCommands.driveStraightCommand(drive, Units.feetToMeters(2.5), 0.15, fieldAngle, null)
+                DriveCommands.driveStraightCommand(drive, Units.feetToMeters(2.5), 0.15, () -> fieldAngle, null)
             ).withTimeout(0.75),
             Commands.parallel(
                 arm.goToStateCommand(scoreDownState2).withTimeout(0.75),
-                DriveCommands.driveStraightCommand(drive, Units.feetToMeters(-2), 1.25, fieldAngle, null)
+                DriveCommands.driveStraightCommand(drive, Units.feetToMeters(minimalBackUp ? -4 : -2), minimalBackUp ? 0.3 : 1.25, () -> fieldAngle, null)
             )
         ).withName("ScoreAt" + level.name() + "Sequence");
+        // @formatter:on
+    }
+
+    // HACK aaahahh
+    public static Command scoreAtLevelSlowly(ReefLevel level, Arm arm) {
+        if(level == ReefLevel.L1) return troughScoringSequence(arm);
+
+        Container<Double> startTime = new Container<Double>(0.);
+        double scoreTime = 2.0;
+
+        if(level == ReefLevel.L4) {
+            ArmState startState = getStartingState(level);
+            ArmState scoreDownState = new ArmState(startState.pitch().minus(Rotation2d.fromDegrees(L4PitchDown.get())),
+                startState.height().minus(Inches.of(elevatorScoreHeightReduction.get())), startState.wristRotation(),
+                EndEffectorState.velocity(1.));
+
+            // @formatter:off
+            return Commands.sequence(
+                Commands.runOnce(() -> startTime.value = Timer.getTimestamp()),
+                arm.setTargetStateCommand(() -> startState.lerp(scoreDownState, (Timer.getTimestamp() - startTime.value) / scoreTime))
+                    .withTimeout(scoreTime)
+            );
+            // @formatter:on
+        }
+
+        ArmState startState = getStartingState(level);
+        ArmState scoreDownState = new ArmState(
+            startState.pitch().minus(Rotation2d.fromDegrees(branchScorePitchDown.get())),
+            startState.height().minus(Inches.of(elevatorScoreHeightReduction.get())), startState.wristRotation(),
+            EndEffectorState.velocity(1.));
+
+        // @formatter:off
+        return Commands.sequence(
+            Commands.runOnce(() -> startTime.value = Timer.getTimestamp()),
+            arm.setTargetStateCommand(() -> startState.lerp(scoreDownState, (Timer.getTimestamp() - startTime.value) / scoreTime)).withTimeout(scoreTime)
+        ).withName("ScoreAt" + level.name() + "SlowlySequence");
         // @formatter:on
     }
 
@@ -174,12 +231,12 @@ public class ScoringSequenceCommands {
             return Commands.parallel(
                 arm.goToStateCommand(new ArmState(Rotation2d.fromDegrees(30), Meters.of(0.65), WristRotation.Vertical,
                     EndEffectorState.velocity(12))),
-                DriveCommands.driveStraightCommand(drive, Units.feetToMeters(-2.5), 1.5, fieldAngle, null));
+                DriveCommands.driveStraightCommand(drive, Units.feetToMeters(-2.5), 1.5, () -> fieldAngle, null));
         } else {
             return Commands.parallel(
                 arm.goToStateCommand(new ArmState(Rotation2d.fromDegrees(-30), Meters.of(0.95), WristRotation.Vertical,
                     EndEffectorState.velocity(12))),
-                DriveCommands.driveStraightCommand(drive, Units.feetToMeters(-2.5), 1.5, fieldAngle, null));
+                DriveCommands.driveStraightCommand(drive, Units.feetToMeters(-2.5), 1.5, () -> fieldAngle, null));
         }
     }
 
@@ -190,7 +247,7 @@ public class ScoringSequenceCommands {
      */
     private static Command troughScoringSequence(Arm arm) {
         return Commands.sequence(arm.goToStateCommand(new ArmState(Rotation2d.fromDegrees(0),
-            Inches.of(L1ScoreHeight.get()), WristRotation.Vertical, EndEffectorState.velocity(10.))))
+            Inches.of(L1ScoreHeight.get()), WristRotation.Vertical, EndEffectorState.velocity(8.))))
             .withName("TroughScoringSequence");
     }
 }

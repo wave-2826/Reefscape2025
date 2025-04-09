@@ -5,6 +5,12 @@
     "data": {
       "commands": [
         {
+          "type": "named",
+          "data": {
+            "name": "Prep arm"
+          }
+        },
+        {
           "type": "path",
           "data": {
             "pathName": "Center simple 1 coral"
@@ -13,7 +19,7 @@
         {
           "type": "named",
           "data": {
-            "name": "Score G L4"
+            "name": "Score H L4"
           }
         }
       ]

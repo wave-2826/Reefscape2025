@@ -1,6 +1,6 @@
 {
-  "robotWidth": 0.9,
-  "robotLength": 0.9,
+  "robotWidth": 0.94,
+  "robotLength": 0.94,
   "holonomicMode": true,
   "pathFolders": [],
   "autoFolders": [],
@@ -28,5 +28,7 @@
   "brModuleY": -0.273,
   "bumperOffsetX": 0.0,
   "bumperOffsetY": 0.0,
-  "robotFeatures": []
+  "robotFeatures": [
+    "{\"name\":\"Intake\",\"type\":\"rounded_rect\",\"data\":{\"center\":{\"x\":-0.572,\"y\":0.0},\"size\":{\"width\":0.4572,\"length\":0.177},\"borderRadius\":0.01,\"strokeWidth\":0.02,\"filled\":false}}"
+  ]
 }
