@@ -72,7 +72,7 @@ public class ArmConstants {
         /**
          * The maximum height of the outer stage relative to its hard stop.
          */
-        public final static Distance outerStageMaximumHeight = Inches.of(34.);
+        public final static Distance outerStageMaximumHeight = Inches.of(29.25);
         /**
          * The maximum height of the carriage relative to the outer stage.
          */

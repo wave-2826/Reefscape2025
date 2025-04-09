@@ -258,17 +258,12 @@ public class ArmIOReal implements ArmIO {
         // Update elevator height motor inputs
         sparkStickyFault = false;
 
-        // We average the two encoders' readings because they may not be perfectly in sync.
-        ifOk(new SparkBase[] {
-            elevatorHeightMotorLeader, elevatorHeightMotorFollower
-        }, new DoubleSupplier[] {
-            leaderElevatorHeightEncoder::getPosition, followerElevatorHeightEncoder::getPosition
-        }, (v) -> inputs.elevatorHeightMeters = (v[0] + v[1]) / 2.);
-        ifOk(new SparkBase[] {
-            elevatorHeightMotorLeader, elevatorHeightMotorFollower
-        }, new DoubleSupplier[] {
-            leaderElevatorHeightEncoder::getVelocity, followerElevatorHeightEncoder::getVelocity
-        }, (v) -> inputs.elevatorVelocityMetersPerSecond = (v[0] + v[1]) / 2.);
+        // NOTE: We used to take the average of these two motors. DO NOT DO THIS WITH FOLLOWER MODE!!
+        // This was the source of longstanding resetting bugs :(
+        ifOk(elevatorHeightMotorLeader, leaderElevatorHeightEncoder::getPosition,
+            (v) -> inputs.elevatorHeightMeters = v);
+        ifOk(elevatorHeightMotorLeader, leaderElevatorHeightEncoder::getVelocity,
+            (v) -> inputs.elevatorVelocityMetersPerSecond = v);
         inputs.elevatorMotorsConnected = elevatorConnectedDebouncer.calculate(!sparkStickyFault);
 
         Measurement measurement = elevatorHeightSensor.getMeasurement();

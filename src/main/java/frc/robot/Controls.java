@@ -89,7 +89,7 @@ public class Controls {
             .whileTrue(AutoScoreCommands.autoScoreTeleopCommand(drive, vision, arm, leds, driver.rightBumper(),
                 driver.leftBumper(), driver::getLeftX, driver::getLeftY, (aligned) -> {
                     setDriverRumble(RumbleType.kLeftRumble, aligned ? 1.0 : 0.0, 1);
-                }, () -> operatorMode == OperatorMode.Normal).finallyDo(() -> {
+                }).finallyDo(() -> {
                     setDriverRumble(RumbleType.kLeftRumble, 0.0, 1);
                 }));
 

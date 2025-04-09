@@ -36,41 +36,22 @@ import frc.robot.util.LoggedTunableNumber;
 import frc.robot.util.ReefTarget;
 
 public class AutoScoreCommands {
-    /**
-     * The distance from the reef branch to the center of the robot when lining up to score L1 in inches.
-     */
+    private static final BooleanSupplier resetElevatorDuringScoring = () -> true;
+
     private static final LoggedTunableNumber robotReefLineupL1Distance = new LoggedTunableNumber(//
         "AutoScore/L1ReefLineupDistance", 33.5);
-
-    /**
-     * The distance from the reef branch to the center of the robot when lining up to score L2 in inches.
-     */
     private static final LoggedTunableNumber robotReefLineupL2Distance = new LoggedTunableNumber(//
         "AutoScore/L2ReefLineupDistance", 20.5);
-
-    /**
-     * The distance from the reef branch to the center of the robot when lining up to score L3 in inches.
-     */
     private static final LoggedTunableNumber robotReefLineupL3Distance = new LoggedTunableNumber(//
         "AutoScore/L3ReefLineupDistance", 21.75);
-
-    /**
-     * The distance from the reef branch to the center of the robot when lining up to score L4 in inches.
-     */
     private static final LoggedTunableNumber robotReefLineupL4Distance = new LoggedTunableNumber(//
         "AutoScore/L4ReefLineupDistance", 24.25);
-
-    /**
-     * The amount the driver can tweak the auto lineup position, in inches.
-     */
     private static final LoggedTunableNumber autoAlignTweakAmount = new LoggedTunableNumber(//
         "AutoScore/AutoAlignTweakInches", 4.5);
-
-    /**
-     * A tweaking factor added to our horizontal lineup distance from the center between two branches.
-     */
     private static final LoggedTunableNumber centerDistanceTweak = new LoggedTunableNumber(//
         "AutoScore/CenterDistanceTweak", 0.5);
+    private static final LoggedTunableNumber centerDistanceTweakRight = new LoggedTunableNumber(//
+        "AutoScore/CenterPositionTweakRight", 0.5);
 
     /**
      * Gets a command that pathfinds to the target pose and precisely aligns to it. Because PathPlanner's default
@@ -105,7 +86,9 @@ public class AutoScoreCommands {
         double centerDistance = FieldConstants.reefBranchSeparation.in(Meters) / 2.
             + Units.inchesToMeters(centerDistanceTweak.get());
         Transform2d tagRelativeOffset = new Transform2d(new Translation2d(Units.inchesToMeters(distanceAwayInches),
-            alignCenter ? 0. : (isLeft ? -centerDistance : centerDistance)), Rotation2d.k180deg);
+            (alignCenter ? 0. : (isLeft ? -centerDistance : centerDistance))
+                + Units.inchesToMeters(centerDistanceTweakRight.get())),
+            Rotation2d.k180deg);
 
         ReefFace reefFace = target.branch().face;
 
@@ -125,7 +108,7 @@ public class AutoScoreCommands {
 
             Commands.runOnce(() -> Logger.recordOutput("AutoScore/RunningCloseLineup", true)),
             Commands.parallel(
-                coarseLineupCommand.withTimeout(2),
+                coarseLineupCommand,
                 drive.runOnce(drive::stopWithX)
             ),
             closeLineupCommand.withDeadline(
@@ -136,7 +119,7 @@ public class AutoScoreCommands {
                     finishSequence, lineupFeedback
                 ).withTimeout(DriverStation.isAutonomous() ? 4.0 : 10000).until(() -> {
                     // Last ditch effort at the end of auto
-                    return DriverStation.isAutonomous() && DriverStation.getMatchTime() < 1.;
+                    return DriverStation.isAutonomous() && DriverStation.getMatchTime() <= 1.;
                 }) // Final adjustment
             ) // Run during final adjustment
         ).finallyDo(() -> {
@@ -169,7 +152,7 @@ public class AutoScoreCommands {
     public static Command autoScoreCommand(Drive drive, Vision vision, Arm arm, LEDs leds, ReefTarget target,
         boolean driveBackward) {
         return autoScoreCommand(drive, vision, arm, leds, target, Optional.empty(), () -> false, () -> 0, () -> 0, null,
-            () -> true, driveBackward);
+            driveBackward);
     }
 
     /**
@@ -192,7 +175,7 @@ public class AutoScoreCommands {
      */
     public static Command autoScoreCommand(Drive drive, Vision vision, Arm arm, LEDs leds, ReefTarget target,
         Optional<BooleanSupplier> finishSequence, BooleanSupplier finishSequenceSlow, DoubleSupplier tweakX,
-        DoubleSupplier tweakY, BooleanConsumer lineupFeedback, BooleanSupplier useArmLineup, boolean driveBackward) {
+        DoubleSupplier tweakY, BooleanConsumer lineupFeedback, boolean driveBackward) {
         double distanceAwayInches;
         if(target.level() == ReefLevel.L1) {
             distanceAwayInches = robotReefLineupL1Distance.get();
@@ -213,16 +196,17 @@ public class AutoScoreCommands {
                     // During coarse lineup
                     Commands.none(),
                     // During close lineup
-                    ScoringSequenceCommands.middleArmMovement(target.level(), arm), tweakX, tweakY, finish,
-                    lineupFeedback).onlyIf(useArmLineup).withTimeout(DriverStation.isAutonomous() ? 4. : 10000);
+                    ScoringSequenceCommands.middleArmMovement(target.level(), arm).withTimeout(2)
+                        .andThen(Commands.runOnce(arm::resetToAbsolute).onlyIf(resetElevatorDuringScoring)),
+                    tweakX, tweakY, finish, lineupFeedback).withTimeout(DriverStation.isAutonomous() ? 4. : 10000);
             }, Set.of(drive)), //
             Commands.select(Map.of(//
                 false,
                 ScoringSequenceCommands
                     .scoreAtLevel(target.level(), arm, drive, target.branch().face.getFieldAngle(), !driveBackward)
-                    .raceWith(leds.runStateCommand(LEDState.AutoScoring)).onlyIf(useArmLineup),
+                    .raceWith(leds.runStateCommand(LEDState.AutoScoring)),
                 true, ScoringSequenceCommands.scoreAtLevelSlowly(target.level(), arm)
-                    .raceWith(leds.runStateCommand(LEDState.AutoScoring)).onlyIf(useArmLineup) //
+                    .raceWith(leds.runStateCommand(LEDState.AutoScoring)) //
             ), finishSequenceSlow::getAsBoolean)).withName("AutoScore" + target.toString());
     }
 
@@ -242,12 +226,12 @@ public class AutoScoreCommands {
      */
     public static Command autoScoreTeleopCommand(Drive drive, Vision vision, Arm arm, LEDs leds,
         BooleanSupplier finishSequence, BooleanSupplier finishSequenceSlow, DoubleSupplier tweakX,
-        DoubleSupplier tweakY, BooleanConsumer lineupFeedback, BooleanSupplier useArmLineup) {
+        DoubleSupplier tweakY, BooleanConsumer lineupFeedback) {
         AutoScoreState state = new AutoScoreState(DriverStationInterface.getInstance().getReefTarget());
 
         return new RestartWhenCommand(
             () -> autoScoreCommand(drive, vision, arm, leds, state.target, Optional.of(finishSequence),
-                finishSequenceSlow, tweakX, tweakY, lineupFeedback, useArmLineup, true),
+                finishSequenceSlow, tweakX, tweakY, lineupFeedback, true),
 
             // Restart when our target changes
             () -> {
@@ -277,7 +261,8 @@ public class AutoScoreCommands {
         Optional<BooleanSupplier> finishSequence, DoubleSupplier tweakX, DoubleSupplier tweakY) {
         Command autoAlign = autoAlignSequence(drive, vision, leds, target, 20, true,
             // During coarse lineup
-            ScoringSequenceCommands.prepForAlgaeRemoval(target.level(), arm),
+            ScoringSequenceCommands.prepForAlgaeRemoval(target.level(), arm).withTimeout(2)
+                .andThen(Commands.runOnce(arm::resetToAbsolute).onlyIf(resetElevatorDuringScoring)),
             // During close lineup
             Commands.none(), tweakX, tweakY, finishSequence, null);
 
