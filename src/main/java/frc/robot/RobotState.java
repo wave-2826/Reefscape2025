@@ -26,12 +26,9 @@ import frc.robot.util.DriverStationInterface;
  * separation of concerns.
  */
 public class RobotState {
-    private static RobotState instance = null;
+    private static RobotState instance = new RobotState();
 
     public static RobotState getInstance() {
-        if(instance == null) {
-            instance = new RobotState();
-        }
         return instance;
     }
 

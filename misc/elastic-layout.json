@@ -3,117 +3,12 @@
   "grid_size": 115,
   "tabs": [
     {
-      "name": "Autonomous",
-      "grid_layout": {
-        "layouts": [],
-        "containers": [
-          {
-            "title": "Alerts",
-            "x": 1150.0,
-            "y": 230.0,
-            "width": 345.0,
-            "height": 460.0,
-            "type": "Alerts",
-            "properties": {
-              "topic": "/SmartDashboard/Alerts",
-              "period": 0.06
-            }
-          },
-          {
-            "title": "Auto Choices",
-            "x": 460.0,
-            "y": 0.0,
-            "width": 345.0,
-            "height": 230.0,
-            "type": "ComboBox Chooser",
-            "properties": {
-              "topic": "/SmartDashboard/Auto Choices",
-              "period": 0.06,
-              "sort_options": false
-            }
-          },
-          {
-            "title": "Limelight",
-            "x": 0.0,
-            "y": 230.0,
-            "width": 575.0,
-            "height": 460.0,
-            "type": "Camera Stream",
-            "properties": {
-              "topic": "/CameraPublisher/limelight",
-              "period": 0.06,
-              "rotation_turns": 0
-            }
-          },
-          {
-            "title": "Left Camera",
-            "x": 575.0,
-            "y": 230.0,
-            "width": 575.0,
-            "height": 460.0,
-            "type": "Camera Stream",
-            "properties": {
-              "topic": "/CameraPublisher/elevator_Port_1183_Input_MJPEG_Server",
-              "period": 0.06,
-              "rotation_turns": 0
-            }
-          },
-          {
-            "title": "FMS Info",
-            "x": 0.0,
-            "y": 0.0,
-            "width": 460.0,
-            "height": 230.0,
-            "type": "FMSInfo",
-            "properties": {
-              "topic": "/FMSInfo",
-              "period": 0.06
-            }
-          },
-          {
-            "title": "BatteryVoltage",
-            "x": 1150.0,
-            "y": 0.0,
-            "width": 345.0,
-            "height": 230.0,
-            "type": "Voltage View",
-            "properties": {
-              "topic": "/AdvantageKit/SystemStats/BatteryVoltage",
-              "period": 0.06,
-              "data_type": "double",
-              "min_value": 4.0,
-              "max_value": 13.0,
-              "divisions": 5,
-              "inverted": false,
-              "orientation": "horizontal"
-            }
-          },
-          {
-            "title": "MatchTime",
-            "x": 805.0,
-            "y": 0.0,
-            "width": 345.0,
-            "height": 230.0,
-            "type": "Match Time",
-            "properties": {
-              "topic": "/AdvantageKit/DriverStation/MatchTime",
-              "period": 0.06,
-              "data_type": "double",
-              "time_display_mode": "Minutes and Seconds",
-              "red_start_time": 15,
-              "yellow_start_time": 30
-            }
-          }
-        ]
-      }
-    },
-    {
       "name": "Teleoperated",
       "grid_layout": {
         "layouts": [],
         "containers": [
           {
-            "title": "FMS Info",
+            "title": "FMSInfo",
             "x": 0.0,
             "y": 0.0,
             "width": 460.0,
@@ -127,7 +22,7 @@
           {
             "title": "Alerts",
             "x": 1150.0,
-            "y": 230.0,
+            "y": 115.0,
             "width": 345.0,
             "height": 460.0,
             "type": "Alerts",
@@ -137,10 +32,10 @@
             }
           },
           {
-            "title": "Reef Branch",
-            "x": 460.0,
+            "title": "ReefBranch",
+            "x": 575.0,
             "y": 0.0,
-            "width": 230.0,
+            "width": 345.0,
             "height": 115.0,
             "type": "Text Display",
             "properties": {
@@ -151,10 +46,10 @@
             }
           },
           {
-            "title": "Reef Level",
-            "x": 460.0,
+            "title": "ReefLevel",
+            "x": 575.0,
             "y": 115.0,
-            "width": 230.0,
+            "width": 345.0,
             "height": 115.0,
             "type": "Text Display",
             "properties": {
@@ -165,63 +60,49 @@
             }
           },
           {
-            "title": "Left Camera",
-            "x": 575.0,
-            "y": 230.0,
-            "width": 575.0,
-            "height": 460.0,
-            "type": "Camera Stream",
-            "properties": {
-              "topic": "/CameraPublisher/elevator_Port_1183_Input_MJPEG_Server",
-              "period": 0.06,
-              "rotation_turns": 0
-            }
-          },
-          {
-            "title": "Right Camera",
+            "title": "2826_OV9281_Ben",
             "x": 0.0,
             "y": 230.0,
-            "width": 575.0,
+            "width": 690.0,
             "height": 460.0,
             "type": "Camera Stream",
             "properties": {
-              "topic": "/CameraPublisher/elevator_Port_1181_Input_MJPEG_Server",
+              "topic": "/CameraPublisher/2826_OV9281_Ben",
               "period": 0.06,
               "rotation_turns": 0
             }
-          },
+          }
+        ]
+      }
+    },
+    {
+      "name": "Autonomous",
+      "grid_layout": {
+        "layouts": [],
+        "containers": [
           {
-            "title": "BatteryVoltage",
-            "x": 1035.0,
-            "y": 0.0,
-            "width": 460.0,
-            "height": 230.0,
-            "type": "Voltage View",
+            "title": "Alerts",
+            "x": 920.0,
+            "y": 115.0,
+            "width": 345.0,
+            "height": 460.0,
+            "type": "Alerts",
             "properties": {
-              "topic": "/AdvantageKit/SystemStats/BatteryVoltage",
-              "period": 0.06,
-              "data_type": "double",
-              "min_value": 4.0,
-              "max_value": 13.0,
-              "divisions": 5,
-              "inverted": false,
-              "orientation": "horizontal"
+              "topic": "/SmartDashboard/Alerts",
+              "period": 0.06
             }
           },
           {
-            "title": "MatchTime",
-            "x": 690.0,
+            "title": "Auto Choices",
+            "x": 920.0,
             "y": 0.0,
             "width": 345.0,
-            "height": 230.0,
-            "type": "Match Time",
+            "height": 115.0,
+            "type": "ComboBox Chooser",
             "properties": {
-              "topic": "/AdvantageKit/DriverStation/MatchTime",
+              "topic": "/SmartDashboard/Auto Choices",
               "period": 0.06,
-              "data_type": "double",
-              "time_display_mode": "Minutes and Seconds",
-              "red_start_time": 15,
-              "yellow_start_time": 30
+              "sort_options": false
             }
           }
         ]
@@ -605,6 +486,48 @@
         "layouts": [],
         "containers": [
           {
+            "title": "PitchkSlot0D",
+            "x": 1265.0,
+            "y": 0.0,
+            "width": 230.0,
+            "height": 115.0,
+            "type": "Text Display",
+            "properties": {
+              "topic": "/Tuning/Intake/PitchkSlot0D",
+              "period": 0.06,
+              "data_type": "double",
+              "show_submit_button": false
+            }
+          },
+          {
+            "title": "PitchkSlot0I",
+            "x": 1035.0,
+            "y": 0.0,
+            "width": 230.0,
+            "height": 115.0,
+            "type": "Text Display",
+            "properties": {
+              "topic": "/Tuning/Intake/PitchkSlot0I",
+              "period": 0.06,
+              "data_type": "double",
+              "show_submit_button": false
+            }
+          },
+          {
+            "title": "PitchkSlot0P",
+            "x": 805.0,
+            "y": 0.0,
+            "width": 230.0,
+            "height": 115.0,
+            "type": "Text Display",
+            "properties": {
+              "topic": "/Tuning/Intake/PitchkSlot0P",
+              "period": 0.06,
+              "data_type": "double",
+              "show_submit_button": false
+            }
+          },
+          {
             "title": "BranchReefLineupDistance",
             "x": 230.0,
             "y": 0.0,
@@ -746,7 +669,7 @@
           },
           {
             "title": "translationKd",
-            "x": 1035.0,
+            "x": 805.0,
             "y": 230.0,
             "width": 230.0,
             "height": 115.0,
@@ -774,7 +697,7 @@
           },
           {
             "title": "thetaRotationKd",
-            "x": 1035.0,
+            "x": 805.0,
             "y": 345.0,
             "width": 230.0,
             "height": 115.0,
@@ -785,104 +708,6 @@
               "data_type": "double",
               "show_submit_button": false
             }
-          },
-          {
-            "title": "BranchScorePitch",
-            "x": 805.0,
-            "y": 575.0,
-            "width": 230.0,
-            "height": 115.0,
-            "type": "Text Display",
-            "properties": {
-              "topic": "/Tuning/AutoScore/BranchScorePitch",
-              "period": 0.06,
-              "data_type": "double",
-              "show_submit_button": false
-            }
-          },
-          {
-            "title": "translationKi",
-            "x": 805.0,
-            "y": 230.0,
-            "width": 230.0,
-            "height": 115.0,
-            "type": "Text Display",
-            "properties": {
-              "topic": "/Tuning/CloseLineup/translationKi",
-              "period": 0.06,
-              "data_type": "double",
-              "show_submit_button": true
-            }
-          },
-          {
-            "title": "thetaRotationKi",
-            "x": 805.0,
-            "y": 345.0,
-            "width": 230.0,
-            "height": 115.0,
-            "type": "Text Display",
-            "properties": {
-              "topic": "/Tuning/CloseLineup/thetaRotationKi",
-              "period": 0.06,
-              "data_type": "double",
-              "show_submit_button": true
-            }
-          },
-          {
-            "title": "RadiusInnerDeadband",
-            "x": 575.0,
-            "y": 0.0,
-            "width": 230.0,
-            "height": 115.0,
-            "type": "Text Display",
-            "properties": {
-              "topic": "/Tuning/CloseLineup/Deadband/RadiusInnerDeadband",
-              "period": 0.06,
-              "data_type": "double",
-              "show_submit_button": true
-            }
-          },
-          {
-            "title": "RadiusOuterDeadband",
-            "x": 805.0,
-            "y": 0.0,
-            "width": 230.0,
-            "height": 115.0,
-            "type": "Text Display",
-            "properties": {
-              "topic": "/Tuning/CloseLineup/Deadband/RadiusOuterDeadband",
-              "period": 0.06,
-              "data_type": "double",
-              "show_submit_button": true
-            }
-          },
-          {
-            "title": "ThetaInnerDeadband",
-            "x": 1035.0,
-            "y": 0.0,
-            "width": 230.0,
-            "height": 115.0,
-            "type": "Text Display",
-            "properties": {
-              "topic": "/Tuning/CloseLineup/Deadband/ThetaInnerDeadband",
-              "period": 0.06,
-              "data_type": "double",
-              "show_submit_button": true
-            }
-          },
-          {
-            "title": "ThetaOuterDeadband",
-            "x": 1265.0,
-            "y": 0.0,
-            "width": 230.0,
-            "height": 115.0,
-            "type": "Text Display",
-            "properties": {
-              "topic": "/Tuning/CloseLineup/Deadband/ThetaOuterDeadband",
-              "period": 0.06,
-              "data_type": "double",
-              "show_submit_button": true
-            }
           }
         ]
       }
@@ -892,58 +717,6 @@
       "grid_layout": {
         "layouts": [],
         "containers": [
-          {
-            "title": "frontLeftCamera-raw",
-            "x": 0.0,
-            "y": 0.0,
-            "width": 460.0,
-            "height": 345.0,
-            "type": "Camera Stream",
-            "properties": {
-              "topic": "/CameraPublisher/frontLeftCamera-raw",
-              "period": 0.06,
-              "rotation_turns": 0
-            }
-          },
-          {
-            "title": "frontRightCamera-raw",
-            "x": 460.0,
-            "y": 0.0,
-            "width": 460.0,
-            "height": 345.0,
-            "type": "Camera Stream",
-            "properties": {
-              "topic": "/CameraPublisher/frontRightCamera-raw",
-              "period": 0.06,
-              "rotation_turns": 0
-            }
-          },
-          {
-            "title": "backLeftCamera-raw",
-            "x": 0.0,
-            "y": 345.0,
-            "width": 460.0,
-            "height": 345.0,
-            "type": "Camera Stream",
-            "properties": {
-              "topic": "/CameraPublisher/backLeftCamera-raw",
-              "period": 0.06,
-              "rotation_turns": 0
-            }
-          },
-          {
-            "title": "backRightCamera-raw",
-            "x": 460.0,
-            "y": 345.0,
-            "width": 460.0,
-            "height": 345.0,
-            "type": "Camera Stream",
-            "properties": {
-              "topic": "/CameraPublisher/backRightCamera-raw",
-              "period": 0.06,
-              "rotation_turns": 0
-            }
-          },
           {
             "title": "Sim Field",
             "x": 920.0,
@@ -962,6 +735,58 @@
               "field_rotation": -90.0,
               "robot_color": 4294198070,
               "trajectory_color": 4294967295
+            }
+          },
+          {
+            "title": "2826_OV9281_Abe-processed",
+            "x": 0.0,
+            "y": 0.0,
+            "width": 460.0,
+            "height": 345.0,
+            "type": "Camera Stream",
+            "properties": {
+              "topic": "/CameraPublisher/2826_OV9281_Abe-processed",
+              "period": 0.06,
+              "rotation_turns": 0
+            }
+          },
+          {
+            "title": "2826_OV9281_Ben-processed",
+            "x": 460.0,
+            "y": 0.0,
+            "width": 460.0,
+            "height": 345.0,
+            "type": "Camera Stream",
+            "properties": {
+              "topic": "/CameraPublisher/2826_OV9281_Ben-processed",
+              "period": 0.06,
+              "rotation_turns": 0
+            }
+          },
+          {
+            "title": "2826_OV9281_Cal-processed",
+            "x": 0.0,
+            "y": 345.0,
+            "width": 460.0,
+            "height": 345.0,
+            "type": "Camera Stream",
+            "properties": {
+              "topic": "/CameraPublisher/2826_OV9281_Cal-processed",
+              "period": 0.06,
+              "rotation_turns": 0
+            }
+          },
+          {
+            "title": "2826_OV9281_Dan-processed",
+            "x": 460.0,
+            "y": 345.0,
+            "width": 460.0,
+            "height": 345.0,
+            "type": "Camera Stream",
+            "properties": {
+              "topic": "/CameraPublisher/2826_OV9281_Dan-processed",
+              "period": 0.06,
+              "rotation_turns": 0
             }
           }
         ]

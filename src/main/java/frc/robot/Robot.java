@@ -28,6 +28,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.BiConsumer;
 
+import org.littletonrobotics.junction.AutoLogOutputManager;
 import org.littletonrobotics.junction.LogFileUtil;
 import org.littletonrobotics.junction.LoggedRobot;
 import org.littletonrobotics.junction.Logger;
@@ -120,6 +121,8 @@ public class Robot extends LoggedRobot {
         }
 
         if(Constants.useSuperDangerousRTThreadPriority) Logger.addDataReceiver(new ThreadPriorityDummyLogReceiver());
+
+        AutoLogOutputManager.addObject(RobotState.getInstance());
 
         // Initialize URCL
         Logger.registerURCL(URCL.startExternal());
@@ -231,6 +234,7 @@ public class Robot extends LoggedRobot {
 
         // Miscellaneous logging
         NTClientLogger.log();
+        RobotState.getInstance().update();
 
         LoggedTracer.record("Logging");
     }
