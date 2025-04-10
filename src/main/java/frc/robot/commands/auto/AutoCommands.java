@@ -4,8 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-import org.littletonrobotics.junction.Logger;
-
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
 import com.pathplanner.lib.util.FlippingUtil;
@@ -77,12 +75,11 @@ public class AutoCommands {
             }
         }
 
-        registerLoggedNamedCommand("Score Until Failure",
+        registerLoggedNamedCommand("Auto Coral Vision Score",
             Commands.defer(() -> scoreUntilFailure(drive, arm, intake, leds), Set.of(drive, arm, intake)));
 
-        registerLoggedNamedCommand("Start intake",
-            new ScheduleCommand(Commands.sequence(Commands.runOnce(() -> IntakeCommands.waitingForPiece = true),
-                IntakeCommands.autoIntake(intake, arm))));
+        registerLoggedNamedCommand("Start intake", new ScheduleCommand(
+            IntakeCommands.autoIntake(intake, arm).beforeStarting(() -> IntakeCommands.waitingForPiece = true)));
         registerLoggedNamedCommand("Intake That John", intakeThatJohn(drive, intake));
 
         registerLoggedNamedCommand("Prep arm",
@@ -99,6 +96,11 @@ public class AutoCommands {
      */
     public static Command scoreUntilFailure(Drive drive, Arm arm, Intake intake, LEDs leds) {
         List<ReefTarget> scoringPositionsAvailable = new ArrayList<>();
+
+        // TEMPORARY TEMPORARY TEMPORARY please
+        Pose2d tempGrabPose = new Pose2d(2.38549, 1.8327, Rotation2d.fromRadians(1.06452));
+        final Pose2d coralGrabPose = AutoBuilder.shouldFlip() ? FlippingUtil.flipFieldPose(tempGrabPose) : tempGrabPose;
+
         return Commands.sequence(Commands.runOnce(() -> {
             grabbingCoralFailed = false;
             scoringPositionsAvailable.clear();
@@ -107,35 +109,47 @@ public class AutoCommands {
 
             if(bluePose.getY() > FieldConstants.fieldWidth / 2.) {
                 // If on the left side of the field
-                scoringPositionsAvailable.add(new ReefTarget(ReefBranch.J, ReefLevel.L4));
                 scoringPositionsAvailable.add(new ReefTarget(ReefBranch.K, ReefLevel.L4));
-                scoringPositionsAvailable.add(new ReefTarget(ReefBranch.L, ReefLevel.L4)); // 4-piece auton? Probably not...
-                scoringPositionsAvailable.add(new ReefTarget(ReefBranch.A, ReefLevel.L4)); // 5-piece auton!?! lol yeah right...   
+                scoringPositionsAvailable.add(new ReefTarget(ReefBranch.L, ReefLevel.L4));
+                scoringPositionsAvailable.add(new ReefTarget(ReefBranch.A, ReefLevel.L4)); // 4-piece auton? Probably not...
+                scoringPositionsAvailable.add(new ReefTarget(ReefBranch.B, ReefLevel.L4)); // 5-piece auton!?! lol yeah right...   
             } else {
                 // If on the right side of the field
-                scoringPositionsAvailable.add(new ReefTarget(ReefBranch.E, ReefLevel.L4));
                 scoringPositionsAvailable.add(new ReefTarget(ReefBranch.D, ReefLevel.L4));
-                scoringPositionsAvailable.add(new ReefTarget(ReefBranch.C, ReefLevel.L4)); // 4-piece auton? Probably not...
-                scoringPositionsAvailable.add(new ReefTarget(ReefBranch.B, ReefLevel.L4)); // 5-piece auton!?! lol yeah right...
+                scoringPositionsAvailable.add(new ReefTarget(ReefBranch.C, ReefLevel.L4));
+                scoringPositionsAvailable.add(new ReefTarget(ReefBranch.B, ReefLevel.L4)); // 4-piece auton? Probably not...
+                scoringPositionsAvailable.add(new ReefTarget(ReefBranch.A, ReefLevel.L4)); // 5-piece auton!?! lol yeah right...
             }
         }), Commands.sequence( //
-            grabCoral(drive, intake, arm, () -> grabbingCoralFailed = true), //
-            IntakeCommands.waitForPieceInArm().withTimeout(1.5),
-            // If we don't have a piece, we failed to grab it
-            Commands.runOnce(() -> {
-                if(!IntakeCommands.waitingForPiece) {
+            new ScheduleCommand(IntakeCommands.autoIntake(intake, arm))
+                .beforeStarting(() -> IntakeCommands.waitingForPiece = true), //
+
+            new DriveToPose(drive, () -> coralGrabPose, true),
+
+            new LoggedCommand("Grab Coral", new TrackCoral(drive, () -> grabbingCoralFailed = true).until(() -> {
+                if(intake.intakeSensorTriggered()) return true;
+
+                // If the robot is at risk of running into the wall, stop.
+                var nextPosition = RobotState.getInstance().getLookaheadPose(0.3);
+                if(nextPosition.getX() < 0.0 || nextPosition.getY() < 0.0
+                    || nextPosition.getX() > FieldConstants.fieldLength
+                    || nextPosition.getY() > FieldConstants.fieldWidth) {
                     grabbingCoralFailed = true;
+                    return true;
                 }
-            }), //
-            Commands.defer(() -> {
-                var nextAvailableTarget = scoringPositionsAvailable.remove(0);
+                return false;
+            }).withTimeout(5.)), //
+
+            new LoggedCommand("AutoTargetScoring", Commands.defer(() -> {
                 if(scoringPositionsAvailable.isEmpty()) {
-                    grabbingCoralFailed = true;
                     // Should never happen... 
+                    grabbingCoralFailed = true;
                 }
 
-                return AutoScoreCommands.autoScoreCommand(drive, arm, leds, nextAvailableTarget, true);
-            }, Set.of(drive, arm)).unless(() -> grabbingCoralFailed) //
+                var nextAvailableTarget = scoringPositionsAvailable.remove(0);
+
+                return AutoScoreCommands.autoScoreCommand(drive, arm, leds, nextAvailableTarget, false);
+            }, Set.of(drive, arm))) //
         ).repeatedly().until(() -> grabbingCoralFailed)).withName("ScoreUntilFailure");
     }
 
@@ -174,47 +188,5 @@ public class AutoCommands {
             new DriveToPose(drive, () -> endPose.value).withTimeout(2.0)
         );
         // @formatter:on
-    }
-
-    /**
-     * Constructs a command that autonomously gets a coral piece and returns to where it started.
-     * @return
-     */
-    public static Command grabCoral(Drive drive, Intake intake, Arm arm, Runnable grabbingFailed) {
-        Container<Pose2d> startPose = new Container<>(new Pose2d());
-        return Commands.sequence( //
-            Commands.runOnce(() -> {
-                Logger.recordOutput("Auto/GrabbingCoral", true);
-                // Record our starting position
-                startPose.value = AutoBuilder.getCurrentPose();
-            }),
-
-            Commands.parallel(//
-                IntakeCommands.autoIntake(intake, arm), //
-
-                // Go to the coral piece
-                new TrackCoral(drive, grabbingFailed).until(() -> {
-                    if(intake.intakeSensorTriggered()) return true;
-
-                    // If the robot is at risk of running into the wall, stop.
-                    var robotPosition = RobotState.getInstance().getPose();
-                    var nextPosition = robotPosition.exp(drive.getChassisSpeeds().toTwist2d(0.3));
-                    if(nextPosition.getX() < 0.0 || nextPosition.getY() < 0.0
-                        || nextPosition.getX() > FieldConstants.fieldLength
-                        || nextPosition.getY() > FieldConstants.fieldWidth) {
-                        if(grabbingFailed != null) grabbingFailed.run();
-                        return true;
-                    }
-                    return false;
-                }) //
-            ).withTimeout(5.),
-
-            // Go back to our starting position
-            new DriveToPose(drive, startPose.value),
-
-            Commands.runOnce(() -> {
-                Logger.recordOutput("Auto/GrabbingCoral", false);
-            }) //
-        ).withName("GrabCoral");
     }
 }

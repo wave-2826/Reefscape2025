@@ -19,25 +19,13 @@
         {
           "type": "named",
           "data": {
-            "name": "Score F L4"
-          }
-        },
-        {
-          "type": "path",
-          "data": {
-            "pathName": "Auto vision coral right.1"
+            "name": "Fast Score D L4"
           }
         },
         {
           "type": "named",
           "data": {
             "name": "Start intake"
-          }
-        },
-        {
-          "type": "named",
-          "data": {
-            "name": "Score Until Failure"
           }
         },
         {
@@ -49,13 +37,7 @@
         {
           "type": "named",
           "data": {
-            "name": "Wait/Score A L4"
-          }
-        },
-        {
-          "type": "named",
-          "data": {
-            "name": "Start intake"
+            "name": "Auto Coral Vision Score"
           }
         },
         {
@@ -67,7 +49,49 @@
         {
           "type": "named",
           "data": {
-            "name": "Wait/Score L L4"
+            "name": "Intake That John"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Auto vision coral right.4"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Fast Wait/Score B L4"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Start intake"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Auto vision coral right.6"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Intake That John"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Auto vision coral right.7"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Wait/Score A L4"
           }
         }
       ]

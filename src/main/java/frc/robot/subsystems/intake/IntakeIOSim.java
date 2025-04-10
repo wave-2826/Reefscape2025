@@ -52,6 +52,7 @@ public class IntakeIOSim extends IntakeIOReal {
     private final IntakeSimulation intakeSimulation;
 
     private final DIOSim intakeDIOSim;
+    private final DIOSim middleDIOSim;
     private final DIOSim transportDIOSim;
 
     /**
@@ -84,6 +85,7 @@ public class IntakeIOSim extends IntakeIOReal {
         pitchEncoderSim.setPosition(pitchSim.getAngleRads());
 
         intakeDIOSim = new DIOSim(intakeSensor);
+        middleDIOSim = new DIOSim(middleSensor);
         transportDIOSim = new DIOSim(endSensor);
 
         powerSim = new DCMotorSim(
@@ -129,13 +131,15 @@ public class IntakeIOSim extends IntakeIOReal {
 
         // TODO: Track coral path and activate sensors
         intakeDIOSim.setValue(
-            !(simulatedCoralPosition != null && simulatedCoralPosition > 0.1 && simulatedCoralPosition < 0.5));
+            !(simulatedCoralPosition != null && simulatedCoralPosition >= 0. && simulatedCoralPosition < 0.5));
+        middleDIOSim.setValue(
+            !(simulatedCoralPosition != null && simulatedCoralPosition > 0.4 && simulatedCoralPosition < 0.8));
         transportDIOSim.setValue(!(simulatedCoralPosition != null && simulatedCoralPosition > 0.7));
 
         if(simulatedCoralPosition != null) {
-            double transportLength = Units.inchesToMeters(24);
+            double transportLength = Units.inchesToMeters(18);
             simulatedCoralPosition += transportSim.getAngularVelocityRadPerSec() / transportGearing
-                * Units.inchesToMeters(2.9) * 1.3 / transportLength * 0.02;
+                * Units.inchesToMeters(2.9) * 1.5 / transportLength * 0.02;
             if(simulatedCoralPosition > 1) {
                 simulatedCoralPosition = 1.;
             }
@@ -149,7 +153,7 @@ public class IntakeIOSim extends IntakeIOReal {
         Logger.recordOutput("Intake/SimulatedCoralPosition",
             simulatedCoralPosition == null ? -1 : simulatedCoralPosition);
         if(simulatedCoralPosition != null) SimRobotGamePiece.setCoralTransform(
-            new Transform3d(simulatedCoralPosition * Units.inchesToMeters(28) - Units.inchesToMeters(12), 0.,
+            new Transform3d(simulatedCoralPosition * Units.inchesToMeters(18) - Units.inchesToMeters(12), 0.,
                 Units.inchesToMeters(9), Rotation3d.kZero));
 
         super.updateInputs(inputs);

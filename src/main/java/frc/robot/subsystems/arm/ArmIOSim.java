@@ -50,12 +50,12 @@ public class ArmIOSim extends ArmIOReal {
 
     /** The arm moment of inertia around its pitch axis in kg m^2. */
     private static final double armMOI = 0.162;
-    private static final Rotation2d armMinAngle = Rotation2d.fromDegrees(-90.);
+    private static final Rotation2d armMinAngle = Rotation2d.fromDegrees(-105.);
     private static final Rotation2d armMaxAngle = Rotation2d.fromDegrees(100.);
 
     /** The arm moment of inertia around its roll axis in kg m^2 */
     private static final double armWristMOI = 0.0051;
-    private static final double endEffectorMOI = 0.0001;
+    private static final double endEffectorMOI = 0.001;
 
     /** Whether there's currently a game piece in the end effector. */
     private static boolean gamePieceInEndEffector = false;
@@ -68,10 +68,10 @@ public class ArmIOSim extends ArmIOReal {
             // Override the elevator height sensor with a simulated one.
             new LaserCanSim(ArmConstants.ElevatorConstants.elevatorHeightSensorId));
 
-        elevatorMotors = DCMotor.getNeoVortex(2);
+        elevatorMotors = DCMotor.getNEO(2);
         armMotors = DCMotor.getNEO(1);
         armWristMotors = DCMotor.getNeo550(1);
-        endEffectorMotors = DCMotor.getNeoVortex(1);
+        endEffectorMotors = DCMotor.getNEO(1);
 
         elevatorMotorSim = new SparkMaxSim(elevatorHeightMotorLeader, DCMotor.getNeoVortex(1));
         armPitchMotorSim = new SparkMaxSim(armPitchMotor, armMotors);
@@ -146,7 +146,7 @@ public class ArmIOSim extends ArmIOReal {
             needsToReset = false;
         }
 
-        if(inputs.absoluteHeightMeters < Units.inchesToMeters(25) && inputs.armPitchPosition.getDegrees() < -80
+        if(inputs.absoluteHeightMeters < Units.inchesToMeters(15) && inputs.armPitchPosition.getDegrees() < -80
             && inputs.endEffectorVelocity < -0.1 && IntakeIOSim.takeCoral()) {
             gamePieceInEndEffector = true;
         } else if(gamePieceInEndEffector && inputs.endEffectorVelocity > 5.0) {

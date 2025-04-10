@@ -223,13 +223,13 @@ public class ArmConstants {
         // a coaxial drive system, the end effector wheel's rotation is linked to the wrist rotation.
         // We need to compensate for this by using position control on the end effector motor.
         // For every 1 rotation of the wrist, the end effector wheel rotates endEffectorCouplingFactor times.
-        public static final double endEffectorCouplingFactor = -11. / 24.; // TODO: Find the proper value for this. Maybe from empirical testing?
+        public static final double endEffectorCouplingFactor = -11. / 24.;
 
         public static final LoggedTunableSparkPID endEffectorPID = new LoggedTunableSparkPID("Arm/EndEffector")
             .addRealRobotGains(new PIDConstants(0.001, 0.0, 0.5, endEffectorReduction / 565, endEffectorVelocitySlot))
-            .addSimGains(new PIDConstants(0.01, 0.0, 0.0, 0.04, endEffectorVelocitySlot))
+            .addSimGains(new PIDConstants(0.001, 0.0, 0.0, endEffectorReduction / 565, endEffectorVelocitySlot))
             .addRealRobotGains(new PIDConstants(0.9, 0.0, 0.1, endEffectorPositionSlot))
-            .addSimGains(new PIDConstants(0.9, 0.0, 0.1, endEffectorPositionSlot));
+            .addSimGains(new PIDConstants(0.001, 0.0, 0.0, endEffectorPositionSlot));
 
         /** The conversion factor from end effector motor rotations to radians. */
         public static final double endEffectorPositionConversionFactor = 2 * Math.PI / endEffectorReduction;

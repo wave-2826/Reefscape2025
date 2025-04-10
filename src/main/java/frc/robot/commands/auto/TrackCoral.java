@@ -21,7 +21,7 @@ public class TrackCoral extends DriveToPose {
     private static final LoggedTunableNumber angleDifferenceWeight = new LoggedTunableNumber(
         "TrackCoral/AngleDifferenceWeight", 0.3);
     private static final LoggedTunableNumber coralMaxDistance = new LoggedTunableNumber("TrackCoral/CoralMaxDistance",
-        1.4);
+        1.75);
     private static final LoggedTunableNumber coralMaxAngleDeg = new LoggedTunableNumber(
         "TrackCoral/CoralMaxAngleDegrees", 70.0);
 
@@ -57,7 +57,7 @@ public class TrackCoral extends DriveToPose {
             });
 
             return target;
-        }, RobotState.getInstance()::getPose);
+        });
 
         this.grabbingFailed = grabbingFailed;
     }
@@ -73,5 +73,11 @@ public class TrackCoral extends DriveToPose {
         boolean timedOut = notFoundTimeout.calculate(RobotState.getInstance().getCoralTranslations().count() == 0);
         if(timedOut && grabbingFailed != null) grabbingFailed.run();
         return timedOut;
+    }
+
+    @Override
+    public void end(boolean interrupted) {
+        super.end(interrupted);
+        Logger.recordOutput("TrackCoral/TargetedCoral", new Translation2d[] {});
     }
 }

@@ -5,6 +5,11 @@
         "header": {
           "open": false
         }
+      },
+      "SPARK MAX [53] ABSOLUTE ENCODER": {
+        "header": {
+          "open": false
+        }
       }
     }
   },
@@ -41,6 +46,9 @@
     }
   },
   "NetworkTables Info": {
+    "Connections": {
+      "open": true
+    },
     "WaveDSInterface@1": {
       "Subscribers": {
         "open": false

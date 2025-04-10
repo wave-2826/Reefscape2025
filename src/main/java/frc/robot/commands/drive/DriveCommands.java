@@ -91,7 +91,7 @@ public class DriveCommands {
                 drive.runVelocity(
                     ChassisSpeeds.fromFieldRelativeSpeeds(fieldAngleTarget.value.getCos() * speedMetersPerSecond,
                         fieldAngleTarget.value.getSin() * speedMetersPerSecond, thetaSpeed, robotState.getRotation()));
-            }, drive)).withName("DriveStraight");
+            }, drive)).withName("DriveStraight").finallyDo(drive::stop);
         }
     }
 

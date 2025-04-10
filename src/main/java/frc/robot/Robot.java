@@ -39,6 +39,8 @@ import org.littletonrobotics.junction.wpilog.WPILOGReader;
 import org.littletonrobotics.junction.wpilog.WPILOGWriter;
 import org.littletonrobotics.urcl.URCL;
 
+import com.ctre.phoenix6.SignalLogger;
+
 import au.grapplerobotics.CanBridge;
 
 /**
@@ -131,6 +133,9 @@ public class Robot extends LoggedRobot {
         // Start AdvantageKit logger
         Logger.start();
 
+        // Disable automatic Hoot logging
+        SignalLogger.enableAutoLogging(false);
+
         DriverStation.silenceJoystickConnectionWarning(true);
 
         // Log active commands. Also taken from 6328's code.
@@ -167,7 +172,7 @@ public class Robot extends LoggedRobot {
 
         // Configure the driver station in simulation
         if(Constants.isSim) {
-            DriverStationSim.setAllianceStationId(AllianceStationID.Red3);
+            DriverStationSim.setAllianceStationId(AllianceStationID.Blue3);
             DriverStationSim.notifyNewData();
         }
 

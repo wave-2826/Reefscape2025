@@ -13,6 +13,7 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.LinearVelocity;
 import edu.wpi.first.wpilibj.DriverStation;
@@ -53,7 +54,7 @@ public class SimControls {
     }
 
     private static ReefscapeCoralOnFly dropFromCoralStation(CoralStationsSide station, DriverStation.Alliance alliance,
-        boolean isHorizontal) {
+        boolean isHorizontal, double shiftLeft) {
         Rotation2d rot = alliance == DriverStation.Alliance.Red
             ? FieldMirroringUtils.flip(station.startingPose.getRotation())
             : station.startingPose.getRotation();
@@ -61,35 +62,44 @@ public class SimControls {
             ? FieldMirroringUtils.flip(station.startingPose.getTranslation())
             : station.startingPose.getTranslation();
 
-        LinearVelocity xSpeed = MetersPerSecond.of(1.5 + Math.random() * 2.5 - 1.25);
-        LinearVelocity ySpeed = MetersPerSecond.of(Math.random() * 1.5 - 0.75);
+        pos = pos.plus(new Translation2d(Units.inchesToMeters(1), shiftLeft).rotateBy(rot));
+
+        LinearVelocity xSpeed = MetersPerSecond.of(0.75 + Math.random() * 0.75);
+        LinearVelocity ySpeed = MetersPerSecond.of(Math.random() * 0.75 - 0.325);
         AngularVelocity thetaSpeed = DegreesPerSecond.of(Math.random() * 360 - 180);
+        ChassisSpeeds speeds = ChassisSpeeds.fromRobotRelativeSpeeds(new ChassisSpeeds(xSpeed, ySpeed, thetaSpeed),
+            rot);
 
         return isHorizontal
-            ? new ReefscapeCoralOnFly(pos, new Translation2d(),
-                ChassisSpeeds.fromRobotRelativeSpeeds(new ChassisSpeeds(xSpeed, ySpeed, thetaSpeed), rot),
-                rot.rotateBy(Rotation2d.kCCW_90deg), Centimeters.of(98), MetersPerSecond.of(0), Degrees.of(0))
-            : new ReefscapeCoralOnFly(
-                alliance == DriverStation.Alliance.Red ? FieldMirroringUtils.flip(station.startingPose.getTranslation())
-                    : station.startingPose.getTranslation(),
-                new Translation2d(), new ChassisSpeeds(),
-                alliance == DriverStation.Alliance.Red ? FieldMirroringUtils.flip(station.startingPose.getRotation())
-                    : station.startingPose.getRotation(),
-                Centimeters.of(98), MetersPerSecond.of(3), Degrees.of(-50));
+            ? new ReefscapeCoralOnFly(pos, new Translation2d(), speeds, rot.rotateBy(Rotation2d.kCCW_90deg),
+                Centimeters.of(98), MetersPerSecond.of(0), Degrees.of(0))
+            : new ReefscapeCoralOnFly(pos, new Translation2d(), speeds, rot, Centimeters.of(98), MetersPerSecond.of(0),
+                Degrees.of(-50));
     }
 
     public void configureControls() {
-        buttonTrigger(1).onTrue(Commands.runOnce(IntakeIOSim::addCoral));
+        buttonTrigger(1).onTrue(Commands.runOnce(IntakeIOSim::addCoral).ignoringDisable(true));
 
         buttonTrigger(2).onTrue(Commands.runOnce(() -> {
             var alliance = DriverStation.getAlliance().orElse(Alliance.Blue);
             SimulatedArena.getInstance()
-                .addGamePieceProjectile(dropFromCoralStation(CoralStationsSide.LEFT_STATION, alliance, true));
-        }));
+                .addGamePieceProjectile(dropFromCoralStation(CoralStationsSide.LEFT_STATION, alliance, false, 0.));
+        }).ignoringDisable(true));
         buttonTrigger(3).onTrue(Commands.runOnce(() -> {
             var alliance = DriverStation.getAlliance().orElse(Alliance.Blue);
             SimulatedArena.getInstance()
-                .addGamePieceProjectile(dropFromCoralStation(CoralStationsSide.RIGHT_STATION, alliance, true));
-        }));
+                .addGamePieceProjectile(dropFromCoralStation(CoralStationsSide.RIGHT_STATION, alliance, false, 0.));
+        }).ignoringDisable(true));
+
+        buttonTrigger(5).onTrue(Commands.runOnce(() -> {
+            var alliance = DriverStation.getAlliance().orElse(Alliance.Blue);
+            SimulatedArena.getInstance().addGamePieceProjectile(
+                dropFromCoralStation(CoralStationsSide.LEFT_STATION, alliance, false, Units.inchesToMeters(30)));
+        }).ignoringDisable(true));
+        buttonTrigger(6).onTrue(Commands.runOnce(() -> {
+            var alliance = DriverStation.getAlliance().orElse(Alliance.Blue);
+            SimulatedArena.getInstance().addGamePieceProjectile(
+                dropFromCoralStation(CoralStationsSide.RIGHT_STATION, alliance, false, Units.inchesToMeters(-30)));
+        }).ignoringDisable(true));
     }
 }

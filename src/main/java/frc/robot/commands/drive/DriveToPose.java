@@ -99,7 +99,16 @@ public class DriveToPose extends Command {
      * degrees.
      */
     public DriveToPose(Drive drive, Pose2d target) {
-        this(drive, target, Units.inchesToMeters(5.), Units.degreesToRadians(5.));
+        this(drive, () -> target, true);
+    }
+
+    /**
+     * A command that drives to the given pose and ends once it gets there if endWhenAtTarget is true. Defaults to a
+     * tolerance of 5 inches and 5 degrees.
+     */
+    public DriveToPose(Drive drive, Supplier<Pose2d> getTarget, boolean endWhenAtTarget) {
+        this(drive, getTarget, endWhenAtTarget, OptionalDouble.of(Units.inchesToMeters(5.)),
+            OptionalDouble.of(Units.degreesToRadians(5.)));
     }
 
     /**
@@ -299,7 +308,7 @@ public class DriveToPose extends Command {
 
         // Clear logs
         Logger.recordOutput("DriveToPose/Setpoint", new Pose2d[] {});
-        Logger.recordOutput("DriveToPose/Goal", new Pose2d[] {});
+        Logger.recordOutput("DriveToPose/TargetPose", new Pose2d[] {});
     }
 
     @Override

@@ -14,9 +14,10 @@ public final class Constants {
     public static final boolean logInSimulation = false;
 
     /**
-     * Whether to use NetworkTables instead of RLog for AdvantageScope logging.
+     * Whether to use NetworkTables instead of RLog for AdvantageScope logging. RLog _significantly_ reduces lag in
+     * AdvantageScope.
      */
-    public static final boolean useNTLogs = true;
+    public static final boolean useNTLogs = false;
 
     /**
      * Maintains a real-time thread priority for the main robot thread throughout the entire program execution. This is
