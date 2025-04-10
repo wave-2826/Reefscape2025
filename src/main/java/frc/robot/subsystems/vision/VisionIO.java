@@ -19,8 +19,9 @@ public interface VisionIO {
         public SingleApriltagResult[] individualTags = new SingleApriltagResult[0];
     }
 
-    /** Represents an estimated robot pose from an individual Apriltag. */
-    public static record SingleApriltagResult(int fiducialId, Transform3d robotToTarget, double ambiguity) {
+    /** Represents a robot transform based on an individual Apriltag. */
+    public static record SingleApriltagResult(int fiducialId, Transform3d robotToTarget, double ambiguity,
+        double captureTimestamp) {
     }
 
     /** Represents the angle to a simple target, not used for pose estimation. */

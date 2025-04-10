@@ -55,7 +55,8 @@ public class PieceVisionIOLimelight implements PieceVisionIO {
 
     @Override
     public void setEnabled(boolean enabled) {
-        throttleSetPublisher.set(enabled ? 0 : PieceVisionConstants.disabledThrottle);
+        throttleSetPublisher.set(PieceVisionConstants.doNotReduceFramerateWhenDisabled ? 0
+            : (enabled ? 0 : PieceVisionConstants.disabledThrottle));
     }
 
     @Override

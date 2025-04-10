@@ -1,23 +1,42 @@
 package frc.robot;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Optional;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.littletonrobotics.junction.AutoLogOutput;
+import org.littletonrobotics.junction.Logger;
 
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.Matrix;
-import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Rotation3d;
+import edu.wpi.first.math.geometry.Transform2d;
+import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.geometry.Twist2d;
-import edu.wpi.first.math.interpolation.TimeInterpolatableBuffer;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
+import edu.wpi.first.math.util.Units;
+import edu.wpi.first.wpilibj.Timer;
+import frc.robot.FieldConstants.ReefFace;
 import frc.robot.subsystems.drive.DriveConstants;
+import frc.robot.subsystems.pieceVision.PieceVision;
+import frc.robot.subsystems.pieceVision.PieceVision.CoralPosition;
+import frc.robot.subsystems.vision.Vision;
+import frc.robot.subsystems.vision.VisionConstants;
+import frc.robot.subsystems.vision.Vision.IndividualTagEstimate;
 import frc.robot.util.DriverStationInterface;
+import frc.robot.util.LoggedTunableNumber;
+import frc.robot.util.poseEstimator.OdometrySwerveDrivePoseEstimator;
 
 /**
  * A singleton class that holds the state of the robot. This holds state that doesn't directly control mechanisms and
@@ -26,6 +45,11 @@ import frc.robot.util.DriverStationInterface;
  * separation of concerns.
  */
 public class RobotState {
+    private static final LoggedTunableNumber minSingleTagBlendDistance = new LoggedTunableNumber(
+        "Vision/MinSingleTagBlendDistance", Units.inchesToMeters(24.0));
+    private static final LoggedTunableNumber maxSingleTagBlendDistance = new LoggedTunableNumber(
+        "Vision/MaxSingleTagBlendDistance", Units.inchesToMeters(36.0));
+
     private static RobotState instance = new RobotState();
 
     public static RobotState getInstance() {
@@ -34,6 +58,9 @@ public class RobotState {
 
     private RobotState() {
         // Private constructor to enforce singleton
+        for(int i = 1; i <= VisionConstants.aprilTagLayout.getTags().size(); i++) {
+            individualTagPoses.put(i, new IndividualTagEstimate(Pose2d.kZero, Double.POSITIVE_INFINITY, -1.0));
+        }
     }
 
     public SwerveDriveKinematics kinematics = new SwerveDriveKinematics(DriveConstants.moduleTranslations);
@@ -44,22 +71,137 @@ public class RobotState {
         new SwerveModulePosition(), new SwerveModulePosition(), new SwerveModulePosition(), new SwerveModulePosition()
     };
 
-    private SwerveDrivePoseEstimator poseEstimator = new SwerveDrivePoseEstimator(kinematics, rawGyroRotation,
-        lastModulePositions, Pose2d.kZero);
+    private OdometrySwerveDrivePoseEstimator poseEstimator = new OdometrySwerveDrivePoseEstimator(kinematics,
+        rawGyroRotation, lastModulePositions, Pose2d.kZero);
 
     public Consumer<Pose2d> resetSimulationPoseCallback = (pose) -> {
     };
 
-    private static final double poseBufferSizeSeconds = 1.0;
     /**
-     * An interpolatable buffer of the robot pose. This is used to reference past odometry measurements when referring
-     * to target observations.
+     * The tracked positions of coral game pieces.
      */
-    private final TimeInterpolatableBuffer<Pose2d> poseBuffer = TimeInterpolatableBuffer
-        .createBuffer(poseBufferSizeSeconds);
+    public ArrayList<CoralPosition> coralPositions = new ArrayList<>();
 
     @AutoLogOutput(key = "Odometry/RobotVelocity")
     private ChassisSpeeds robotVelocity = new ChassisSpeeds();
+
+    private double elevatorHeightPercent = 0.0;
+
+    public void updateElevatorHeightPercent(double percent) {
+        elevatorHeightPercent = percent;
+    }
+
+    public double getElevatorHeightPercent() {
+        return elevatorHeightPercent;
+    }
+
+    /**
+     * Gets the pose at the specified timestamp. This includes vision compensation, so it's a real estimated field pose.
+     */
+    public Optional<Pose2d> getPoseAtTimestamp(double timestamp) {
+        return poseEstimator.sampleAt(timestamp);
+    }
+
+    /**
+     * Gets the _odometry_ pose at the specified timestamp. This does not include vision compensation, so it will drift
+     * over time. This should only be used for delta tracking, not for actual field-relative position.
+     * @param inSeconds
+     * @return
+     */
+    public Optional<Pose2d> getOdometryPoseAtTimestamp(double timestamp) {
+        return poseEstimator.m_odometryPoseBuffer.getSample(timestamp);
+    }
+
+    /**
+     * Gets the current _odometry_ pose. This does not include vision compensation, so it will drift over time. This
+     * should only be used for delta tracking, not for actual field-relative position.
+     * @param inSeconds
+     * @return
+     */
+    public Pose2d getOdometryPose() {
+        return poseEstimator.m_odometry.getPoseMeters();
+    }
+
+    /**
+     * Gets the odometry-based movement from the specified timestamp. This provides a relative transform, and should
+     * only be used for timestamps less than 1.5 seconds in the past. The returned pose transforms our pose at the
+     * timestamp to our current one.
+     * @param timestamp
+     * @return
+     */
+    public Optional<Transform2d> getOdometryMovementSince(double timestamp) {
+        var pose = getOdometryPoseAtTimestamp(timestamp);
+        return pose.map(p -> new Transform2d(p, getOdometryPose()));
+    }
+
+    /** Gets a rough pose prediction in the specified number of seconds based on our velocity. */
+    public Pose2d getLookaheadPose(double inSeconds) {
+        return getPose().exp(robotVelocity.toTwist2d(inSeconds));
+    }
+
+    /**
+     * A list of each of the individual tags we currently see. When multiple cameras see the same tag, we trust the
+     * camera with the lowest ambiguity.
+     * <p>
+     * TODO: We should test if it's more reliable to average the robotToTag transforms from all cameras in these cases.
+     */
+    private final HashMap<Integer, IndividualTagEstimate> individualTagPoses = new HashMap<>();
+
+    /** Gets a pose estimate of the robot based on a specific tag if one is available. */
+    public Optional<Pose2d> getIndividualTagRobotPose(int tagId) {
+        if(!individualTagPoses.containsKey(tagId)) { return Optional.empty(); }
+        var individualTagData = individualTagPoses.get(tagId);
+
+        // If stale, don't use the tag estimate
+        if(Timer.getTimestamp() - individualTagData.timestamp() >= Vision.perTagPersistenceTime.get()) {
+            return Optional.empty();
+        }
+
+        // Latency compensate
+        var movement = getOdometryMovementSince(individualTagData.timestamp());
+        return movement.map(m -> individualTagData.robotPose().plus(m));
+    }
+
+    /**
+     * Get an estimated pose using individual tag data given a final pose. Used for reef lineup.
+     */
+    public Pose2d getIndividualReefTagPose(ReefFace face, Pose2d finalPose) {
+        var individualTagPose = getIndividualTagRobotPose(face.getAprilTagID());
+        Pose2d currentPose = getPose();
+        if(individualTagPose.isEmpty()) return getPose();
+
+        // Use distance from estimated pose to final pose to interpolate between the two
+        final double t = MathUtil.clamp(
+            (currentPose.getTranslation().getDistance(finalPose.getTranslation()) - minSingleTagBlendDistance.get())
+                / (maxSingleTagBlendDistance.get() - minSingleTagBlendDistance.get()),
+            0.0, 1.0);
+        return currentPose.interpolate(individualTagPose.get(), 1.0 - t);
+    }
+
+    /**
+     * Records the observation of an individual tag.
+     * @param timestamp
+     * @param tagId
+     */
+    public void addIndividualTagObservation(Pose2d robotPose, double timestamp, double ambiguity, int tagId) {
+        // Skip if current data for the tag is newer or it was captured at the same time with lower ambiguity
+        if(individualTagPoses.containsKey(tagId)) {
+            var estimate = individualTagPoses.get(tagId);
+            if(estimate.timestamp() > timestamp) { return; }
+            if(timestamp - estimate.timestamp() < 0.05 && estimate.ambiguity() <= ambiguity) { return; }
+        }
+
+        var movement = getOdometryMovementSince(timestamp);
+        if(movement.isEmpty()) { return; }
+
+        Rotation2d robotRotation = robotPose.transformBy(movement.get().inverse()).getRotation();
+
+        // Use the gyro angle at the capture time for the pose's rotation
+        robotPose = new Pose2d(robotPose.getTranslation(), robotRotation);
+
+        // Add transform to current odometry based pose for latency correction
+        individualTagPoses.put(tagId, new IndividualTagEstimate(robotPose, ambiguity, timestamp));
+    }
 
     /** Returns the current odometry pose. */
     @AutoLogOutput(key = "Odometry/Robot")
@@ -79,7 +221,6 @@ public class RobotState {
     public void setPose(Pose2d pose, SwerveModulePosition[] modulePositions) {
         resetSimulationPoseCallback.accept(pose);
         poseEstimator.resetPosition(rawGyroRotation, modulePositions, pose);
-        poseBuffer.clear();
     }
 
     /** Adds a new timestamped vision measurement. */
@@ -119,15 +260,45 @@ public class RobotState {
         robotVelocity = speeds;
     }
 
+    public void addCoralPosition(Translation2d pieceLocation, double timestamp) {
+        CoralPosition coralPosition = new CoralPosition(pieceLocation, timestamp);
+
+        coralPositions = coralPositions.stream()
+            .filter((p) -> p.translation().getDistance(pieceLocation) > PieceVision.coralOverlap.get())
+            .collect(Collectors.toCollection(ArrayList::new));
+        coralPositions.add(coralPosition);
+    }
+
+    public void removeOldCoralPositions() {
+        coralPositions = coralPositions.stream()
+            .filter((x) -> Timer.getTimestamp() - x.timestamp() < PieceVision.coralPersistenceTime.get())
+            .collect(Collectors.toCollection(ArrayList::new));
+    }
+
+    public ChassisSpeeds getRobotVelocity() {
+        return robotVelocity;
+    }
+
     public ChassisSpeeds getFieldVelocity() {
         return ChassisSpeeds.fromRobotRelativeSpeeds(robotVelocity, getRotation());
     }
 
+    public Stream<Translation2d> getCoralTranslations() {
+        return coralPositions.stream().map(CoralPosition::translation);
+    }
+
     /**
-     * Updates various periodic state information. This is called every loop iteration.
+     * Updates and logs various periodic state information. This is called every loop iteration.
      */
     public void update() {
         // Update the driver station interface
         DriverStationInterface.getInstance().updateRobotPose(getPose());
+
+        Logger.recordOutput("PieceVision/CoralPoses", getCoralTranslations()//
+            .map((translation) -> new Pose3d(
+                new Translation3d(translation.getX(), translation.getY(), FieldConstants.coralDiameter / 2.0),
+                new Rotation3d(new Rotation2d(Timer.getTimestamp() * 5.0)))//
+            )//
+            .toArray(Pose3d[]::new));
     }
 }

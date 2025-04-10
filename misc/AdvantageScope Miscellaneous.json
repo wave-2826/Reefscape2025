@@ -318,7 +318,7 @@
                   },
                   {
                     "type": "ghost",
-                    "logKey": "/RealOutputs/CloseLineup/TargetPose",
+                    "logKey": "/RealOutputs/ReefLineup/TargetPose",
                     "logType": "Pose2d",
                     "visible": false,
                     "options": {
@@ -427,7 +427,7 @@
                   },
                   {
                     "type": "robot",
-                    "logKey": "/RealOutputs/CloseLineup/CorrectedSingleTagPose",
+                    "logKey": "/RealOutputs/ReefLineup/CorrectedSingleTagPose",
                     "logType": "Pose2d",
                     "visible": false,
                     "options": {}
@@ -534,7 +534,7 @@
                 "leftSources": [
                   {
                     "type": "stepped",
-                    "logKey": "/RealOutputs/CloseLineup/TargetPose/translation/x",
+                    "logKey": "/RealOutputs/ReefLineup/TargetPose/translation/x",
                     "logType": "Number",
                     "visible": true,
                     "options": {
@@ -544,7 +544,7 @@
                   },
                   {
                     "type": "stepped",
-                    "logKey": "/RealOutputs/CloseLineup/TargetPose/translation/y",
+                    "logKey": "/RealOutputs/ReefLineup/TargetPose/translation/y",
                     "logType": "Number",
                     "visible": true,
                     "options": {
@@ -554,7 +554,7 @@
                   },
                   {
                     "type": "stepped",
-                    "logKey": "/RealOutputs/CloseLineup/TargetPose/rotation/value",
+                    "logKey": "/RealOutputs/ReefLineup/TargetPose/rotation/value",
                     "logType": "Number",
                     "visible": false,
                     "options": {

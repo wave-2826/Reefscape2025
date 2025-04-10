@@ -38,6 +38,8 @@ public class ArmVisualizer {
 
     /** A constant offset to correct for the simplified model not exactly matching the real robot model. */
     private static double carriageOffsetMeters = Units.inchesToMeters(12.);
+    /** A constant offset to correct for the minimum elevator height. */
+    private static double elevatorOffsetMeters = Units.inchesToMeters(6.);
 
     /**
      * Updates the arm visualization.
@@ -52,9 +54,10 @@ public class ArmVisualizer {
         armPitchLigament.setAngle(armPitch);
         Logger.recordOutput("Mechanism2d/" + name, armMechanism);
 
+        final double carriageHeight = elevatorHeightMeters + elevatorOffsetMeters;
+
         // The second stage is technically ambiguous in position, but we assume that it's at the minimum height so that the
         // carriage is at the top.
-        final double carriageHeight = elevatorHeightMeters;
         final double passiveStageHeight = Math
             .max(carriageHeight + ArmConstants.ElevatorConstants.carriageHeight.in(Meters)
                 - ArmConstants.ElevatorConstants.carriageMaxHeight.in(Meters) - carriageOffsetMeters, 0.0);

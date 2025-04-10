@@ -118,6 +118,9 @@ public class ModuleIOSpark implements ModuleIO {
         drivePositionQueue = SparkOdometryThread.getInstance().registerSignal(driveSpark, driveEncoder::getPosition);
         turnPositionQueue = SparkOdometryThread.getInstance().registerSignal(turnSpark, turnEncoder::getPosition);
 
+        registerSparkFaultAlerts(driveSpark, config.name() + " drive");
+        registerSparkFaultAlerts(turnSpark, config.name() + " turn");
+
         resetToAbsolute();
     }
 

@@ -308,7 +308,7 @@
                                     },
                                     {
                                         "type": "ghost",
-                                        "logKey": "/RealOutputs/CloseLineup/TargetPose",
+                                        "logKey": "/RealOutputs/ReefLineup/TargetPose",
                                         "logType": "Pose2d",
                                         "visible": true,
                                         "options": {

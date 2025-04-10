@@ -1,30 +1,21 @@
 package frc.robot.subsystems.pieceVision;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-
 import org.littletonrobotics.junction.Logger;
 
-import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
-import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
-import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Translation3d;
-import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.Timer;
-import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
+import frc.robot.FieldConstants;
 import frc.robot.RobotState;
 import frc.robot.subsystems.pieceVision.PieceVisionIO.PieceLocation;
 import frc.robot.util.LoggedTracer;
+import frc.robot.util.LoggedTunableNumber;
 
 /**
  * Handles autonomous tracking of game pieces. This is separated from the main vision subsystem because it doesn't need
@@ -35,169 +26,26 @@ import frc.robot.util.LoggedTracer;
  * a ton of possible edge cases to handle, so we need to be very careful.
  */
 public class PieceVision extends SubsystemBase {
+    public static final LoggedTunableNumber coralOverlap = new LoggedTunableNumber("PieceVision/CoralOverlap", .5);
+    public static final LoggedTunableNumber coralPersistenceTime = new LoggedTunableNumber(
+        "PieceVision/CoralPersistenceTime", 2.0);
+
+    public record CoralPosition(Translation2d translation, double timestamp) {
+    }
+
     private final Alert disconnectedAlert = new Alert("Piece vision camera disconnected!", Alert.AlertType.kError);
 
     private final PieceVisionIO io;
     private final PieceVisionIOInputsAutoLogged inputs = new PieceVisionIOInputsAutoLogged();
     private boolean wasDisabled = false;
 
-    /**
-     * The timeout for tracking a piece. If we don't see a piece for this amount of time, we assume we've lost the
-     * piece. This is in seconds.
-     */
-    private static final double PIECE_TRACKING_TIMEOUT = 0.5;
-    /**
-     * The angle threshold for tracking a piece. If the piece is within this many degrees of our last observation, we
-     * update our locked piece with the new observation. This is in degrees. This also dictates our maximum rotational
-     * speed.
-     */
-    private static final double PIECE_TRACKING_ANGLE_THRESHOLD = 25;
-
-    public static record TargetPath(Translation2d origin, Rotation2d direction) {
-        /**
-         * Gets a list of two poses on the target path line for AdvantageScope visualization.
-         * @return
-         */
-        public Pose2d[] getVisualizationPoses() {
-            return new Pose2d[] {
-                new Pose2d(origin, direction),
-                new Pose2d(origin, direction).transformBy(new Transform2d(new Translation2d(5.0, 0), Rotation2d.kZero)),
-            };
-        }
-
-        public Pose2d getPoseAtDistance(double distance) {
-            return new Pose2d(origin, direction)
-                .transformBy(new Transform2d(new Translation2d(distance, 0), Rotation2d.k180deg));
-        }
-    }
-
-    /**
-     * The piece we're currently locked on to. This is used to track a piece over time.
-     */
-    private PieceLocation lockedPiece = null;
-    /**
-     * The time we last updated our locked piece. This is used to determine if we have a new observation.
-     */
-    private double lastUpdate = 0;
-
-    /**
-     * The target path of the robot. When we see a piece, we create a line from the robot's position when we made the
-     * observation to the piece location. We then attempt to follow this line as closely as possible.
-     */
-    private TargetPath targetPath = null;
-
-    /**
-     * Gets the target path of the robot. This is the path that tracks the piece we're currently locked on to.
-     */
-    public Optional<TargetPath> getTargetPath() {
-        if(targetPath == null) return Optional.empty();
-        return Optional.of(targetPath);
-    }
-
-    private void resetPaths() {
-        lockedPiece = null;
-        targetPath = null;
-        Logger.recordOutput("PieceVision/TargetPath", new Pose2d[] {});
-    }
-
     public PieceVision(PieceVisionIO io) {
         this.io = io;
 
         io.setEnabled(false);
 
-        RobotModeTriggers.disabled().onTrue(Commands.runOnce(this::resetPaths));
-        RobotModeTriggers.autonomous().onTrue(Commands.runOnce(this::resetPaths));
-
         // Preload the records that need to be logged to avoid stalling the code
         Logger.recordOutput("PieceVision/PieceLocations", new PieceLocation[] {});
-    }
-
-    private PieceLocation getBestPieceLocation() {
-        if(inputs.locations == null) { return null; }
-        var locations = inputs.locations;
-        if(locations.length == 0) { return null; }
-
-        PieceLocation best = locations[0];
-        for(PieceLocation location : locations) {
-            if(location.area() > 0.5) {
-                // Discard pieces that are too large.
-                continue;
-            }
-
-            if(location.area() > best.area()) {
-                best = location;
-            }
-        }
-
-        return best;
-    }
-
-    /**
-     * Updates the target path of the robot. This is used to track a piece over time.
-     */
-    private void updateTargetPath(double observationTimestamp) {
-        if(lockedPiece == null) { return; }
-
-        // Clamp the value just in case something strange happens.
-        double latencySeconds = Math.min(Timer.getTimestamp() - observationTimestamp, PIECE_TRACKING_TIMEOUT);
-        Logger.recordOutput("PieceVision/Latency", latencySeconds);
-
-        // Correct for our current robot velocity.
-        ChassisSpeeds speeds = RobotState.getInstance().getFieldVelocity();
-
-        Transform2d velocityOffset = new Transform2d(
-            new Translation2d(-speeds.vxMetersPerSecond * latencySeconds, -speeds.vyMetersPerSecond * latencySeconds),
-            Rotation2d.fromRadians(-speeds.omegaRadiansPerSecond * latencySeconds));
-        Pose2d position = RobotState.getInstance().getPose();
-        Pose2d latencyCompensatedPosition = position.transformBy(velocityOffset);
-        // The camera faces backward, so we need to offset by 180 degrees.
-        Rotation2d fieldRelativeAngle = latencyCompensatedPosition.getRotation().plus(lockedPiece.theta())
-            .plus(Rotation2d.k180deg);
-        TargetPath path = new TargetPath(latencyCompensatedPosition.getTranslation(), fieldRelativeAngle);
-
-        Logger.recordOutput("PieceVision/TargetPath", path.getVisualizationPoses());
-
-        targetPath = path;
-    }
-
-    /**
-     * Performs step 3 of our tracking algorithm. If the piece is near our last observation, we update our locked piece
-     * with the new observation. If there isn't a piece within a certain number of degrees of our last observation,
-     * we've likely lost the piece. In this case, we wait a set amount of time to see if the piece comes back into view.
-     * If it doesn't, we try to find a new piece to track by clearing our locked piece.
-     */
-    private void trackExistingPiece() {
-        if(inputs.locations == null) { return; }
-        var locations = inputs.locations;
-
-        // Filter only pieces that are within a certain number of degrees of our last observation.
-        PieceLocation[] nearbyPieces = new PieceLocation[locations.length];
-        int nearbyPiecesCount = 0;
-        for(PieceLocation location : locations) {
-            if(Math.abs(location.theta().minus(lockedPiece.theta()).getDegrees()) < PIECE_TRACKING_ANGLE_THRESHOLD) {
-                nearbyPieces[nearbyPiecesCount++] = location;
-            }
-        }
-
-        if(nearbyPiecesCount == 0) {
-            // We've likely lost the piece. Wait a set amount of time to see if it comes back into view.
-            if(Timer.getTimestamp() - lastUpdate > PIECE_TRACKING_TIMEOUT) {
-                lockedPiece = null;
-                targetPath = null;
-            }
-        } else {
-            // There are pieces near our last observation. Pick the closest to the center of the camera.
-            PieceLocation closest = nearbyPieces[0];
-            for(int i = 1; i < nearbyPiecesCount; i++) {
-                if(Math.abs(nearbyPieces[i].theta().getDegrees()) < Math.abs(closest.theta().getDegrees())) {
-                    closest = nearbyPieces[i];
-                }
-            }
-
-            lockedPiece = closest;
-            updateTargetPath(inputs.timestamp);
-            lastUpdate = Timer.getTimestamp();
-        }
     }
 
     @Override
@@ -216,21 +64,12 @@ public class PieceVision extends SubsystemBase {
         if(inputs.locations != null) {
             var locations = inputs.locations;
 
-            if(lockedPiece == null) {
-                // Step 2: Pick the best piece to track.
-                lockedPiece = getBestPieceLocation();
-                updateTargetPath(inputs.timestamp);
-            } else {
-                // Step 3: We're currently locked on to a piece.
-                trackExistingPiece();
-            }
-
-            var robotPose = RobotState.getInstance().getPose();
+            var robotState = RobotState.getInstance();
+            var robotPose = robotState.getPose();
             var robotPose3d = new Pose3d(robotPose.getTranslation().getX(), robotPose.getTranslation().getY(), 0.0,
                 new Rotation3d(0.0, 0.0, robotPose.getRotation().getRadians()));
-            Pose3d cameraOnRobot = robotPose3d.plus(PieceVisionConstants.cameraTransform);
+            Pose3d cameraOnRobot = robotPose3d.plus(PieceVisionConstants.robotToCamera);
 
-            List<Pose3d> estimatedFieldLocations = new ArrayList<>();
             for(int i = 0; i < locations.length; i++) {
                 // Project the pitch and yaw of the observation onto the field plane (plus half a coral height) to estimate the location of the piece.
                 var location = locations[i];
@@ -244,18 +83,18 @@ public class PieceVision extends SubsystemBase {
                 }
 
                 // Solve for the X and Y position of the piece
-                // The Z position we're projecting to. This is only correct for horizontal coral, but it's probably true almost all of the time.
-                var coralCenterHeight = Units.inchesToMeters(4.5 / 2.);
-                var distanceToFloorLocation = (PieceVisionConstants.cameraTransform.getZ() - coralCenterHeight)
-                    / Math.sin(pose.getRotation().getY());
-                var pieceLocation = pose.transformBy(
-                    new Transform3d(new Translation3d(distanceToFloorLocation, 0.0, 0.0), Rotation3d.kZero));
+                // We projecting to a Z coordinate of half the coral height. This is only correct for horizontal coral,
+                // but it's probably true almost all of the time.
+                var distanceToFloorLocation = (PieceVisionConstants.robotToCamera.getZ()
+                    - FieldConstants.coralDiameter / 2) / Math.sin(pose.getRotation().getY());
+                Translation2d pieceLocation = pose
+                    .transformBy(
+                        new Transform3d(new Translation3d(distanceToFloorLocation, 0.0, 0.0), Rotation3d.kZero))
+                    .toPose2d().getTranslation();
 
-                estimatedFieldLocations.add(pieceLocation);
+                robotState.addCoralPosition(pieceLocation, inputs.timestamp);
             }
-
-            var estimatedFieldLocationsArray = estimatedFieldLocations.toArray(new Pose3d[0]);
-            Logger.recordOutput("PieceVision/EstimatedFieldLocations", estimatedFieldLocationsArray);
+            robotState.removeOldCoralPositions();
         }
 
         LoggedTracer.record("PieceVision");

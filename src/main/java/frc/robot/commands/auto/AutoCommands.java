@@ -25,22 +25,20 @@ import frc.robot.RobotState;
 import frc.robot.commands.AutoScoreCommands;
 import frc.robot.commands.LoggedCommand;
 import frc.robot.commands.drive.DriveCommands;
+import frc.robot.commands.drive.DriveToPose;
 import frc.robot.commands.intake.IntakeCommands;
 import frc.robot.subsystems.arm.Arm;
 import frc.robot.subsystems.arm.ArmConstants;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.intake.Intake;
 import frc.robot.subsystems.leds.LEDs;
-import frc.robot.subsystems.pieceVision.PieceVision;
-import frc.robot.subsystems.vision.Vision;
 import frc.robot.util.Container;
 import frc.robot.util.ReefTarget;
 
 public class AutoCommands {
     private static boolean grabbingCoralFailed = false;
 
-    public static void registerNamedCommands(Drive drive, Vision vision, PieceVision pieceVision, Arm arm,
-        Intake intake, LEDs leds) {
+    public static void registerNamedCommands(Drive drive, Arm arm, Intake intake, LEDs leds) {
         // NamedCommands.registerCommand("Auto Coral", Commands
         //     .defer(() -> grabCoral(drive, pieceVision, intake, arm, null), Set.of(drive, pieceVision, intake, arm)));
 
@@ -54,34 +52,33 @@ public class AutoCommands {
                     Commands.defer(() -> Commands.sequence(
                         drive.runOnce(drive::stop),
                         Commands.waitUntil(() -> !IntakeCommands.waitingForPiece).withTimeout(2.5),
-                        AutoScoreCommands.autoScoreCommand(drive, vision, arm, leds, target, true)
+                        AutoScoreCommands.autoScoreCommand(drive, arm, leds, target, true)
                             .onlyIf(() -> !IntakeCommands.waitingForPiece)
-                    ), Set.of(drive, vision, arm))
+                    ), Set.of(drive, arm))
                 );
                 registerLoggedNamedCommand("Score " + branch.toString() + " " + level.toString(), Commands.defer(() ->
-                    AutoScoreCommands.autoScoreCommand(drive, vision, arm, leds, target, true),
-                    Set.of(drive, vision, arm)
+                    AutoScoreCommands.autoScoreCommand(drive, arm, leds, target, true),
+                    Set.of(drive, arm)
                 ));
                 
                 registerLoggedNamedCommand("Fast Wait/Score " + branch.toString() + " " + level.toString(),
                     Commands.defer(() -> Commands.sequence(
                         drive.runOnce(drive::stop),
                         Commands.waitUntil(() -> !IntakeCommands.waitingForPiece).withTimeout(1.5),
-                        AutoScoreCommands.autoScoreCommand(drive, vision, arm, leds, target, false)
+                        AutoScoreCommands.autoScoreCommand(drive, arm, leds, target, false)
                             .onlyIf(() -> !IntakeCommands.waitingForPiece)
-                    ), Set.of(drive, vision, arm))
+                    ), Set.of(drive, arm))
                 );
                 registerLoggedNamedCommand("Fast Score " + branch.toString() + " " + level.toString(), Commands.defer(() ->
-                    AutoScoreCommands.autoScoreCommand(drive, vision, arm, leds, target, false),
-                    Set.of(drive, vision, arm)
+                    AutoScoreCommands.autoScoreCommand(drive, arm, leds, target, false),
+                    Set.of(drive, arm)
                 ));
                 // @formatter:on
             }
         }
 
         registerLoggedNamedCommand("Score Until Failure",
-            Commands.defer(() -> scoreUntilFailure(drive, vision, arm, pieceVision, intake, leds),
-                Set.of(drive, vision, arm, pieceVision, intake)));
+            Commands.defer(() -> scoreUntilFailure(drive, arm, intake, leds), Set.of(drive, arm, intake)));
 
         registerLoggedNamedCommand("Start intake",
             new ScheduleCommand(Commands.sequence(Commands.runOnce(() -> IntakeCommands.waitingForPiece = true),
@@ -100,8 +97,7 @@ public class AutoCommands {
     /**
      * Constructs a command that repeatedly finds coral and scores it on the next available branch until it fails.
      */
-    public static Command scoreUntilFailure(Drive drive, Vision vision, Arm arm, PieceVision pieceVision, Intake intake,
-        LEDs leds) {
+    public static Command scoreUntilFailure(Drive drive, Arm arm, Intake intake, LEDs leds) {
         List<ReefTarget> scoringPositionsAvailable = new ArrayList<>();
         return Commands.sequence(Commands.runOnce(() -> {
             grabbingCoralFailed = false;
@@ -123,7 +119,7 @@ public class AutoCommands {
                 scoringPositionsAvailable.add(new ReefTarget(ReefBranch.B, ReefLevel.L4)); // 5-piece auton!?! lol yeah right...
             }
         }), Commands.sequence( //
-            grabCoral(drive, pieceVision, intake, arm, () -> grabbingCoralFailed = true), //
+            grabCoral(drive, intake, arm, () -> grabbingCoralFailed = true), //
             IntakeCommands.waitForPieceInArm().withTimeout(1.5),
             // If we don't have a piece, we failed to grab it
             Commands.runOnce(() -> {
@@ -138,8 +134,8 @@ public class AutoCommands {
                     // Should never happen... 
                 }
 
-                return AutoScoreCommands.autoScoreCommand(drive, vision, arm, leds, nextAvailableTarget, true);
-            }, Set.of(drive, vision, arm)).unless(() -> grabbingCoralFailed) //
+                return AutoScoreCommands.autoScoreCommand(drive, arm, leds, nextAvailableTarget, true);
+            }, Set.of(drive, arm)).unless(() -> grabbingCoralFailed) //
         ).repeatedly().until(() -> grabbingCoralFailed)).withName("ScoreUntilFailure");
     }
 
@@ -175,7 +171,7 @@ public class AutoCommands {
                 
                 return false;
             }).withTimeout(3.0),
-            Commands.defer(() -> new SimplePIDLineupCommand(drive, endPose.value), Set.of(drive)).withTimeout(2.0)
+            new DriveToPose(drive, () -> endPose.value).withTimeout(2.0)
         );
         // @formatter:on
     }
@@ -184,8 +180,7 @@ public class AutoCommands {
      * Constructs a command that autonomously gets a coral piece and returns to where it started.
      * @return
      */
-    public static Command grabCoral(Drive drive, PieceVision pieceVision, Intake intake, Arm arm,
-        Runnable grabbingFailed) {
+    public static Command grabCoral(Drive drive, Intake intake, Arm arm, Runnable grabbingFailed) {
         Container<Pose2d> startPose = new Container<>(new Pose2d());
         return Commands.sequence( //
             Commands.runOnce(() -> {
@@ -194,11 +189,28 @@ public class AutoCommands {
                 startPose.value = AutoBuilder.getCurrentPose();
             }),
 
-            // Go to the coral piece
-            GetCoralCommand.getCoral(pieceVision, drive, intake, arm, grabbingFailed),
+            Commands.parallel(//
+                IntakeCommands.autoIntake(intake, arm), //
+
+                // Go to the coral piece
+                new TrackCoral(drive, grabbingFailed).until(() -> {
+                    if(intake.intakeSensorTriggered()) return true;
+
+                    // If the robot is at risk of running into the wall, stop.
+                    var robotPosition = RobotState.getInstance().getPose();
+                    var nextPosition = robotPosition.exp(drive.getChassisSpeeds().toTwist2d(0.3));
+                    if(nextPosition.getX() < 0.0 || nextPosition.getY() < 0.0
+                        || nextPosition.getX() > FieldConstants.fieldLength
+                        || nextPosition.getY() > FieldConstants.fieldWidth) {
+                        if(grabbingFailed != null) grabbingFailed.run();
+                        return true;
+                    }
+                    return false;
+                }) //
+            ).withTimeout(5.),
 
             // Go back to our starting position
-            new SimplePIDLineupCommand(drive, startPose.value),
+            new DriveToPose(drive, startPose.value),
 
             Commands.runOnce(() -> {
                 Logger.recordOutput("Auto/GrabbingCoral", false);

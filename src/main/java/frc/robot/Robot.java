@@ -21,6 +21,7 @@ import frc.robot.util.NTClientLogger;
 import frc.robot.util.Pn532;
 import frc.robot.util.RioAlerts;
 import frc.robot.util.SimControls;
+import frc.robot.util.SparkUtil;
 import frc.robot.util.ThreadPriorityDummyLogReceiver;
 
 import java.lang.reflect.Field;
@@ -178,6 +179,7 @@ public class Robot extends LoggedRobot {
 
         // Elastic dashboard utilities and setup
         WebServer.start(5800, Filesystem.getDeployDirectory().getPath());
+
         RobotModeTriggers.teleop().onTrue(Commands.runOnce(() -> {
             Elastic.selectTab("Teleoperated");
         }));
@@ -229,6 +231,7 @@ public class Robot extends LoggedRobot {
         // Alert-related updates
         RioAlerts.getInstance().update();
         Controls.getInstance().update();
+        SparkUtil.updateSparkFaultAlerts();
 
         LoggedTracer.record("Alerts");
 

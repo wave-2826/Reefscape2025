@@ -36,7 +36,7 @@ public class GyroIOSim implements GyroIO {
 
         inputs.accelerationGs = acceleration / 9.81;
 
-        inputs.odometryYawTimestamps = SparkUtil.getSimulationOdometryTimeStamps();
+        inputs.odometryYawTimestamps = SparkUtil.getSimulationOdometryTimestamps();
         inputs.odometryYawPositions = gyroSimulation.getCachedGyroReadings();
     }
 }

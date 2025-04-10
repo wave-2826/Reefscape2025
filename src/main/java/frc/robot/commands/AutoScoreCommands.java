@@ -24,13 +24,12 @@ import frc.robot.FieldConstants;
 import frc.robot.FieldConstants.ReefFace;
 import frc.robot.FieldConstants.ReefLevel;
 import frc.robot.commands.arm.ScoringSequenceCommands;
-import frc.robot.commands.drive.CloseLineupCommand;
+import frc.robot.commands.drive.ReefLineupCommand;
 import frc.robot.commands.util.RestartWhenCommand;
 import frc.robot.subsystems.arm.Arm;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.leds.LEDs;
 import frc.robot.subsystems.leds.LEDs.LEDState;
-import frc.robot.subsystems.vision.Vision;
 import frc.robot.util.DriverStationInterface;
 import frc.robot.util.LoggedTunableNumber;
 import frc.robot.util.ReefTarget;
@@ -62,24 +61,22 @@ public class AutoScoreCommands {
      * This takes... a lot of parameters. Maybe we can clean it up a bit, but it needs to be adaptable between teleop
      * and autonomous.
      * @param drive The drive subsystem
-     * @param vision The vision subsystem
      * @param target The reef target to align to
      * @param distanceAwayInches The distance away in inches.
      * @param alignCenter If the robot should align to the center instead of branch side.
      * @param coarseLineupCommand The command to run during coarse lineup
-     * @param closeLineupCommand The command to run during close lineup
-     * @param tweakX The amount to tweak the X position during close lineup
-     * @param tweakY The amount to tweak the Y position during close lineup
-     * @param finishSequence If present, the close lineup waits for this to be true before finishing. If not present,
-     *            the close lineup finishes when the target is fully aligned.
-     * @param lineupFeedback A function to call during close lineup with whether the controller is at its target. Can be
+     * @param reefLineupCommand The command to run during reef lineup
+     * @param tweakX The amount to tweak the X position during reef lineup
+     * @param tweakY The amount to tweak the Y position during reef lineup
+     * @param finishSequence If present, the reef lineup waits for this to be true before finishing. If not present, the
+     *            reef lineup finishes when the target is fully aligned.
+     * @param lineupFeedback A function to call during reef lineup with whether the controller is at its target. Can be
      *            null.
      * @return
      */
-    public static Command autoAlignSequence(Drive drive, Vision vision, LEDs leds, ReefTarget target,
-        double distanceAwayInches, boolean alignCenter, Command coarseLineupCommand, Command closeLineupCommand,
-        DoubleSupplier tweakX, DoubleSupplier tweakY, Optional<BooleanSupplier> finishSequence,
-        BooleanConsumer lineupFeedback) {
+    public static Command autoAlignSequence(Drive drive, LEDs leds, ReefTarget target, double distanceAwayInches,
+        boolean alignCenter, Command coarseLineupCommand, Command reefLineupCommand, DoubleSupplier tweakX,
+        DoubleSupplier tweakY, Optional<BooleanSupplier> finishSequence, BooleanConsumer lineupFeedback) {
 
         boolean isLeft = target.branch().isLeft;
 
@@ -106,15 +103,15 @@ public class AutoScoreCommands {
                 Logger.recordOutput("AutoScore/InitialLineupPose", initialLineupPosition);
             }), 
 
-            Commands.runOnce(() -> Logger.recordOutput("AutoScore/RunningCloseLineup", true)),
+            Commands.runOnce(() -> Logger.recordOutput("AutoScore/RunningReefLineup", true)),
             Commands.parallel(
                 coarseLineupCommand,
                 drive.runOnce(drive::stopWithX)
             ),
-            closeLineupCommand.withDeadline(
-                new CloseLineupCommand(
-                    drive, vision, leds,
-                    reefFace.getAprilTagID(),
+            reefLineupCommand.withDeadline(
+                new ReefLineupCommand(
+                    drive, leds,
+                    reefFace,
                     tagRelativeOffset, getFieldRelativeOffset,
                     finishSequence, lineupFeedback
                 ).withTimeout(DriverStation.isAutonomous() ? 4.0 : 10000).until(() -> {
@@ -123,7 +120,7 @@ public class AutoScoreCommands {
                 }) // Final adjustment
             ) // Run during final adjustment
         ).finallyDo(() -> {
-            Logger.recordOutput("AutoScore/RunningCloseLineup", false);
+            Logger.recordOutput("AutoScore/RunningReefLineup", false);
             Logger.recordOutput("AutoScore/InitialLineupPose", Pose2d.kZero);
         }).withName("AutoAlign" + target.toString()); // @formatter:on
     }
@@ -142,16 +139,14 @@ public class AutoScoreCommands {
      * <p>
      * Unlike the teleop version, this doesn't drive backward after scoring.
      * @param drive The drive subsystem
-     * @param vision The vision subsystem
      * @param arm The arm subsystem
      * @param leds The LEDs subsystem
      * @param target The target to score at
      * @param driveBackward If the robot should drive backward after scoring.
      * @return
      */
-    public static Command autoScoreCommand(Drive drive, Vision vision, Arm arm, LEDs leds, ReefTarget target,
-        boolean driveBackward) {
-        return autoScoreCommand(drive, vision, arm, leds, target, Optional.empty(), () -> false, () -> 0, () -> 0, null,
+    public static Command autoScoreCommand(Drive drive, Arm arm, LEDs leds, ReefTarget target, boolean driveBackward) {
+        return autoScoreCommand(drive, arm, leds, target, Optional.empty(), () -> false, () -> 0, () -> 0, null,
             driveBackward);
     }
 
@@ -159,21 +154,20 @@ public class AutoScoreCommands {
      * Gets a command that automatically scores at the selected level on the driver station interface. This is the
      * version of our automatic scoring mechanism intended for use in autonomous.
      * @param drive The drive subsystem
-     * @param vision The vision subsystem
      * @param arm The arm subsystem
      * @param leds The LEDs subsystem
      * @param target The target to score at
-     * @param finishSequence If present, the close lineup waits for this to be true before finishing. If not present,
-     *            the close lineup finishes when the target is fully aligned.
+     * @param finishSequence If present, the reef lineup waits for this to be true before finishing. If not present, the
+     *            reef lineup finishes when the target is fully aligned.
      * @param finishSequenceSlow If not null, this acts like finishSequence but finishes with a slow move downward. This
      *            is pretty hacky, and only works if finishSequence is present.
-     * @param tweakX The amount to tweak the X position during close lineup
-     * @param tweakY The amount to tweak the Y position during close lineup
-     * @param lineupFeedback A function to call during close lineup with whether the controller is at its target. Can be
+     * @param tweakX The amount to tweak the X position during reef lineup
+     * @param tweakY The amount to tweak the Y position during reef lineup
+     * @param lineupFeedback A function to call during reef lineup with whether the controller is at its target. Can be
      *            null.
      * @return
      */
-    public static Command autoScoreCommand(Drive drive, Vision vision, Arm arm, LEDs leds, ReefTarget target,
+    public static Command autoScoreCommand(Drive drive, Arm arm, LEDs leds, ReefTarget target,
         Optional<BooleanSupplier> finishSequence, BooleanSupplier finishSequenceSlow, DoubleSupplier tweakX,
         DoubleSupplier tweakY, BooleanConsumer lineupFeedback, boolean driveBackward) {
         double distanceAwayInches;
@@ -192,10 +186,10 @@ public class AutoScoreCommands {
 
         return Commands.sequence(//
             Commands.runOnce(() -> ScoringSequenceCommands.wristOverride = null), Commands.defer(() -> {
-                return autoAlignSequence(drive, vision, leds, target, distanceAwayInches, false,
+                return autoAlignSequence(drive, leds, target, distanceAwayInches, false,
                     // During coarse lineup
                     Commands.none(),
-                    // During close lineup
+                    // During reef lineup
                     ScoringSequenceCommands.middleArmMovement(target.level(), arm).withTimeout(2)
                         .andThen(Commands.runOnce(arm::resetToAbsolute).onlyIf(resetElevatorDuringScoring)),
                     tweakX, tweakY, finish, lineupFeedback).withTimeout(DriverStation.isAutonomous() ? 4. : 10000);
@@ -214,24 +208,23 @@ public class AutoScoreCommands {
      * Gets a command that automatically scores at the selected level on the driver station interface. This is the
      * version of our automatic scoring mechanism intended for use in teleop.
      * @param drive The drive subsystem
-     * @param vision The vision subsystem
      * @param arm The arm subsystem
      * @param leds The LEDs subsystem
-     * @param finishSequence The close lineup waits for this to be true before finishing.
-     * @param tweakX The amount to tweak the X position during close lineup
-     * @param tweakY The amount to tweak the Y position during close lineup
-     * @param lineupFeedback A function to call during close lineup with whether the controller is at its target. Can be
+     * @param finishSequence The reef lineup waits for this to be true before finishing.
+     * @param tweakX The amount to tweak the X position during reef lineup
+     * @param tweakY The amount to tweak the Y position during reef lineup
+     * @param lineupFeedback A function to call during reef lineup with whether the controller is at its target. Can be
      *            null.
      * @return
      */
-    public static Command autoScoreTeleopCommand(Drive drive, Vision vision, Arm arm, LEDs leds,
-        BooleanSupplier finishSequence, BooleanSupplier finishSequenceSlow, DoubleSupplier tweakX,
-        DoubleSupplier tweakY, BooleanConsumer lineupFeedback) {
+    public static Command autoScoreTeleopCommand(Drive drive, Arm arm, LEDs leds, BooleanSupplier finishSequence,
+        BooleanSupplier finishSequenceSlow, DoubleSupplier tweakX, DoubleSupplier tweakY,
+        BooleanConsumer lineupFeedback) {
         AutoScoreState state = new AutoScoreState(DriverStationInterface.getInstance().getReefTarget());
 
         return new RestartWhenCommand(
-            () -> autoScoreCommand(drive, vision, arm, leds, state.target, Optional.of(finishSequence),
-                finishSequenceSlow, tweakX, tweakY, lineupFeedback, true),
+            () -> autoScoreCommand(drive, arm, leds, state.target, Optional.of(finishSequence), finishSequenceSlow,
+                tweakX, tweakY, lineupFeedback, true),
 
             // Restart when our target changes
             () -> {
@@ -247,23 +240,22 @@ public class AutoScoreCommands {
     /**
      * Gets a command that automatically removes algae at the selected level on the driver station interface.
      * @param drive The drive subsystem
-     * @param vision The vision subsystem
      * @param arm The arm subsystem
      * @param leds The LEDs subsystem
      * @param target The target to score at
-     * @param finishSequence If present, the close lineup waits for this to be true before finishing. If not present,
-     *            the close lineup finishes when the target is fully aligned.
-     * @param tweakX The amount to tweak the X position during close lineup
-     * @param tweakY The amount to tweak the Y position during close lineup
+     * @param finishSequence If present, the reef lineup waits for this to be true before finishing. If not present, the
+     *            reef lineup finishes when the target is fully aligned.
+     * @param tweakX The amount to tweak the X position during reef lineup
+     * @param tweakY The amount to tweak the Y position during reef lineup
      * @return
      */
-    public static Command removeAlgaeCommand(Drive drive, Vision vision, Arm arm, LEDs leds, ReefTarget target,
+    public static Command removeAlgaeCommand(Drive drive, Arm arm, LEDs leds, ReefTarget target,
         Optional<BooleanSupplier> finishSequence, DoubleSupplier tweakX, DoubleSupplier tweakY) {
-        Command autoAlign = autoAlignSequence(drive, vision, leds, target, 20, true,
+        Command autoAlign = autoAlignSequence(drive, leds, target, 20, true,
             // During coarse lineup
             ScoringSequenceCommands.prepForAlgaeRemoval(target.level(), arm).withTimeout(2)
                 .andThen(Commands.runOnce(arm::resetToAbsolute).onlyIf(resetElevatorDuringScoring)),
-            // During close lineup
+            // During reef lineup
             Commands.none(), tweakX, tweakY, finishSequence, null);
 
         return Commands.sequence(//
@@ -277,21 +269,19 @@ public class AutoScoreCommands {
     /**
      * Gets a command that automatically removes algae at the selected level on the driver station interface.
      * @param drive The drive subsystem
-     * @param vision The vision subsystem
      * @param arm The arm subsystem
      * @param leds The LEDs subsystem
-     * @param finishSequence The close lineup waits for this to be true before finishing.
-     * @param tweakX The amount to tweak the X position during close lineup
-     * @param tweakY The amount to tweak the Y position during close lineup
+     * @param finishSequence The reef lineup waits for this to be true before finishing.
+     * @param tweakX The amount to tweak the X position during reef lineup
+     * @param tweakY The amount to tweak the Y position during reef lineup
      * @return
      */
-    public static Command removeAlgaeTeleopCommand(Drive drive, Vision vision, Arm arm, LEDs leds,
-        BooleanSupplier finishSequence, DoubleSupplier tweakX, DoubleSupplier tweakY) {
+    public static Command removeAlgaeTeleopCommand(Drive drive, Arm arm, LEDs leds, BooleanSupplier finishSequence,
+        DoubleSupplier tweakX, DoubleSupplier tweakY) {
         AutoScoreState state = new AutoScoreState(DriverStationInterface.getInstance().getReefTarget());
 
         return new RestartWhenCommand(
-            () -> removeAlgaeCommand(drive, vision, arm, leds, state.target, Optional.of(finishSequence), tweakX,
-                tweakY),
+            () -> removeAlgaeCommand(drive, arm, leds, state.target, Optional.of(finishSequence), tweakX, tweakY),
 
             // Restart when our target changes
             () -> {

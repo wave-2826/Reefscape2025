@@ -32,6 +32,13 @@ public class IntakeCommands {
     @AutoLogOutput(key = "Intake/CanTake")
     private static boolean canTake = false;
 
+    /**
+     * The intake command intended for autonomous. It will run the intake down, wait for a piece to be detected, and
+     * then run the arm to get the piece from the intake.
+     * @param intake
+     * @param arm
+     * @return
+     */
     public static Command autoIntake(Intake intake, Arm arm) {
         // @formatter:off
         return Commands.sequence(
@@ -47,14 +54,19 @@ public class IntakeCommands {
         // @formatter:on
     }
 
+    /**
+     * A command that runs the intake and arm to get a piece from the intake.
+     * @param intake
+     * @param arm
+     * @param shouldIntake
+     * @param shouldOuttake
+     * @return
+     */
     public static Command intakeCommand(Intake intake, Arm arm, BooleanSupplier shouldIntake,
-        BooleanSupplier shouldOuttake, BooleanSupplier shouldOuttakeTrough
-    // DoubleSupplier overrideSpeed,
-    //     DoubleSupplier overridePitch, Supplier<OperatorMode> operatorMode
-    ) {
+        BooleanSupplier shouldOuttake) {
         // @formatter:off
         return intake.run(() -> {
-            if(intake.intakeSensorTriggered() && !shouldOuttake.getAsBoolean() && !shouldOuttakeTrough.getAsBoolean()) {
+            if(intake.intakeSensorTriggered() && !shouldOuttake.getAsBoolean()) {
                 canTake = true;
             }
 
@@ -62,8 +74,6 @@ public class IntakeCommands {
                 intake.setIntakeState(IntakeState.IntakeDown);
             } else if(shouldOuttake.getAsBoolean()) {
                 intake.setIntakeState(IntakeState.OuttakeDown);
-            } else if(shouldOuttakeTrough.getAsBoolean()) {
-                intake.setIntakeState(IntakeState.OuttakeUp);
             } else {
                 intake.setIntakeState(IntakeState.Up);
             }

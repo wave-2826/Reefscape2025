@@ -8,6 +8,8 @@ import org.littletonrobotics.junction.Logger;
 import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.math.filter.Debouncer.DebounceType;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.wpilibj.Alert;
+import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.GenericHID.RumbleType;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -31,8 +33,7 @@ public class Intake extends SubsystemBase {
         // @formatter:off
         IntakeDown(Rotation2d.kZero, 1.0, true),
         OuttakeDown(Rotation2d.kZero, -1.0, true),
-        Up(Rotation2d.fromDegrees(80.0), 0.0, false),
-        OuttakeUp(Rotation2d.fromDegrees(50), -1.0, false);
+        Up(Rotation2d.fromDegrees(80.0), 0.0, false);
         // @formatter:on
 
         public final Rotation2d pitch;
@@ -86,6 +87,28 @@ public class Intake extends SubsystemBase {
         transportTargetMap.put(0b111, TransportTarget.MovingPiece); // Invalid state; maybe we should eventually outtake here?
     }
 
+    private final Alert transportMotorDisconnectedAlert = new Alert("Transport motor disconnected!", AlertType.kError);
+    private final Alert intakePowerMotorDisconnectedAlert = new Alert("Intake power motor disconnected!",
+        AlertType.kError);
+    private final Alert intakePitchMotorDisconnectedAlert = new Alert("Intake pitch motor disconnected!",
+        AlertType.kError);
+
+    /**
+     * The mappings from intake state sensors to our target state.
+     */
+    public Intake(IntakeIO io) {
+        this.io = io;
+
+        new Trigger(() -> inputs.intakeSensorTriggered)
+            .onTrue(Commands.sequence(Commands.runOnce(() -> pieceMoving = true),
+
+                Controls.getInstance().controllerRumbleWhileRunning(true, true, RumbleType.kBothRumble).withTimeout(0.1)
+                    .andThen(Commands.waitSeconds(0.05)).repeatedly().withTimeout(0.4)
+                    .onlyIf(DriverStation::isTeleop)));
+        new Trigger(() -> inputs.endSensorTriggered)
+            .onTrue(Commands.sequence(Commands.waitSeconds(0.3), Commands.runOnce(() -> pieceMoving = false)));
+    }
+
     private TransportTarget getTransportTarget() {
         int key = 0b000;
         if(inputs.intakeSensorTriggered) key |= 0b100;
@@ -102,22 +125,6 @@ public class Intake extends SubsystemBase {
             pieceMoving = false;
             targetIntakeState = IntakeState.Up;
         });
-    }
-
-    /**
-     * The mappings from intake state sensors to our target state.
-     */
-    public Intake(IntakeIO io) {
-        this.io = io;
-
-        new Trigger(() -> inputs.intakeSensorTriggered)
-            .onTrue(Commands.sequence(Commands.runOnce(() -> pieceMoving = true),
-
-                Controls.getInstance().controllerRumbleWhileRunning(true, true, RumbleType.kBothRumble).withTimeout(0.1)
-                    .andThen(Commands.waitSeconds(0.05)).repeatedly().withTimeout(0.4)
-                    .onlyIf(DriverStation::isTeleop)));
-        new Trigger(() -> inputs.endSensorTriggered)
-            .onTrue(Commands.sequence(Commands.waitSeconds(0.3), Commands.runOnce(() -> pieceMoving = false)));
     }
 
     @AutoLogOutput(key = "Intake/AtPitchSetpoint")
@@ -177,6 +184,10 @@ public class Intake extends SubsystemBase {
             else io.runVelocity(targetIntakeState.speed,
                 targetIntakeState.speed == 0 ? transportTarget.speed : targetIntakeState.speed);
         }
+
+        transportMotorDisconnectedAlert.set(!inputs.transportMotorConnected);
+        intakePowerMotorDisconnectedAlert.set(!inputs.intakePowerMotorConnected);
+        intakePitchMotorDisconnectedAlert.set(!inputs.intakePitchMotorConnected);
 
         visualizer.update(inputs.intakePitch);
 

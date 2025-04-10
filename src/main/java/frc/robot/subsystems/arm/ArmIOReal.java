@@ -201,6 +201,13 @@ public class ArmIOReal implements ArmIO {
         ArmConstants.ShoulderConstants.armWristPID.configureSparkOnChange(armWristMotor);
         ArmConstants.EndEffectorConstants.endEffectorPID.configureSparkOnChange(endEffectorMotor);
 
+        // Register the sparks for fault alerts
+        registerSparkFaultAlerts(elevatorHeightMotorLeader, "Elevator height leader");
+        registerSparkFaultAlerts(elevatorHeightMotorFollower, "Elevator height follower");
+        registerSparkFaultAlerts(armPitchMotor, "Arm pitch motor");
+        registerSparkFaultAlerts(armWristMotor, "Arm wrist motor");
+        registerSparkFaultAlerts(endEffectorMotor, "End effector motor");
+
         // Create closed loop controllers
         elevatorHeightController = elevatorHeightMotorLeader.getClosedLoopController();
 

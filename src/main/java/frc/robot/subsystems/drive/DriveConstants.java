@@ -22,7 +22,8 @@ import edu.wpi.first.math.util.Units;
 import edu.wpi.first.units.measure.AngularVelocity;
 
 public class DriveConstants {
-    public record SwerveModuleConfiguration(int driveMotorCanID, int turnMotorCanID, Rotation2d zeroOffset) {
+    public record SwerveModuleConfiguration(String name, int driveMotorCanID, int turnMotorCanID,
+        Rotation2d zeroOffset) {
     }
 
     public static final double odometryFrequency = 100.0; // Hz
@@ -44,14 +45,14 @@ public class DriveConstants {
     // but it makes it much easier to refer to locations.
 
     // TODO: Command to tune wheel offsets
-    public static final SwerveModuleConfiguration frontLeftModule = new SwerveModuleConfiguration(41, 42,
-        Rotation2d.fromRadians(1.219));
-    public static final SwerveModuleConfiguration frontRightModule = new SwerveModuleConfiguration(11, 12,
-        Rotation2d.fromRadians(1.407));
-    public static final SwerveModuleConfiguration backLeftModule = new SwerveModuleConfiguration(21, 22,
-        Rotation2d.fromRadians(5.973));
-    public static final SwerveModuleConfiguration backRightModule = new SwerveModuleConfiguration(31, 32,
-        Rotation2d.fromRadians(3.983));
+    public static final SwerveModuleConfiguration frontLeftModule = new SwerveModuleConfiguration("Front left", //
+        41, 42, Rotation2d.fromRadians(1.219));
+    public static final SwerveModuleConfiguration frontRightModule = new SwerveModuleConfiguration("Front right", //
+        11, 12, Rotation2d.fromRadians(1.407));
+    public static final SwerveModuleConfiguration backLeftModule = new SwerveModuleConfiguration("Back left", //
+        21, 22, Rotation2d.fromRadians(5.973));
+    public static final SwerveModuleConfiguration backRightModule = new SwerveModuleConfiguration("Back right", //
+        31, 32, Rotation2d.fromRadians(3.983));
 
     public static final boolean USE_SETPOINT_GENERATOR = false;
 

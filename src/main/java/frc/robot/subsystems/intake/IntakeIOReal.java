@@ -16,6 +16,7 @@ import com.revrobotics.spark.SparkBase.PersistMode;
 import com.revrobotics.spark.SparkBase.ResetMode;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 
+import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.DigitalInput;
 import frc.robot.Constants;
@@ -36,6 +37,11 @@ public class IntakeIOReal implements IntakeIO {
 
     protected final AbsoluteEncoder absolutePitchSensor;
     protected final RelativeEncoder powerEncoder;
+    protected final RelativeEncoder transportEncoder;
+
+    private final Debouncer pitchConnectedDebouncer = new Debouncer(0.25);
+    private final Debouncer powerConnectedDebouncer = new Debouncer(0.25);
+    private final Debouncer transportConnectedDebouncer = new Debouncer(0.25);
 
     public IntakeIOReal() {
         pitchMotor = new SparkMax(IntakeConstants.intakePitchMotorId, MotorType.kBrushless);
@@ -91,12 +97,18 @@ public class IntakeIOReal implements IntakeIO {
         IntakeConstants.powerPID.configureSparkOnChange(powerMotor);
         IntakeConstants.transportPID.configureSparkOnChange(transportMotor);
 
+        // Register motor faults
+        registerSparkFaultAlerts(pitchMotor, "Intake pitch motor");
+        registerSparkFaultAlerts(powerMotor, "Intake power motor");
+        registerSparkFaultAlerts(transportMotor, "Transport motor");
+
         pitchController = pitchMotor.getClosedLoopController();
         powerController = powerMotor.getClosedLoopController();
         transportController = transportMotor.getClosedLoopController();
 
         absolutePitchSensor = pitchMotor.getAbsoluteEncoder();
         powerEncoder = powerMotor.getEncoder();
+        transportEncoder = transportMotor.getEncoder();
 
         intakeSensor = new DigitalInput(IntakeConstants.intakeSensorDIOPort);
         middleSensor = new DigitalInput(IntakeConstants.middleSensorDIOPort);
@@ -129,7 +141,17 @@ public class IntakeIOReal implements IntakeIO {
         inputs.intakeSensorTriggered = !intakeSensor.get();
         inputs.middleSensorTriggered = !middleSensor.get();
         inputs.endSensorTriggered = !endSensor.get();
+
+        sparkStickyFault = false;
         inputs.intakePitch = Rotation2d.fromRadians(absolutePitchSensor.getPosition());
+        inputs.intakePitchMotorConnected = pitchConnectedDebouncer.calculate(!sparkStickyFault);
+
+        sparkStickyFault = false;
         inputs.intakeWheelSpeed = powerEncoder.getVelocity();
+        inputs.intakePowerMotorConnected = powerConnectedDebouncer.calculate(!sparkStickyFault);
+
+        sparkStickyFault = false;
+        inputs.transportWheelSpeed = transportEncoder.getVelocity();
+        inputs.transportMotorConnected = transportConnectedDebouncer.calculate(!sparkStickyFault);
     }
 }

@@ -108,7 +108,7 @@ public class VisionIOPhotonVision implements VisionIO {
                     Transform3d robotToTarget = robotToCamera.plus(target.bestCameraToTarget);
 
                     inputs.individualTags[i] = new SingleApriltagResult(target.fiducialId, robotToTarget,
-                        target.poseAmbiguity);
+                        target.poseAmbiguity, latestResult.getTimestampSeconds());
                 }
             } else {
                 inputs.individualTags = null;

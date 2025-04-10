@@ -18,6 +18,7 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 import frc.robot.Controls;
+import frc.robot.RobotState;
 import frc.robot.subsystems.arm.ArmState.WristRotation;
 import frc.robot.util.LoggedTracer;
 import frc.robot.util.LoggedTunableNumber;
@@ -146,6 +147,18 @@ public class Arm extends SubsystemBase {
         io.overrideEndEffectorPower(power);
     }
 
+    /**
+     * Gets the current elevator height as a percentage of the maximum height. This is used to scale our maximum allowed
+     * acceleration.
+     * @return
+     */
+    public double getElevatorHeightPercent() {
+        return MathUtil.clamp((inputs.elevatorHeightMeters - ArmConstants.ElevatorConstants.bottomResetHeightMeters)
+            / (ArmConstants.ElevatorConstants.maxElevatorHeight.in(Meters)
+                - ArmConstants.ElevatorConstants.bottomResetHeightMeters),
+            0.0, 1.0);
+    }
+
     private ArmState getAdjustedTarget() {
         if(targetState == null) return null;
 
@@ -201,6 +214,8 @@ public class Arm extends SubsystemBase {
 
         visualizer.update(inputs.absoluteHeightMeters, inputs.armPitchPosition, inputs.armWristPosition,
             inputs.gamePiecePresent);
+
+        RobotState.getInstance().updateElevatorHeightPercent(getElevatorHeightPercent());
 
         // Update alerts
         elevatorMotorDisconnectedAlert.set(!inputs.elevatorMotorsConnected);

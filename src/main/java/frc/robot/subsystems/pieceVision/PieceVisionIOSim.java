@@ -67,7 +67,7 @@ public class PieceVisionIOSim implements PieceVisionIO {
         Pose2d robotPose = robotPoseSupplier.get();
         Pose3d robotPose3d = new Pose3d(robotPose.getTranslation().getX(), robotPose.getTranslation().getY(), 0.0,
             new Rotation3d(0.0, 0.0, robotPose.getRotation().getRadians()));
-        Pose3d cameraPose = robotPose3d.plus(PieceVisionConstants.cameraTransform);
+        Pose3d cameraPose = robotPose3d.plus(PieceVisionConstants.robotToCamera);
         Logger.recordOutput("PieceVision/Camera", cameraPose);
 
         for(var pieceLocation : gamePieceLocations) {

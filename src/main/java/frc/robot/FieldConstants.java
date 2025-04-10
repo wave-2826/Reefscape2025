@@ -24,6 +24,9 @@ public class FieldConstants {
     /** The field width in meters. */
     public static final double fieldWidth = VisionConstants.aprilTagLayout.getFieldWidth();
 
+    public static final double algaeDiameter = Units.inchesToMeters(16);
+    public static final double coralDiameter = Units.inchesToMeters(4.5);
+
     public enum ReefLevel {
         // @formatter:off
         L4(Inches.of(72), Degrees.of(-90)),
@@ -132,6 +135,23 @@ public class FieldConstants {
          */
         public Rotation2d getFieldAngle() {
             return getFieldAngle(DriverStation.getAlliance().orElse(Alliance.Blue) == DriverStation.Alliance.Red);
+        }
+
+        /**
+         * Gets the AprilTag pose for a given alliance.
+         * @param isRed
+         * @return
+         */
+        public Pose2d getTagPose(boolean isRed) {
+            return isRed ? redTagPose : blueTagPose;
+        }
+
+        /**
+         * Gets the AprilTag pose for the current alliance.
+         * @return
+         */
+        public Pose2d getTagPose() {
+            return getTagPose(DriverStation.getAlliance().orElse(Alliance.Blue) == DriverStation.Alliance.Red);
         }
 
         /** Gets the AprilTag ID for a given alliance. */

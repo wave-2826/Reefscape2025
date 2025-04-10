@@ -3,16 +3,17 @@ package frc.robot.subsystems.vision;
 import static frc.robot.subsystems.vision.VisionConstants.*;
 
 import edu.wpi.first.math.VecBuilder;
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.wpilibj.Alert;
-import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 import frc.robot.RobotState;
 import frc.robot.subsystems.vision.VisionIO.SingleApriltagResult;
 import frc.robot.util.LoggedTracer;
+import frc.robot.util.LoggedTunableNumber;
 
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -21,20 +22,15 @@ import java.util.List;
 import org.littletonrobotics.junction.Logger;
 
 public class Vision extends SubsystemBase {
+    public static final LoggedTunableNumber perTagPersistenceTime = new LoggedTunableNumber(
+        "Vision/PerTagPersistenceTime", 0.05);
+
     private final VisionIO[] io;
     private final VisionIOInputsAutoLogged[] inputs;
     private final Alert[] disconnectedAlerts;
 
-    private static record RobotToTag(Transform3d robotToTag, double ambiguity, double timestamp) {
+    public static record IndividualTagEstimate(Pose2d robotPose, double ambiguity, double timestamp) {
     }
-
-    /**
-     * A map from the robot position to each of the individual tags we currently see. When multiple cameras see the same
-     * tag, we trust the camera with the lowest ambiguity.
-     * <p>
-     * TODO: We should test if it's more reliable to average the robotToTag transforms from all cameras in these cases.
-     */
-    private final HashMap<Integer, RobotToTag> robotToIndividualTags = new HashMap<>();
 
     public Vision(VisionIO... io) {
         this.io = io;
@@ -51,16 +47,6 @@ public class Vision extends SubsystemBase {
             disconnectedAlerts[i] = new Alert("Vision camera " + Integer.toString(i) + " is disconnected.",
                 AlertType.kWarning);
         }
-    }
-
-    /**
-     * Get the transform from the robot to the tag with the given ID. Returns null if the tag is not seen.
-     * @param id
-     * @return
-     */
-    public Transform3d getRobotToTag(int id) {
-        if(robotToIndividualTags.containsKey(id)) { return robotToIndividualTags.get(id).robotToTag; }
-        return null;
     }
 
     public int getCameraCount() {
@@ -87,8 +73,9 @@ public class Vision extends SubsystemBase {
         List<Pose3d> allIndividualTagRobotPosesAccepted = new LinkedList<>();
         List<Pose3d> allIndividualTagRobotPosesRejected = new LinkedList<>();
 
-        HashMap<Integer, RobotToTag> currentIndividualTags = new HashMap<>();
-        int individualTagsRejected = 0;
+        HashMap<Integer, IndividualTagEstimate> currentIndividualTags = new HashMap<>();
+
+        var robotState = RobotState.getInstance();
 
         // Loop over cameras
         for(int cameraIndex = 0; cameraIndex < io.length; cameraIndex++) {
@@ -116,30 +103,29 @@ public class Vision extends SubsystemBase {
                     tagPoses.add(tagPose);
 
                     // Add to robotToIndividualTags map if it isn't obviously wrong
-                    Transform3d transform = result.robotToTarget();
-                    Pose3d robotTransform = tagPose.plus(transform.inverse());
-                    individualTagRobotPoses.add(robotTransform);
+                    Transform3d robotToTag = result.robotToTarget();
+                    Pose3d robotPose = tagPose.plus(robotToTag.inverse());
+                    individualTagRobotPoses.add(robotPose);
 
                     boolean rejectPose = result.ambiguity() > maxAmbiguity || // Cannot be high ambiguity
-                        Math.abs(robotTransform.getZ()) > maxZError // Must have realistic Z coordinate
+                        Math.abs(robotPose.getZ()) > maxZError // Must have realistic Z coordinate
                         // Must be within the field boundaries
-                        || robotTransform.getX() < 0.0 || robotTransform.getX() > aprilTagLayout.getFieldLength()
-                        || robotTransform.getY() < 0.0 || robotTransform.getY() > aprilTagLayout.getFieldWidth();
+                        || robotPose.getX() < 0.0 || robotPose.getX() > aprilTagLayout.getFieldLength()
+                        || robotPose.getY() < 0.0 || robotPose.getY() > aprilTagLayout.getFieldWidth();
 
                     if(rejectPose) {
-                        individualTagsRejected++;
-                        individualTagRobotPosesRejected.add(robotTransform);
+                        individualTagRobotPosesRejected.add(robotPose);
                         continue;
                     }
 
-                    individualTagRobotPosesAccepted.add(robotTransform);
+                    individualTagRobotPosesAccepted.add(robotPose);
 
                     if(!currentIndividualTags.containsKey(id)
                         || result.ambiguity() < currentIndividualTags.get(id).ambiguity()) {
                         Logger.recordOutput("Vision/Camera" + Integer.toString(cameraIndex) + "/RobotToTag" + id,
-                            transform);
-                        currentIndividualTags.put(id,
-                            new RobotToTag(transform, result.ambiguity(), Timer.getTimestamp()));
+                            robotToTag);
+                        currentIndividualTags.put(id, new IndividualTagEstimate(robotPose.toPose2d(),
+                            result.ambiguity(), result.captureTimestamp()));
                     }
                 }
             }
@@ -158,7 +144,7 @@ public class Vision extends SubsystemBase {
                     || pose.getX() < 0.0 || pose.getX() > aprilTagLayout.getFieldLength() || pose.getY() < 0.0
                     || pose.getY() > aprilTagLayout.getFieldWidth()
 
-                    || Math.abs(pose.getRotation().toRotation2d().minus(RobotState.getInstance().getRotation())
+                    || Math.abs(pose.getRotation().toRotation2d().minus(robotState.getRotation())
                         .getDegrees()) > maxRotationError;
 
                 // Add pose to log
@@ -178,8 +164,7 @@ public class Vision extends SubsystemBase {
                     angularStdDev *= cameraStdDevFactors[cameraIndex];
                 }
 
-                // Send vision observation
-                RobotState.getInstance().addVisionMeasurement(pose.toPose2d(), observation.timestamp(),
+                robotState.addVisionMeasurement(pose.toPose2d(), observation.timestamp(),
                     VecBuilder.fill(linearStdDev, linearStdDev, angularStdDev));
             }
 
@@ -209,14 +194,6 @@ public class Vision extends SubsystemBase {
             allIndividualTagRobotPosesAccepted.addAll(individualTagRobotPosesAccepted);
             allIndividualTagRobotPosesRejected.addAll(individualTagRobotPosesRejected);
         }
-
-        // Update robotToIndividualTags
-        // If any single tag hasn't been updated for a quarter of a second, clear it.
-        double currentTime = Timer.getTimestamp();
-        Logger.recordOutput("Vision/IndividualTagsSeen", currentIndividualTags.size());
-        Logger.recordOutput("Vision/IndividualTagsRejected", individualTagsRejected);
-        robotToIndividualTags.entrySet().removeIf(entry -> currentTime - entry.getValue().timestamp > 0.25);
-        robotToIndividualTags.putAll(currentIndividualTags);
 
         // Log summary data
         Logger.recordOutput("Vision/Summary/TagPoses", allTagPoses.toArray(new Pose3d[allTagPoses.size()]));

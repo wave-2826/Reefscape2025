@@ -86,16 +86,15 @@ public class Controls {
 
         // Auto score
         driver.b().debounce(Controls.debounceTime, DebounceType.kFalling)
-            .whileTrue(AutoScoreCommands.autoScoreTeleopCommand(drive, vision, arm, leds, driver.rightBumper(),
+            .whileTrue(AutoScoreCommands.autoScoreTeleopCommand(drive, arm, leds, driver.rightBumper(),
                 driver.leftBumper(), driver::getLeftX, driver::getLeftY, (aligned) -> {
                     setDriverRumble(RumbleType.kLeftRumble, aligned ? 1.0 : 0.0, 1);
                 }).finallyDo(() -> {
                     setDriverRumble(RumbleType.kLeftRumble, 0.0, 1);
                 }));
 
-        driver.a().debounce(Controls.debounceTime, DebounceType.kFalling)
-            .whileTrue(AutoScoreCommands.removeAlgaeTeleopCommand(drive, vision, arm, leds, driver.rightBumper(),
-                driver::getLeftX, driver::getLeftY));
+        driver.a().debounce(Controls.debounceTime, DebounceType.kFalling).whileTrue(AutoScoreCommands
+            .removeAlgaeTeleopCommand(drive, arm, leds, driver.rightBumper(), driver::getLeftX, driver::getLeftY));
 
         // Reset gyro or odometry if in simulation
         final Runnable resetGyro = Constants.isSim ? () -> drive.setPose(driveSimulation.getSimulatedDriveTrainPose()) // Reset odometry to actual robot pose during simulation
@@ -118,8 +117,7 @@ public class Controls {
         intakeTrigger.onTrue(arm.goToStateCommand(ArmConstants.restingState));
         intake.setDefaultCommand(IntakeCommands.intakeCommand(intake, arm, // 
             intakeTrigger, // Intake
-            driver.leftTrigger(0.3), // Outtake
-            operator.povRight().and(normalOperator) // Outtake trough
+            driver.leftTrigger(0.3) // Outtake
         ));
 
         // Normal operator controls

@@ -167,7 +167,7 @@
                                     },
                                     {
                                         "type": "ghost",
-                                        "logKey": "/RealOutputs/CloseLineup/TargetPose",
+                                        "logKey": "/RealOutputs/ReefLineup/TargetPose",
                                         "logType": "Pose2d",
                                         "visible": true,
                                         "options": {
@@ -536,7 +536,7 @@
                                 "leftSources": [
                                     {
                                         "type": "stepped",
-                                        "logKey": "/RealOutputs/CloseLineup/TargetX",
+                                        "logKey": "/RealOutputs/ReefLineup/TargetX",
                                         "logType": "Number",
                                         "visible": true,
                                         "options": {
@@ -546,7 +546,7 @@
                                     },
                                     {
                                         "type": "stepped",
-                                        "logKey": "/RealOutputs/CloseLineup/TargetY",
+                                        "logKey": "/RealOutputs/ReefLineup/TargetY",
                                         "logType": "Number",
                                         "visible": true,
                                         "options": {
@@ -588,7 +588,7 @@
                                     },
                                     {
                                         "type": "stepped",
-                                        "logKey": "/RealOutputs/CloseLineup/TargetRotation/value",
+                                        "logKey": "/RealOutputs/ReefLineup/TargetRotation/value",
                                         "logType": "Number",
                                         "visible": true,
                                         "options": {

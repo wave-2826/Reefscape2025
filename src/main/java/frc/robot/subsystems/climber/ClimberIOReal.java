@@ -55,6 +55,8 @@ public class ClimberIOReal implements ClimberIO {
         tryUntilOk(climberMotor, 5,
             () -> climberMotor.configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters));
 
+        registerSparkFaultAlerts(climberMotor, "Climber motor");
+
         ClimberConstants.climberPID.configureSparkOnChange(climberMotor);
 
         climberMotorController = climberMotor.getClosedLoopController();

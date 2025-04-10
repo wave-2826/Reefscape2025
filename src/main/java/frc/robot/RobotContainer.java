@@ -61,6 +61,7 @@ public class RobotContainer {
     private final Arm arm;
     private final Climber climber;
     private final Intake intake;
+    @SuppressWarnings("unused")
     private final PieceVision pieceVision;
     private final LEDs leds;
 
@@ -172,7 +173,7 @@ public class RobotContainer {
         // Initializes the driver station interface API.
         DriverStationInterface.getInstance();
 
-        AutoCommands.registerNamedCommands(drive, vision, pieceVision, arm, intake, leds);
+        AutoCommands.registerNamedCommands(drive, arm, intake, leds);
 
         // Set up auto routines
         autoChooser = new LoggedDashboardChooser<>("Auto Choices", AutoBuilder.buildAutoChooser());

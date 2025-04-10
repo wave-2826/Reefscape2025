@@ -15,6 +15,12 @@ public interface IntakeIO {
         public Rotation2d intakePitch = Rotation2d.kZero;
         /** The speed of the intake wheels, in radians per second. */
         public double intakeWheelSpeed = 0;
+        /** The speed of the transport wheels, in radians per second. */
+        public double transportWheelSpeed = 0;
+
+        public boolean transportMotorConnected = false;
+        public boolean intakePowerMotorConnected = false;
+        public boolean intakePitchMotorConnected = false;
     }
 
     public default void updateInputs(IntakeIOInputs inputs) {
