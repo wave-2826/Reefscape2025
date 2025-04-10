@@ -120,14 +120,16 @@ public class Drive extends SubsystemBase {
         });
         PathPlannerLogging.setLogTargetPoseCallback((targetPose) -> {
             // HACK: what is pathplanner doing
-            boolean isRed = DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red;
-            if(DriverStation.isEnabled() && isRed && targetPose.getX() < FieldConstants.fieldLength / 2) {
-                System.out.println("Stopping auto; PathPlanner is trying to destroy the robot again");
-                CommandScheduler.getInstance().cancelAll();
-            }
-            if(DriverStation.isEnabled() && !isRed && targetPose.getX() > FieldConstants.fieldLength / 2) {
-                System.out.println("Stopping auto; PathPlanner is trying to destroy the robot again");
-                CommandScheduler.getInstance().cancelAll();
+            if(!Constants.isSim) {
+                boolean isRed = DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red;
+                if(DriverStation.isEnabled() && isRed && targetPose.getX() < FieldConstants.fieldLength / 2) {
+                    System.out.println("Stopping auto; PathPlanner is trying to destroy the robot again");
+                    CommandScheduler.getInstance().cancelAll();
+                }
+                if(DriverStation.isEnabled() && !isRed && targetPose.getX() > FieldConstants.fieldLength / 2) {
+                    System.out.println("Stopping auto; PathPlanner is trying to destroy the robot again");
+                    CommandScheduler.getInstance().cancelAll();
+                }
             }
 
             Logger.recordOutput("Odometry/TrajectorySetpoint", targetPose);

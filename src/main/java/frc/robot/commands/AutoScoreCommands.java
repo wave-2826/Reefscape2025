@@ -1,7 +1,5 @@
 package frc.robot.commands;
 
-import static edu.wpi.first.units.Units.Meters;
-
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -17,9 +15,6 @@ import edu.wpi.first.util.function.BooleanConsumer;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
-import frc.robot.FieldConstants;
-import frc.robot.FieldConstants.ReefFace;
-import frc.robot.FieldConstants.ReefLevel;
 import frc.robot.commands.arm.ScoringSequenceCommands;
 import frc.robot.commands.drive.ReefLineupCommand;
 import frc.robot.commands.intake.IntakeCommands;
@@ -33,64 +28,19 @@ import frc.robot.util.LoggedTunableNumber;
 import frc.robot.util.ReefTarget;
 
 public class AutoScoreCommands {
-    private static final BooleanSupplier resetElevatorDuringScoring = () -> true;
-
-    private static final LoggedTunableNumber robotReefLineupL1Distance = new LoggedTunableNumber(//
-        "AutoScore/L1ReefLineupDistance", 33.5);
-    private static final LoggedTunableNumber robotReefLineupL2Distance = new LoggedTunableNumber(//
-        "AutoScore/L2ReefLineupDistance", 20.5);
-    private static final LoggedTunableNumber robotReefLineupL3Distance = new LoggedTunableNumber(//
-        "AutoScore/L3ReefLineupDistance", 21.75);
-    private static final LoggedTunableNumber robotReefLineupL4Distance = new LoggedTunableNumber(//
-        "AutoScore/L4ReefLineupDistance", 24.25);
     private static final LoggedTunableNumber autoAlignTweakAmount = new LoggedTunableNumber(//
         "AutoScore/AutoAlignTweakInches", 4.5);
-    private static final LoggedTunableNumber centerDistanceTweak = new LoggedTunableNumber(//
-        "AutoScore/CenterDistanceTweak", 0.5);
-    private static final LoggedTunableNumber centerDistanceTweakRight = new LoggedTunableNumber(//
-        "AutoScore/CenterPositionTweakRight", 0.5);
 
-    /**
-     * Gets a command that pathfinds to the target pose and precisely aligns to it. Because PathPlanner's default
-     * pathfinding command is intended for long distances and doesn't move the robot if it's currently in the target
-     * grid cell, we implement a second phase to align using a PID controller. Calls the passed commands during
-     * different lineup stages.
-     * @param drive The drive subsystem
-     * @param target The reef target to align to
-     * @param distanceAwayInches The distance away in inches.
-     * @param alignCenter If the robot should align to the center instead of branch side.
-     * @param tweakX The amount to tweak the X position during reef lineup
-     * @param tweakY The amount to tweak the Y position during reef lineup
-     * @param finishSequence If present, the reef lineup waits for this to be true before finishing. If not present, the
-     *            reef lineup finishes when the target is fully aligned.
-     * @param lineupFeedback A function to call during reef lineup with whether the controller is at its target. Can be
-     *            null.
-     * @return
-     */
-    public static Command autoAlign(Drive drive, LEDs leds, ReefTarget target, double distanceAwayInches,
-        boolean alignCenter, DoubleSupplier tweakX, DoubleSupplier tweakY, Optional<BooleanSupplier> finishSequence,
-        BooleanConsumer lineupFeedback) {
+    private static final BooleanSupplier resetElevatorDuringScoring = () -> true;
 
-        // TODO: Clean this up
-
-        boolean isLeft = target.branch().isLeft;
-
-        double centerDistance = FieldConstants.reefBranchSeparation.in(Meters) / 2.
-            + Units.inchesToMeters(centerDistanceTweak.get());
-        Transform2d tagRelativeOffset = new Transform2d(new Translation2d(Units.inchesToMeters(distanceAwayInches),
-            (alignCenter ? 0. : (isLeft ? -centerDistance : centerDistance))
-                + Units.inchesToMeters(centerDistanceTweakRight.get())),
-            Rotation2d.k180deg);
-
-        ReefFace reefFace = target.branch().face;
-
+    public static Command autoAlign(Drive drive, LEDs leds, ReefTarget target, DoubleSupplier tweakX,
+        DoubleSupplier tweakY, Optional<BooleanSupplier> finishSequence, BooleanConsumer lineupFeedback) {
         Supplier<Transform2d> getFieldRelativeOffset = () -> new Transform2d(
             new Translation2d(-tweakY.getAsDouble() * Units.inchesToMeters(autoAlignTweakAmount.get()),
                 -tweakX.getAsDouble() * Units.inchesToMeters(autoAlignTweakAmount.get())),
             Rotation2d.kZero);
 
-        return new ReefLineupCommand(drive, leds, reefFace, tagRelativeOffset, getFieldRelativeOffset, finishSequence,
-            lineupFeedback);
+        return new ReefLineupCommand(drive, leds, target, getFieldRelativeOffset, finishSequence, lineupFeedback);
     }
 
     private static class AutoScoreState {
@@ -138,25 +88,14 @@ public class AutoScoreCommands {
     public static Command autoScoreCommand(Drive drive, Arm arm, LEDs leds, ReefTarget target,
         Optional<BooleanSupplier> finishSequence, BooleanSupplier finishSequenceSlow, DoubleSupplier tweakX,
         DoubleSupplier tweakY, BooleanConsumer lineupFeedback, boolean driveBackward) {
-        double distanceAwayInches;
-        if(target.level() == ReefLevel.L1) {
-            distanceAwayInches = robotReefLineupL1Distance.get();
-        } else if(target.level() == ReefLevel.L2) {
-            distanceAwayInches = robotReefLineupL2Distance.get();
-        } else if(target.level() == ReefLevel.L3) {
-            distanceAwayInches = robotReefLineupL3Distance.get();
-        } else {
-            distanceAwayInches = robotReefLineupL4Distance.get();
-        }
-
         Optional<BooleanSupplier> finish = finishSequence
             .map(f -> (() -> f.getAsBoolean() || finishSequenceSlow.getAsBoolean()));
 
         return Commands.sequence(//
             Commands.parallel(Commands.runOnce(() -> ScoringSequenceCommands.wristOverride = null),
                 Commands.defer(() -> {
-                    return autoAlign(drive, leds, target, distanceAwayInches, false, tweakX, tweakY, finish,
-                        lineupFeedback).withTimeout(DriverStation.isAutonomous() ? 4. : 10000);
+                    return autoAlign(drive, leds, target, tweakX, tweakY, finish, lineupFeedback)
+                        .withTimeout(DriverStation.isAutonomous() ? 4. : 10000);
                 }, Set.of(drive)),
 
                 Commands.sequence(
@@ -224,7 +163,7 @@ public class AutoScoreCommands {
             Commands.runOnce(() -> ScoringSequenceCommands.wristOverride = null), //
             ScoringSequenceCommands.prepForAlgaeRemoval(target.level(), arm).withTimeout(2)
                 .andThen(Commands.runOnce(arm::resetToAbsolute).onlyIf(resetElevatorDuringScoring)),
-            autoAlign(drive, leds, target, 20, true, tweakX, tweakY, finishSequence, null), //
+            autoAlign(drive, leds, target, tweakX, tweakY, finishSequence, null), //
             ScoringSequenceCommands.removeAlgae(target.level(), arm, drive, target.branch().face.getFieldAngle())
                 .raceWith(leds.runStateCommand(LEDState.AutoScoring))//
         ).withName("RemoveAlgae" + target.toString());
@@ -245,7 +184,8 @@ public class AutoScoreCommands {
         AutoScoreState state = new AutoScoreState(DriverStationInterface.getInstance().getReefTarget());
 
         return new RestartWhenCommand(
-            () -> removeAlgaeCommand(drive, arm, leds, state.target, Optional.of(finishSequence), tweakX, tweakY),
+            () -> removeAlgaeCommand(drive, arm, leds, state.target.asAlgae(), Optional.of(finishSequence), tweakX,
+                tweakY),
 
             // Restart when our target changes
             () -> {

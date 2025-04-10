@@ -144,6 +144,7 @@ public class AutoCommands {
                 if(scoringPositionsAvailable.isEmpty()) {
                     // Should never happen... 
                     grabbingCoralFailed = true;
+                    return Commands.runOnce(() -> drive.stop());
                 }
 
                 var nextAvailableTarget = scoringPositionsAvailable.remove(0);

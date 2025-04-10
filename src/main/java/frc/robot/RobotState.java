@@ -95,6 +95,21 @@ public class RobotState {
         return elevatorHeightPercent;
     }
 
+    private boolean reefLineupSafe = false;
+
+    public void setReefLineupSafe(boolean safe) {
+        reefLineupSafe = safe;
+    }
+
+    /**
+     * Gets whether it's currently safe to line up closely with the reef. This will not be true if the arm is moving
+     * upward and will collide.
+     * @return
+     */
+    public boolean isReefLineupSafe() {
+        return reefLineupSafe;
+    }
+
     /**
      * Gets the pose at the specified timestamp. This includes vision compensation, so it's a real estimated field pose.
      */

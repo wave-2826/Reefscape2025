@@ -172,6 +172,12 @@ public class Robot extends LoggedRobot {
 
         // Configure the driver station in simulation
         if(Constants.isSim) {
+            if(Constants.autoRunSimAuto) {
+                DriverStationSim.setDsAttached(true);
+                DriverStationSim.setEnabled(true);
+                DriverStationSim.setAutonomous(true);
+            }
+
             DriverStationSim.setAllianceStationId(AllianceStationID.Blue3);
             DriverStationSim.notifyNewData();
         }

@@ -598,14 +598,14 @@
             }
           },
           {
-            "title": "L4ScoreHeightFromTop",
+            "title": "L4ScoreHeight",
             "x": 230.0,
             "y": 345.0,
             "width": 230.0,
             "height": 115.0,
             "type": "Text Display",
             "properties": {
-              "topic": "/Tuning/AutoScore/L4ScoreHeightFromTop",
+              "topic": "/Tuning/AutoScore/L4ScoreHeight",
               "period": 0.06,
               "data_type": "double",
               "show_submit_button": false

@@ -159,6 +159,38 @@ public class Arm extends SubsystemBase {
             0.0, 1.0);
     }
 
+    /**
+     * Gets whether reef lineup is currently safe. If this returns true, the arm is in a state that will allow us to
+     * line up close to the reef. If false, the arm might hit the reef.
+     * @return
+     */
+    public boolean getReefLineupSafe() {
+        if(adjustedTarget == null) return true;
+
+        // If the current and target arm pitch is less than the given threshold, we aren't safe to line up
+        double lowDangerPitch = -90 + 30;
+        if(adjustedTarget.pitch().getDegrees() < lowDangerPitch
+            && inputs.armPitchPosition.getDegrees() < lowDangerPitch) {
+            return false;
+        }
+
+        // If the current target arm pitch is above the given threshold, we are safe to line up
+        double highSafePitch = 45;
+        if(adjustedTarget.pitch().getDegrees() > highSafePitch
+            && inputs.armPitchPosition.getDegrees() > highSafePitch) {
+            return true;
+        }
+
+        // If the elevator and arm are relatively close to their setpoints, we trust ourself
+        if(Math.abs(inputs.elevatorHeightMeters - adjustedTarget.height().in(Meters)) < Units.inchesToMeters(4)
+            && Math.abs(inputs.armPitchPosition.getRadians() - adjustedTarget.pitch().getRadians()) < Units
+                .degreesToRadians(10)) {
+            return true;
+        }
+
+        return false;
+    }
+
     private ArmState getAdjustedTarget() {
         if(targetState == null) return null;
 
@@ -201,21 +233,11 @@ public class Arm extends SubsystemBase {
             Logger.recordOutput("Arm/AtTarget", isAtTarget());
         }
 
-        // TODO: A more robust resetting solution. Our elevator basically never skips, though, so just an operator override is fine.
-        // If the elevator is moving slowly, we can reset the encoder position to the elevator height
-        // from our sensor.
-        // if(inputs.elevatorVelocityMetersPerSecond < 0.03 && inputs.elevatorMotorsConnected
-        //     && inputs.validAbsoluteMeasurement) {
-        //     io.resetHeight(inputs.absoluteHeightMeters);
-        //     Logger.recordOutput("Arm/ElevatorResetting", true);
-        // } else {
-        //     Logger.recordOutput("Arm/ElevatorResetting", false);
-        // }
-
         visualizer.update(inputs.absoluteHeightMeters, inputs.armPitchPosition, inputs.armWristPosition,
             inputs.gamePiecePresent);
 
         RobotState.getInstance().updateElevatorHeightPercent(getElevatorHeightPercent());
+        RobotState.getInstance().setReefLineupSafe(getReefLineupSafe());
 
         // Update alerts
         elevatorMotorDisconnectedAlert.set(!inputs.elevatorMotorsConnected);

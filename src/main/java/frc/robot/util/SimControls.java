@@ -19,6 +19,8 @@ import edu.wpi.first.units.measure.LinearVelocity;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
@@ -77,29 +79,25 @@ public class SimControls {
                 Degrees.of(-50));
     }
 
+    public static Command dropCoralCommand(boolean onRight, boolean shiftForward) {
+        return Commands.runOnce(() -> {
+            var alliance = DriverStation.getAlliance().orElse(Alliance.Blue);
+            double shiftLeft = shiftForward ? Units.inchesToMeters(onRight ? -30 : 30) : 0;
+            SimulatedArena.getInstance().addGamePieceProjectile(
+                dropFromCoralStation(onRight ? CoralStationsSide.RIGHT_STATION : CoralStationsSide.LEFT_STATION,
+                    alliance, false, shiftLeft));
+        }).ignoringDisable(true);
+    }
+
     public void configureControls() {
         buttonTrigger(1).onTrue(Commands.runOnce(IntakeIOSim::addCoral).ignoringDisable(true));
 
-        buttonTrigger(2).onTrue(Commands.runOnce(() -> {
-            var alliance = DriverStation.getAlliance().orElse(Alliance.Blue);
-            SimulatedArena.getInstance()
-                .addGamePieceProjectile(dropFromCoralStation(CoralStationsSide.LEFT_STATION, alliance, false, 0.));
-        }).ignoringDisable(true));
-        buttonTrigger(3).onTrue(Commands.runOnce(() -> {
-            var alliance = DriverStation.getAlliance().orElse(Alliance.Blue);
-            SimulatedArena.getInstance()
-                .addGamePieceProjectile(dropFromCoralStation(CoralStationsSide.RIGHT_STATION, alliance, false, 0.));
-        }).ignoringDisable(true));
+        buttonTrigger(2).onTrue(dropCoralCommand(false, false));
+        buttonTrigger(3).onTrue(dropCoralCommand(true, false));
+        buttonTrigger(5).onTrue(dropCoralCommand(false, true));
+        buttonTrigger(6).onTrue(dropCoralCommand(true, true));
 
-        buttonTrigger(5).onTrue(Commands.runOnce(() -> {
-            var alliance = DriverStation.getAlliance().orElse(Alliance.Blue);
-            SimulatedArena.getInstance().addGamePieceProjectile(
-                dropFromCoralStation(CoralStationsSide.LEFT_STATION, alliance, false, Units.inchesToMeters(30)));
-        }).ignoringDisable(true));
-        buttonTrigger(6).onTrue(Commands.runOnce(() -> {
-            var alliance = DriverStation.getAlliance().orElse(Alliance.Blue);
-            SimulatedArena.getInstance().addGamePieceProjectile(
-                dropFromCoralStation(CoralStationsSide.RIGHT_STATION, alliance, false, Units.inchesToMeters(-30)));
-        }).ignoringDisable(true));
+        SmartDashboard.putData("SimControls/Drop Left Station", dropCoralCommand(false, false));
+        SmartDashboard.putData("SimControls/Drop Right Station", dropCoralCommand(true, false));
     }
 }

@@ -27,12 +27,15 @@ public class FieldConstants {
     public static final double algaeDiameter = Units.inchesToMeters(16);
     public static final double coralDiameter = Units.inchesToMeters(4.5);
 
+    /**
+     * A level on the reef. This enum is organized so its ordinal represents the 0-indexed level number.
+     */
     public enum ReefLevel {
         // @formatter:off
-        L4(Inches.of(72), Degrees.of(-90)),
-        L3(Inches.of(47.625), Degrees.of(-35)),
+        L1(Inches.of(18), Degrees.of(0)),
         L2(Inches.of(31.875), Degrees.of(-35)),
-        L1(Inches.of(18), Degrees.of(0));
+        L3(Inches.of(47.625), Degrees.of(-35)),
+        L4(Inches.of(72), Degrees.of(-90));
         // @formatter:on
 
         public final Distance height;

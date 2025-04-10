@@ -34,18 +34,17 @@ public class ScoringSequenceCommands {
         "AutoScore/BranchScorePitch", 55.);
     private static LoggedTunableNumber L4ScorePitch = new LoggedTunableNumber(//
         "AutoScore/L4ScorePitch", 43.);
-    private static LoggedTunableNumber L1ScoreHeight = new LoggedTunableNumber(//
-        "AutoScore/L1ScoreHeight", 10);
-    private static LoggedTunableNumber L2ScoreHeight = new LoggedTunableNumber(//
-        "AutoScore/L2ScoreHeight", 6);
-    private static LoggedTunableNumber L3ScoreHeight = new LoggedTunableNumber(//
-        "AutoScore/L3ScoreHeight", 22);
-    private static LoggedTunableNumber L4ScoreHeightFromTop = new LoggedTunableNumber(//
-        "AutoScore/L4ScoreHeightFromTop", 9);
     private static LoggedTunableNumber branchScorePitchDown = new LoggedTunableNumber(//
         "AutoScore/BranchScorePitchDown", 35);
     private static LoggedTunableNumber L4PitchDown = new LoggedTunableNumber(//
         "AutoScore/L4PitchDown", 40);
+
+    private static LoggedTunableNumber[] levelScoreHeights = new LoggedTunableNumber[] {
+        new LoggedTunableNumber("AutoScore/L1ScoreHeight", 10), //
+        new LoggedTunableNumber("AutoScore/L2ScoreHeight", 6), //
+        new LoggedTunableNumber("AutoScore/L3ScoreHeight", 22), //
+        new LoggedTunableNumber("AutoScore/L4ScoreHeight", 50)
+    };
 
     // HACK ..?
     public static WristRotation wristOverride = null;
@@ -66,7 +65,7 @@ public class ScoringSequenceCommands {
      * @return
      */
     private static ArmState getL1StartingState() {
-        return new ArmState(Rotation2d.fromDegrees(0), Inches.of(L1ScoreHeight.get()), WristRotation.Vertical,
+        return new ArmState(Rotation2d.fromDegrees(0), Inches.of(levelScoreHeights[0].get()), WristRotation.Vertical,
             EndEffectorState.hold());
     }
 
@@ -76,23 +75,14 @@ public class ScoringSequenceCommands {
      * @return
      */
     public static ArmState getStartingState(ReefLevel level) {
+        if(level == ReefLevel.L1) return getL1StartingState();
+
         Rotation2d pitch = Rotation2d.fromDegrees(branchScorePitch.get());
-        Distance height;
+        Distance height = Inches.of(levelScoreHeights[level.ordinal()].get());
         boolean flipped = true;
-        switch(level) {
-            case L4:
-                height = ArmConstants.ElevatorConstants.maxElevatorHeight.minus(Inches.of(L4ScoreHeightFromTop.get()));
-                pitch = Rotation2d.fromDegrees(L4ScorePitch.get());
-                flipped = true;
-                break;
-            case L3:
-                height = Inches.of(L3ScoreHeight.get());
-                break;
-            case L2:
-                height = Inches.of(L2ScoreHeight.get());
-                break;
-            default:
-                return getL1StartingState();
+
+        if(level == ReefLevel.L4) {
+            pitch = Rotation2d.fromDegrees(L4ScorePitch.get());
         }
 
         WristRotation rotation = flipped ? WristRotation.HorizontalFlipped : WristRotation.Horizontal;
@@ -246,8 +236,9 @@ public class ScoringSequenceCommands {
      * @return
      */
     private static Command troughScoringSequence(Arm arm) {
-        return Commands.sequence(arm.goToStateCommand(new ArmState(Rotation2d.fromDegrees(0),
-            Inches.of(L1ScoreHeight.get()), WristRotation.Vertical, EndEffectorState.velocity(8.))))
+        return Commands
+            .sequence(arm.goToStateCommand(new ArmState(Rotation2d.fromDegrees(0),
+                Inches.of(levelScoreHeights[0].get()), WristRotation.Vertical, EndEffectorState.velocity(8.))))
             .withName("TroughScoringSequence");
     }
 }

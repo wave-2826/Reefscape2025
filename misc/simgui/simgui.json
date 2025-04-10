@@ -26,6 +26,9 @@
       "/SmartDashboard/Auto Choices": "String Chooser",
       "/SmartDashboard/PathPlanner": "Alerts",
       "/SmartDashboard/PhotonAlerts": "Alerts",
+      "/SmartDashboard/SimControls/Drop Left Station": "Command",
+      "/SmartDashboard/SimControls/Drop Right Station": "Command",
+      "/SmartDashboard/SimControls/Run Vision Auto Test": "Command",
       "/SmartDashboard/VisionSystemSim-main/Sim Field": "Field2d"
     },
     "windows": {

@@ -50,4 +50,6 @@ public final class Constants {
     public static boolean isSim = currentMode == Mode.SIM;
 
     public static final double voltageCompensation = 12.0;
+
+    public static final boolean autoRunSimAuto = true && isSim;
 }
