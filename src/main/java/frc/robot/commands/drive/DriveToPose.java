@@ -28,7 +28,7 @@ import org.littletonrobotics.junction.Logger;
 public class DriveToPose extends Command {
     // Drive and turn PID gains
     private static final LoggedTunableNumber drivekP = new LoggedTunableNumber(//
-        "DriveToPose/DrivekP", 1.0);
+        "DriveToPose/DrivekP", 1.5);
     private static final LoggedTunableNumber drivekD = new LoggedTunableNumber(//
         "DriveToPose/DrivekD", 0.0);
     private static final LoggedTunableNumber thetakP = new LoggedTunableNumber(//
@@ -46,7 +46,7 @@ public class DriveToPose extends Command {
     private static final LoggedTunableNumber driveMaxVelocity = new LoggedTunableNumber(//
         "DriveToPose/DriveMaxVelocity", DriveConstants.maxSpeedMetersPerSec);
     private static final LoggedTunableNumber driveMaxAcceleration = new LoggedTunableNumber(//
-        "DriveToPose/DriveMaxAcceleration", 3.5);
+        "DriveToPose/DriveMaxAcceleration", 4.5);
     private static final LoggedTunableNumber thetaMaxVelocity = new LoggedTunableNumber(//
         "DriveToPose/ThetaMaxVelocity", Units.degreesToRadians(360.0));
     private static final LoggedTunableNumber thetaMaxAcceleration = new LoggedTunableNumber(//
@@ -56,7 +56,7 @@ public class DriveToPose extends Command {
     private static final LoggedTunableNumber driveMaxVelocityTop = new LoggedTunableNumber(//
         "DriveToPose/DriveMaxVelocityTop", DriveConstants.maxSpeedMetersPerSec);
     private static final LoggedTunableNumber driveMaxAccelerationTop = new LoggedTunableNumber(//
-        "DriveToPose/DriveMaxAccelerationTop", 1.5);
+        "DriveToPose/DriveMaxAccelerationTop", 1.75);
     private static final LoggedTunableNumber thetaMaxVelocityTop = new LoggedTunableNumber(//
         "DriveToPose/ThetaMaxVelocityTop", Units.degreesToRadians(200.0));
     private static final LoggedTunableNumber thetaMaxAccelerationTop = new LoggedTunableNumber(//

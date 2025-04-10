@@ -294,6 +294,14 @@ public class RobotState {
         return robotVelocity;
     }
 
+    /**
+     * Gets the robot's linear velocity in meters per second.
+     * @return
+     */
+    public double getRobotLinearVelocity() {
+        return Math.sqrt(Math.pow(robotVelocity.vxMetersPerSecond, 2) + Math.pow(robotVelocity.vyMetersPerSecond, 2));
+    }
+
     public ChassisSpeeds getFieldVelocity() {
         return ChassisSpeeds.fromRobotRelativeSpeeds(robotVelocity, getRotation());
     }

@@ -30,7 +30,6 @@ import frc.robot.Constants;
 import frc.robot.FieldConstants;
 import frc.robot.RobotState;
 import frc.robot.Constants.Mode;
-import frc.robot.subsystems.leds.LEDs;
 import frc.robot.util.LocalADStarAK;
 import frc.robot.util.LoggedTracer;
 
@@ -142,9 +141,6 @@ public class Drive extends SubsystemBase {
 
         setpointGenerator = new SwerveSetpointGenerator(pathplannerConfig, maxSteerVelocity);
         previousSetpoint = new SwerveSetpoint(getChassisSpeeds(), getModuleStates(), DriveFeedforwards.zeros(4));
-
-        // This is a bit hacky, but I prefer it over singletons
-        LEDs.robotSpeedSupplier = this::getLinearSpeedMetersPerSec;
     }
 
     /**

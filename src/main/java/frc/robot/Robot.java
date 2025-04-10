@@ -7,6 +7,7 @@ import edu.wpi.first.wpilibj.Filesystem;
 import edu.wpi.first.wpilibj.IterativeRobotBase;
 import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.Threads;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.Watchdog;
 import edu.wpi.first.wpilibj.simulation.DriverStationSim;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -172,12 +173,6 @@ public class Robot extends LoggedRobot {
 
         // Configure the driver station in simulation
         if(Constants.isSim) {
-            if(Constants.autoRunSimAuto) {
-                DriverStationSim.setDsAttached(true);
-                DriverStationSim.setEnabled(true);
-                DriverStationSim.setAutonomous(true);
-            }
-
             DriverStationSim.setAllianceStationId(AllianceStationID.Blue3);
             DriverStationSim.notifyNewData();
         }
@@ -309,5 +304,11 @@ public class Robot extends LoggedRobot {
     @Override
     public void simulationPeriodic() {
         robotContainer.updateSimulation();
+
+        if(Constants.autoRunSimAuto && Timer.getTimestamp() > 2.5) {
+            DriverStationSim.setDsAttached(true);
+            DriverStationSim.setEnabled(true);
+            DriverStationSim.setAutonomous(true);
+        }
     }
 }

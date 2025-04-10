@@ -45,8 +45,8 @@ public class IntakeIOSim extends IntakeIOReal {
     private static final Rotation2d intakeMaxAngle = Rotation2d.fromDegrees(-90);
     private static final double intakePitchGearing = 24. * (111. / 28.);
     private static final double intakePowerGearing = 9.;
-    private static final double intakePowerMOI = 0.005;
-    private static final double transportMOI = 0.005;
+    private static final double intakePowerMOI = 0.01;
+    private static final double transportMOI = 0.01;
     private static final double transportGearing = 15.;
 
     private final IntakeSimulation intakeSimulation;
@@ -77,7 +77,6 @@ public class IntakeIOSim extends IntakeIOReal {
 
         pitchEncoderSim = pitchSparkSim.getAbsoluteEncoderSim();
 
-        // TODO: This doesn't work for some reason now? I can't figure it out for now.
         pitchSim = new SingleJointedArmSim(IntakeConstants.intakePitchMotor, intakePitchGearing, intakeMOI,
             IntakeConstants.intakeLength.in(Meters) / 5., intakeMaxAngle.getRadians(), intakeMinAngle.getRadians(),
             true, intakeMaxAngle.getRadians());
@@ -129,7 +128,6 @@ public class IntakeIOSim extends IntakeIOReal {
             transportSparkSim.iterate(transportSim.getAngularVelocityRadPerSec() * transportGearing, vinVoltage, simDt);
         }
 
-        // TODO: Track coral path and activate sensors
         intakeDIOSim.setValue(
             !(simulatedCoralPosition != null && simulatedCoralPosition >= 0. && simulatedCoralPosition < 0.5));
         middleDIOSim.setValue(
@@ -137,14 +135,13 @@ public class IntakeIOSim extends IntakeIOReal {
         transportDIOSim.setValue(!(simulatedCoralPosition != null && simulatedCoralPosition > 0.7));
 
         if(simulatedCoralPosition != null) {
-            double transportLength = Units.inchesToMeters(18);
-            simulatedCoralPosition += transportSim.getAngularVelocityRadPerSec() / transportGearing
-                * Units.inchesToMeters(2.9) * 1.5 / transportLength * 0.02;
+            double transportLength = Units.inchesToMeters(20);
+            simulatedCoralPosition += transportSim.getAngularVelocityRadPerSec() * Units.inchesToMeters(2.9)
+                / transportLength * 0.02 * 0.75;
             if(simulatedCoralPosition > 1) {
                 simulatedCoralPosition = 1.;
             }
         }
-        // TODO: Visualize simulated coral position
 
         if(intakeSimulation.obtainGamePieceFromIntake()) {
             simulatedCoralPosition = 0.;
@@ -153,7 +150,7 @@ public class IntakeIOSim extends IntakeIOReal {
         Logger.recordOutput("Intake/SimulatedCoralPosition",
             simulatedCoralPosition == null ? -1 : simulatedCoralPosition);
         if(simulatedCoralPosition != null) SimRobotGamePiece.setCoralTransform(
-            new Transform3d(simulatedCoralPosition * Units.inchesToMeters(18) - Units.inchesToMeters(12), 0.,
+            new Transform3d(simulatedCoralPosition * Units.inchesToMeters(20) - Units.inchesToMeters(12), 0.,
                 Units.inchesToMeters(9), Rotation3d.kZero));
 
         super.updateInputs(inputs);

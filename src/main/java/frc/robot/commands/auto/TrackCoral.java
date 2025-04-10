@@ -5,6 +5,9 @@ import java.util.Optional;
 
 import org.littletonrobotics.junction.Logger;
 
+import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.util.FlippingUtil;
+
 import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -25,7 +28,7 @@ public class TrackCoral extends DriveToPose {
     private static final LoggedTunableNumber coralMaxAngleDeg = new LoggedTunableNumber(
         "TrackCoral/CoralMaxAngleDegrees", 70.0);
 
-    private final Debouncer notFoundTimeout = new Debouncer(0.5, Debouncer.DebounceType.kRising);
+    private final Debouncer notFoundTimeout = new Debouncer(2.0, Debouncer.DebounceType.kRising);
     private final Runnable grabbingFailed;
 
     public TrackCoral(Drive drive, Runnable grabbingFailed) {
@@ -53,7 +56,12 @@ public class TrackCoral extends DriveToPose {
                     .transformBy(new Transform2d(DriveConstants.bumperSizeMeters / 2.0, 0.0, Rotation2d.kZero));
             }).orElseGet(() -> {
                 Logger.recordOutput("TrackCoral/TargetedCoral", new Translation2d[] {});
-                return RobotState.getInstance().getPose();
+
+                Pose2d tempGrabPose = new Pose2d(2.38549, 1.8327, Rotation2d.fromRadians(1.06452));
+                final Pose2d coralGrabPose = AutoBuilder.shouldFlip() ? FlippingUtil.flipFieldPose(tempGrabPose)
+                    : tempGrabPose;
+
+                return coralGrabPose;
             });
 
             return target;

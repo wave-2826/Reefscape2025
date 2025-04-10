@@ -6,9 +6,9 @@
           "open": false
         }
       },
-      "SPARK MAX [53] ABSOLUTE ENCODER": {
+      "SPARK MAX [46]": {
         "header": {
-          "open": false
+          "open": true
         }
       }
     }

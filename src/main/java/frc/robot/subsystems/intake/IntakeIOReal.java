@@ -18,6 +18,7 @@ import com.revrobotics.spark.SparkLowLevel.MotorType;
 
 import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DigitalInput;
 import frc.robot.Constants;
 import frc.robot.util.SparkUtil;
@@ -117,8 +118,10 @@ public class IntakeIOReal implements IntakeIO {
 
     @Override
     public void runVelocity(double intakePower, double transportPower) {
-        powerController.setReference(intakePower * 2900., ControlType.kVelocity);
-        transportController.setReference(transportPower * 9500., ControlType.kVelocity);
+        powerController.setReference(Units.rotationsPerMinuteToRadiansPerSecond(intakePower * 2900),
+            ControlType.kVelocity);
+        transportController.setReference(Units.rotationsPerMinuteToRadiansPerSecond(transportPower * 9500),
+            ControlType.kVelocity);
     }
 
     @Override

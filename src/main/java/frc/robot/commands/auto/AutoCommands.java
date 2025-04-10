@@ -97,10 +97,6 @@ public class AutoCommands {
     public static Command scoreUntilFailure(Drive drive, Arm arm, Intake intake, LEDs leds) {
         List<ReefTarget> scoringPositionsAvailable = new ArrayList<>();
 
-        // TEMPORARY TEMPORARY TEMPORARY please
-        Pose2d tempGrabPose = new Pose2d(2.38549, 1.8327, Rotation2d.fromRadians(1.06452));
-        final Pose2d coralGrabPose = AutoBuilder.shouldFlip() ? FlippingUtil.flipFieldPose(tempGrabPose) : tempGrabPose;
-
         return Commands.sequence(Commands.runOnce(() -> {
             grabbingCoralFailed = false;
             scoringPositionsAvailable.clear();
@@ -124,8 +120,6 @@ public class AutoCommands {
             new ScheduleCommand(IntakeCommands.autoIntake(intake, arm))
                 .beforeStarting(() -> IntakeCommands.waitingForPiece = true), //
 
-            new DriveToPose(drive, () -> coralGrabPose, true),
-
             new LoggedCommand("Grab Coral", new TrackCoral(drive, () -> grabbingCoralFailed = true).until(() -> {
                 if(intake.intakeSensorTriggered()) return true;
 
@@ -138,7 +132,7 @@ public class AutoCommands {
                     return true;
                 }
                 return false;
-            }).withTimeout(5.)), //
+            }).withTimeout(5.)).unless(intake::pieceInTransport), //
 
             new LoggedCommand("AutoTargetScoring", Commands.defer(() -> {
                 if(scoringPositionsAvailable.isEmpty()) {

@@ -30,8 +30,8 @@ public class IntakeConstants {
     public static final double pitchAbsoluteVelocityFactor = pitchAbsolutePositionFactor / 60.;
 
     public static final LoggedTunableSparkPID powerPID = new LoggedTunableSparkPID("Intake/Power") // Velocity
-        .addRealRobotGains(new PIDConstants(0.001, 0, 0, 1 / 6000.))
-        .addSimGains(new PIDConstants(0.001, 0, 0, 1 / 6000.));
+        .addRealRobotGains(new PIDConstants(0.001, 0, 0, 1 / 565.))
+        .addSimGains(new PIDConstants(0.001, 0, 0, 1 / 565.));
 
     public static final DCMotor intakePowerMotor = DCMotor.getNeoVortex(1);
 
@@ -46,8 +46,7 @@ public class IntakeConstants {
     public static final int intakeDriveMotorId = 45;
 
     public static final LoggedTunableSparkPID transportPID = new LoggedTunableSparkPID("Transport") // Velocity
-        .addRealRobotGains(new PIDConstants(0.001, 0, 0, 1 / 6000.))
-        .addSimGains(new PIDConstants(0.001, 0, 0, 1 / 6000.));
+        .addRealRobotGains(new PIDConstants(0.001, 0, 0, 1 / 917)).addSimGains(new PIDConstants(0.001, 0, 0, 1 / 917));
 
     public static final DCMotor transportMotor = DCMotor.getNeo550(1);
 

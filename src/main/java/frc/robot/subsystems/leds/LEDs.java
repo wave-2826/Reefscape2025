@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Random;
 import java.util.TreeSet;
-import java.util.function.Supplier;
 
 import org.littletonrobotics.junction.Logger;
 
@@ -19,6 +18,7 @@ import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
+import frc.robot.RobotState;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.drive.DriveConstants;
 import frc.robot.subsystems.intake.Intake;
@@ -47,7 +47,7 @@ public class LEDs extends SubsystemBase {
     /** The WAVE Blue color. */
     private static final Color WAVE_BLUE = new Color("#00A0C3");
     /** The WAVE Green color. */
-    private static final Color WAVE_GREEN = new Color("#8CBD3A");
+    private static final Color WAVE_GREEN = new Color("#45bf4d");
 
     /** The maximum speed multiplier for when the robot is going its maximum speed. */
     private static final double maximumSpeedMultiplier = 2.5;
@@ -60,11 +60,6 @@ public class LEDs extends SubsystemBase {
      * The active compositing mode. Set while rendering the LEDs.
      */
     private LEDCompositingMode activeCompositingMode = LEDCompositingMode.Exclusive;
-
-    /**
-     * The robot speed supplier. Set by the Swerve subsystem to allow us to recieve the robot speed.
-     */
-    public static Supplier<Double> robotSpeedSupplier = () -> 1.0;
 
     private LEDIO io;
     /**
@@ -128,11 +123,12 @@ public class LEDs extends SubsystemBase {
 
         BatteryLow((leds) -> leds.flash(Color.kOrangeRed, Color.kBlack, 0.3, 0.05, 0.3, 5.0), LEDCompositingMode.Value), // Active when the robot battery is low
 
+        AutonomousStart(LEDs::autonomousStart, LEDCompositingMode.Additive), // Active at the start of autonomous
+
         AutoScoring((leds) -> leds.rainbow()), //
         AutoScoreReady((leds) -> leds.pulse(Color.kPurple, Color.kPink, 0.3)), //
 
         HitWall(LEDs::hitWall, LEDCompositingMode.Value), // Active when the robot hits a wall
-        AutonomousStart(LEDs::autonomousStart, LEDCompositingMode.Additive), // Active at the start of autonomous
 
         Disabled((leds) -> leds.gradient(leds.allianceDark(), leds.allianceLight(), 5.0)), // Active when the robot is disabled
 
@@ -449,8 +445,8 @@ public class LEDs extends SubsystemBase {
         }
 
         // Update the time based on the delta and robot speed
-        double robotSpeedMultiplier = 1.
-            + robotSpeedSupplier.get() / DriveConstants.maxSpeedMetersPerSec * (maximumSpeedMultiplier - 1.);
+        double robotSpeedMultiplier = 1. + RobotState.getInstance().getRobotLinearVelocity()
+            / DriveConstants.maxSpeedMetersPerSec * (maximumSpeedMultiplier - 1.);
 
         double currentTime = Timer.getTimestamp();
         time += (currentTime - lastTime) * robotSpeedMultiplier;

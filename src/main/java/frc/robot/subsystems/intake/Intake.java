@@ -159,6 +159,10 @@ public class Intake extends SubsystemBase {
         return inputs.intakeSensorTriggered;
     }
 
+    public boolean pieceInTransport() {
+        return inputs.intakeSensorTriggered || inputs.middleSensorTriggered;
+    }
+
     public boolean pieceWaitingForArm() {
         return getTransportTarget() == TransportTarget.PieceWaitingForArm;
     }

@@ -199,7 +199,6 @@ public class RobotContainer {
     public Command getAutonomousCommand() {
         if(Constants.autoRunSimAuto) {
             return new LoggedCommand("AutoSimAuto", Commands.sequence(//
-                Commands.waitSeconds(3), //
                 Commands.runOnce(() -> {
                     System.out.println("Starting auto simulation");
                     resetSimulatedRobot();
