@@ -4,9 +4,9 @@ import java.util.function.BooleanSupplier;
 
 import org.littletonrobotics.junction.AutoLogOutput;
 
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
-import edu.wpi.first.wpilibj2.command.ScheduleCommand;
 import frc.robot.subsystems.arm.Arm;
 import frc.robot.subsystems.arm.ArmConstants;
 import frc.robot.subsystems.intake.Intake;
@@ -25,7 +25,7 @@ public class IntakeCommands {
         return Commands.sequence(arm.goToStateCommand(ArmConstants.restingState),
             arm.goToStateCommand(ArmConstants.getPieceState, 0.2), Commands.waitSeconds(0.06),
             arm.goToStateCommand(ArmConstants.restingState, 0.2),
-            arm.goToStateCommand(ArmConstants.prepForScoringState, 0.2),
+            arm.goToStateCommand(ArmConstants.prepForScoringState, 0.2).onlyIf(DriverStation::isTeleop),
             Commands.runOnce(() -> waitingForPiece = false));
     }
 
@@ -45,11 +45,12 @@ public class IntakeCommands {
             intake.runOnce(() -> {
                 intake.setIntakeState(IntakeState.IntakeDown);
             }),
+            arm.goToStateCommand(ArmConstants.restingState),
             Commands.waitUntil(intake::pieceWaitingForArm),
-            new ScheduleCommand(getPieceFromIntake(arm)),
             intake.runOnce(() -> {
                 intake.setIntakeState(IntakeState.Up);
-            })
+            }),
+            getPieceFromIntake(arm) 
         ).withName("AutoIntakeSequence");
         // @formatter:on
     }

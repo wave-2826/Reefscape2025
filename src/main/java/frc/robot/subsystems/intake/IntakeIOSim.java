@@ -137,7 +137,7 @@ public class IntakeIOSim extends IntakeIOReal {
         if(simulatedCoralPosition != null) {
             double transportLength = Units.inchesToMeters(20);
             simulatedCoralPosition += transportSim.getAngularVelocityRadPerSec() * Units.inchesToMeters(2.9)
-                / transportLength * 0.02 * 0.75;
+                / transportLength * 0.02 * 0.4;
             if(simulatedCoralPosition > 1) {
                 simulatedCoralPosition = 1.;
             }

@@ -6,7 +6,6 @@ import static edu.wpi.first.units.Units.MetersPerSecond;
 import java.util.function.Supplier;
 
 import org.ironmaple.simulation.SimulatedArena;
-
 import com.revrobotics.sim.SparkAbsoluteEncoderSim;
 import com.revrobotics.sim.SparkMaxSim;
 
@@ -97,6 +96,13 @@ public class ArmIOSim extends ArmIOReal {
 
         this.drivetrainPoseSupplier = drivetrainPoseSupplier;
         this.robotSpeedSupplier = robotSpeedSupplier;
+    }
+
+    /**
+     * Adds a game piece to the end effector. Used to simulate the robot's pre-loaded starting state.
+     */
+    public static void addGamePiece() {
+        gamePieceInEndEffector = true;
     }
 
     @Override

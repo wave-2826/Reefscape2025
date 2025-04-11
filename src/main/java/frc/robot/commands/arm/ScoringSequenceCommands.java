@@ -121,14 +121,10 @@ public class ScoringSequenceCommands {
             return Commands.sequence(
                 Commands.parallel(
                     new ScheduleCommand(arm.goToStateCommand(scoreDownState).withTimeout(0.3)),
-                    DriveCommands.driveStraightCommand(drive, Units.feetToMeters(-3.0), 0.25, () -> fieldAngle, null)
+                    minimalBackUp ? DriveCommands.driveStraightCommand(drive, Units.feetToMeters(-3.0), 0.25, () -> fieldAngle, null)
+                        : DriveCommands.driveStraightCommand(drive, Units.feetToMeters(-2.5), 0.7, () -> fieldAngle, null)
                 ),
-                minimalBackUp
-                    ? new ScheduleCommand(Commands.sequence(
-                        Commands.waitSeconds(0.4),
-                        arm.goToStateCommand(ArmConstants.restingState)
-                    ))
-                    : arm.goToStateCommand(ArmConstants.restingState)
+                minimalBackUp ? Commands.none() : arm.goToStateCommand(ArmConstants.restingState)
             );
             // @formatter:on
         }

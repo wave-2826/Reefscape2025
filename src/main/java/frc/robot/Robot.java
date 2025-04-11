@@ -238,6 +238,7 @@ public class Robot extends LoggedRobot {
         RioAlerts.getInstance().update();
         Controls.getInstance().update();
         SparkUtil.updateSparkFaultAlerts();
+        robotContainer.updateAlerts();
 
         LoggedTracer.record("Alerts");
 

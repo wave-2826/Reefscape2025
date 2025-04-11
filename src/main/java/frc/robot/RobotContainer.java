@@ -5,6 +5,10 @@ import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.wpilibj.Alert;
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.RobotBase;
+import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
@@ -52,9 +56,10 @@ import frc.robot.subsystems.vision.VisionIOPhotonVisionSim;
 import frc.robot.util.DriverStationInterface;
 import frc.robot.util.SimControls;
 import frc.robot.util.sim.SimRobotGamePiece;
-
+import java.io.File;
 import org.ironmaple.simulation.SimulatedArena;
 import org.ironmaple.simulation.drivesims.SwerveDriveSimulation;
+import org.ironmaple.simulation.seasonspecific.reefscape2025.ReefscapeReefSimulation;
 import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
@@ -74,6 +79,11 @@ public class RobotContainer {
 
     // Dashboard inputs
     private final LoggedDashboardChooser<Command> autoChooser;
+
+    private final Alert logReceiverQueueAlert = new Alert(
+        "Logging queue exceeded capacity; data isn't being logged! This may fix itself.", AlertType.kError);
+    private final Alert noThumbDriveAlert = new Alert("No thumb drive in RoboRIO!", AlertType.kError);
+    private final Alert noAutoSelectedAlert = new Alert("No auto selected!", AlertType.kWarning);
 
     /**
      * The container for the robot. Contains subsystems, OI devices, and commands.
@@ -203,7 +213,7 @@ public class RobotContainer {
                     System.out.println("Starting auto simulation");
                     resetSimulatedRobot();
                     resetSimulationField();
-                    IntakeIOSim.addCoral();
+                    ArmIOSim.addGamePiece();
                 }), //
                 new ScheduleCommand(autoChooser.get()),
                 new ScheduleCommand(Commands.sequence(Commands.waitSeconds(15), Commands.runOnce(() -> {
@@ -222,12 +232,26 @@ public class RobotContainer {
         if(Constants.currentMode != Constants.Mode.SIM) return;
 
         SimulatedArena.getInstance().resetFieldForAuto();
+        ReefscapeReefSimulation.getInstance().get().clearReef();
     }
 
     public void resetSimulatedRobot() {
         if(Constants.currentMode != Constants.Mode.SIM) return;
 
         driveSimulation.setSimulationWorldPose(new Pose2d(3, 3, Rotation2d.kZero));
+    }
+
+    public void updateAlerts() {
+        String selected = autoChooser.getSendableChooser().getSelected();
+        noAutoSelectedAlert.set(DriverStation.isDisabled() && (selected == null || selected == "None"));
+
+        logReceiverQueueAlert.set(Logger.getReceiverQueueFault());
+
+        if(DriverStation.isDisabled() && RobotBase.isReal()) {
+            // Check if "/U/" exists
+            var file = new File("/U/");
+            noThumbDriveAlert.set(!file.exists() || !file.isDirectory());
+        }
     }
 
     public void updateSimulation() {

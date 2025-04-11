@@ -13,6 +13,7 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.util.Units;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.drive.DriveConstants;
 import frc.robot.util.LoggedTunableNumber;
@@ -22,9 +23,9 @@ import frc.robot.commands.drive.DriveToPose;
 public class TrackCoral extends DriveToPose {
     private static final LoggedTunableNumber lookAheadSecs = new LoggedTunableNumber("TrackCoral/LookAheadSecs", 0.3);
     private static final LoggedTunableNumber angleDifferenceWeight = new LoggedTunableNumber(
-        "TrackCoral/AngleDifferenceWeight", 0.3);
+        "TrackCoral/AngleDifferenceWeight", 0.25);
     private static final LoggedTunableNumber coralMaxDistance = new LoggedTunableNumber("TrackCoral/CoralMaxDistance",
-        1.75);
+        Units.feetToMeters(6.5));
     private static final LoggedTunableNumber coralMaxAngleDeg = new LoggedTunableNumber(
         "TrackCoral/CoralMaxAngleDegrees", 70.0);
 
@@ -46,12 +47,11 @@ public class TrackCoral extends DriveToPose {
 
             Optional<Translation2d> trackedCoralPosition = robotState.getCoralTranslations()
                 .min(Comparator.comparingDouble(coral -> coral.getDistance(predictedRobot.getTranslation())
-                    + Math.abs(coral.minus(robot.getTranslation()).getAngle().minus(robot.getRotation()).getRadians()
-                        * angleDifferenceWeight.get())))
+                    + Math.abs(coral.minus(robot.getTranslation()).getAngle().plus(Rotation2d.kPi)
+                        .minus(robot.getRotation()).getRadians() * angleDifferenceWeight.get())))
                 .filter(coral -> coral.getDistance(predictedRobot.getTranslation()) <= coralMaxDistance.get()
-                    && Math.abs(predictedRobot.getRotation().rotateBy(Rotation2d.kPi).getDegrees()
-                        - (coral.minus(predictedRobot.getTranslation()).getAngle().getDegrees())) <= coralMaxAngleDeg
-                            .get());
+                    && Math.abs(coral.minus(robot.getTranslation()).getAngle().plus(Rotation2d.kPi)
+                        .minus(robot.getRotation()).getDegrees()) <= coralMaxAngleDeg.get());
 
             Pose2d target = trackedCoralPosition.<Pose2d>map(coralPosition -> {
                 Logger.recordOutput("TrackCoral/TargetedCoral", new Translation2d[] {
@@ -62,6 +62,7 @@ public class TrackCoral extends DriveToPose {
             }).orElseGet(() -> {
                 Logger.recordOutput("TrackCoral/TargetedCoral", new Translation2d[] {});
 
+                // TODO: Flip for left/right side
                 Pose2d tempGrabPose = new Pose2d(2.38549, 1.8327, Rotation2d.fromRadians(1.06452));
                 final Pose2d coralGrabPose = AutoBuilder.shouldFlip() ? FlippingUtil.flipFieldPose(tempGrabPose)
                     : tempGrabPose;

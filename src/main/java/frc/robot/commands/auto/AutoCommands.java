@@ -124,7 +124,7 @@ public class AutoCommands {
                 if(intake.intakeSensorTriggered()) return true;
 
                 // If the robot is at risk of running into the wall, stop.
-                var nextPosition = RobotState.getInstance().getLookaheadPose(0.3);
+                var nextPosition = RobotState.getInstance().getLookaheadPose(0.5);
                 if(nextPosition.getX() < 0.0 || nextPosition.getY() < 0.0
                     || nextPosition.getX() > FieldConstants.fieldLength
                     || nextPosition.getY() > FieldConstants.fieldWidth) {
