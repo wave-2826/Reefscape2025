@@ -101,7 +101,7 @@ public class PieceVisionIOLimelight implements PieceVisionIO {
                 continue;
             }
 
-            var targetXDegrees = rawDetection[offset + 1];
+            var targetXDegrees = -rawDetection[offset + 1];
             var targetYDegrees = rawDetection[offset + 2];
             var targetArea = rawDetection[offset + 3];
 

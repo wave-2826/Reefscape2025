@@ -31,7 +31,7 @@ public class AutoScoreCommands {
     private static final LoggedTunableNumber autoAlignTweakAmount = new LoggedTunableNumber(//
         "AutoScore/AutoAlignTweakInches", 4.5);
 
-    private static final BooleanSupplier resetElevatorDuringScoring = () -> true;
+    private static final BooleanSupplier resetElevatorDuringScoring = () -> false;
 
     public static Command autoAlign(Drive drive, LEDs leds, ReefTarget target, DoubleSupplier tweakX,
         DoubleSupplier tweakY, Optional<BooleanSupplier> finishSequence, BooleanConsumer lineupFeedback) {
@@ -99,16 +99,17 @@ public class AutoScoreCommands {
                 }, Set.of(drive)),
 
                 Commands.sequence(
-                    Commands.waitUntil(() -> !IntakeCommands.waitingForPiece).onlyIf(DriverStation::isAutonomous),
+                    Commands.waitUntil(() -> !IntakeCommands.waitingForPiece).withTimeout(3)
+                        .onlyIf(DriverStation::isAutonomous),
                     ScoringSequenceCommands.middleArmMovement(target.level(), arm).withTimeout(3)
                         .andThen(Commands.runOnce(arm::resetToAbsolute).onlyIf(resetElevatorDuringScoring))//
                 )), Commands.select(Map.of(//
                     false,
                     ScoringSequenceCommands
                         .scoreAtLevel(target.level(), arm, drive, target.branch().face.getFieldAngle(), !driveBackward)
-                        .raceWith(leds.runStateCommand(LEDState.AutoScoring)),
+                        .deadlineFor(leds.runStateCommand(LEDState.AutoScoring)),
                     true, ScoringSequenceCommands.scoreAtLevelSlowly(target.level(), arm)
-                        .raceWith(leds.runStateCommand(LEDState.AutoScoring)) //
+                        .deadlineFor(leds.runStateCommand(LEDState.AutoScoring)) //
             ), finishSequenceSlow::getAsBoolean)).withName("AutoScore" + target.toString());
     }
 

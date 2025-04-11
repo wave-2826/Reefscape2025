@@ -20,6 +20,7 @@ import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.commands.AutoScoreCommands;
 import frc.robot.commands.arm.ScoringSequenceCommands;
+import frc.robot.commands.auto.TrackCoral;
 import frc.robot.commands.climber.ClimbCommands;
 import frc.robot.commands.drive.DriveCommands;
 import frc.robot.commands.intake.IntakeCommands;
@@ -82,7 +83,7 @@ public class Controls {
             () -> -driver.getRightX()));
 
         // Switch to X pattern when X button is pressed
-        driver.x().onTrue(Commands.runOnce(drive::stopWithX, drive));
+        driver.x().whileTrue(new TrackCoral(drive));
 
         // Auto score
         driver.b().debounce(Controls.debounceTime, DebounceType.kFalling)

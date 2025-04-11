@@ -82,9 +82,9 @@ public class AutoCommands {
             IntakeCommands.autoIntake(intake, arm).beforeStarting(() -> IntakeCommands.waitingForPiece = true)));
         registerLoggedNamedCommand("Intake That John", intakeThatJohn(drive, intake));
 
-        registerLoggedNamedCommand("Prep arm",
-            new ScheduleCommand(Commands.sequence(arm.goToStateCommand(ArmConstants.prepForScoringState, 1.0),
-                Commands.runOnce(arm::resetToAbsolute))));
+        registerLoggedNamedCommand("Prep arm", new ScheduleCommand(Commands.sequence(Commands.runOnce(() -> {
+            IntakeCommands.waitingForPiece = false;
+        }), arm.goToStateCommand(ArmConstants.prepForScoringState, 1.0), Commands.runOnce(arm::resetToAbsolute))));
     }
 
     private static void registerLoggedNamedCommand(String name, Command command) {

@@ -37,13 +37,13 @@ public class ScoringSequenceCommands {
     private static LoggedTunableNumber branchScorePitchDown = new LoggedTunableNumber(//
         "AutoScore/BranchScorePitchDown", 35);
     private static LoggedTunableNumber L4PitchDown = new LoggedTunableNumber(//
-        "AutoScore/L4PitchDown", 40);
+        "AutoScore/L4PitchDown", 45);
 
     private static LoggedTunableNumber[] levelScoreHeights = new LoggedTunableNumber[] {
         new LoggedTunableNumber("AutoScore/L1ScoreHeight", 10), //
         new LoggedTunableNumber("AutoScore/L2ScoreHeight", 6), //
         new LoggedTunableNumber("AutoScore/L3ScoreHeight", 22), //
-        new LoggedTunableNumber("AutoScore/L4ScoreHeight", 50)
+        new LoggedTunableNumber("AutoScore/L4ScoreHeight", 51)
     };
 
     // HACK ..?
@@ -120,8 +120,8 @@ public class ScoringSequenceCommands {
             // @formatter:off
             return Commands.sequence(
                 Commands.parallel(
-                    arm.goToStateCommand(scoreDownState).withTimeout(0.75),
-                    DriveCommands.driveStraightCommand(drive, Units.feetToMeters(-2.5), 0.7, () -> fieldAngle, null).onlyIf(() -> !minimalBackUp)
+                    new ScheduleCommand(arm.goToStateCommand(scoreDownState).withTimeout(0.3)),
+                    DriveCommands.driveStraightCommand(drive, Units.feetToMeters(-3.0), 0.25, () -> fieldAngle, null)
                 ),
                 minimalBackUp
                     ? new ScheduleCommand(Commands.sequence(

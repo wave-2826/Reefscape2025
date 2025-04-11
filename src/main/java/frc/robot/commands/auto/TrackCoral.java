@@ -31,6 +31,11 @@ public class TrackCoral extends DriveToPose {
     private final Debouncer notFoundTimeout = new Debouncer(2.0, Debouncer.DebounceType.kRising);
     private final Runnable grabbingFailed;
 
+    public TrackCoral(Drive drive) {
+        this(drive, () -> {
+        });
+    }
+
     public TrackCoral(Drive drive, Runnable grabbingFailed) {
         super(drive, () -> {
             RobotState robotState = RobotState.getInstance();

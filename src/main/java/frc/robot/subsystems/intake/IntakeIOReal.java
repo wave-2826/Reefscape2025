@@ -118,9 +118,9 @@ public class IntakeIOReal implements IntakeIO {
 
     @Override
     public void runVelocity(double intakePower, double transportPower) {
-        powerController.setReference(Units.rotationsPerMinuteToRadiansPerSecond(intakePower * 2900),
+        powerController.setReference(Units.rotationsPerMinuteToRadiansPerSecond(intakePower * 6000),
             ControlType.kVelocity);
-        transportController.setReference(Units.rotationsPerMinuteToRadiansPerSecond(transportPower * 9500),
+        transportController.setReference(Units.rotationsPerMinuteToRadiansPerSecond(transportPower * 16000),
             ControlType.kVelocity);
     }
 

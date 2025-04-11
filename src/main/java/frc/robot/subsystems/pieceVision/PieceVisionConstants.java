@@ -7,7 +7,7 @@ import edu.wpi.first.math.util.Units;
 
 public class PieceVisionConstants {
     /** If true, don't reduce the pipeline framerate while we're disabled. */
-    public static final boolean doNotReduceFramerateWhenDisabled = false;
+    public static final boolean doNotReduceFramerateWhenDisabled = true;
 
     /** The transform of the piece vision camera relative to the robot. */
     public static final Transform3d robotToCamera = new Transform3d(new Translation3d(//

@@ -17,6 +17,7 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.util.function.BooleanConsumer;
 import frc.robot.RobotState;
+import frc.robot.commands.intake.IntakeCommands;
 import frc.robot.FieldConstants;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.leds.LEDs;
@@ -29,15 +30,15 @@ public class ReefLineupCommand extends DriveToPose {
         new LoggedTunableNumber("AutoScore/L1ReefLineupDistance", 33.5),
         new LoggedTunableNumber("AutoScore/L2ReefLineupDistance", 20.5),
         new LoggedTunableNumber("AutoScore/L3ReefLineupDistance", 21.75),
-        new LoggedTunableNumber("AutoScore/L4ReefLineupDistance", 24.25)
+        new LoggedTunableNumber("AutoScore/L4ReefLineupDistance", 24)
     };
 
     private static final LoggedTunableNumber centerDistanceTweak = new LoggedTunableNumber(//
         "AutoScore/CenterDistanceTweak", 0.5);
     private static final LoggedTunableNumber centerDistanceTweakRight = new LoggedTunableNumber(//
-        "AutoScore/CenterPositionTweakRight", 0.5);
+        "AutoScore/CenterPositionTweakRight", -0.25);
     private static final LoggedTunableNumber safeOffsetOutward = new LoggedTunableNumber(//
-        "AutoScore/SafeOffsetOutward", 10.0);
+        "AutoScore/SafeOffsetOutward", 14.);
 
     private final LEDs leds;
 
@@ -57,7 +58,7 @@ public class ReefLineupCommand extends DriveToPose {
      * aligned to the target.
      */
     public static Pose2d getLineupPose(ReefTarget target) {
-        if(RobotState.getInstance().isReefLineupSafe()) {
+        if(RobotState.getInstance().isReefLineupSafe() && !IntakeCommands.waitingForPiece) {
             return getLineupPose(target, 0.);
         } else {
             return getSafeLineupPose(target);
