@@ -1,5 +1,6 @@
 package frc.robot.util.sim.adapters;
 
+import edu.wpi.first.hal.AllianceStationID;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.simulation.DriverStationSim;
 import frc.robot.util.sim.SimulationAdapter;
@@ -12,6 +13,8 @@ public class AutoMatchTimeAdapter implements SimulationAdapter {
 
     @Override
     public void tick() {
+        DriverStationSim.setAllianceStationId(AllianceStationID.Blue3);
+
         DriverStationSim.setDsAttached(true);
 
         if(Timer.getTimestamp() > START_DELAY && Timer.getTimestamp() < START_DELAY + AUTO_TIME) {
@@ -25,5 +28,7 @@ public class AutoMatchTimeAdapter implements SimulationAdapter {
         } else {
             DriverStationSim.setEnabled(false);
         }
+
+        DriverStationSim.notifyNewData();
     }
 }

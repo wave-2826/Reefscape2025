@@ -1,6 +1,5 @@
 package frc.robot;
 
-import edu.wpi.first.hal.AllianceStationID;
 import edu.wpi.first.net.WebServer;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Filesystem;
@@ -8,7 +7,6 @@ import edu.wpi.first.wpilibj.IterativeRobotBase;
 import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.Threads;
 import edu.wpi.first.wpilibj.Watchdog;
-import edu.wpi.first.wpilibj.simulation.DriverStationSim;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
@@ -170,12 +168,6 @@ public class Robot extends LoggedRobot {
         // For GrappleHook
         if(Constants.currentMode == Constants.Mode.REAL && Constants.tuningMode) {
             CanBridge.runTCP();
-        }
-
-        // Configure the driver station in simulation
-        if(Constants.isSim) {
-            DriverStationSim.setAllianceStationId(AllianceStationID.Blue3);
-            DriverStationSim.notifyNewData();
         }
 
         // Instantiate our RobotContainer. This will perform all our button bindings,
