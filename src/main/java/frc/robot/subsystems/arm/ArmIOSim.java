@@ -23,6 +23,7 @@ import edu.wpi.first.wpilibj.simulation.SingleJointedArmSim;
 import frc.robot.subsystems.intake.IntakeIOSim;
 import frc.robot.util.sim.LaserCanSim;
 import frc.robot.util.sim.SimRobotGamePiece;
+import frc.robot.util.simField.ReefscapeCoralFromTransform;
 
 public class ArmIOSim extends ArmIOReal {
     private final ElevatorSim elevatorSim;

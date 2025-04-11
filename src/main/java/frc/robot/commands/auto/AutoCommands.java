@@ -100,21 +100,19 @@ public class AutoCommands {
         return Commands.sequence(Commands.runOnce(() -> {
             grabbingCoralFailed = false;
             scoringPositionsAvailable.clear();
-            var bluePose = AutoBuilder.shouldFlip() ? FlippingUtil.flipFieldPose(RobotState.getInstance().getPose())
-                : RobotState.getInstance().getPose();
 
-            if(bluePose.getY() > FieldConstants.fieldWidth / 2.) {
-                // If on the left side of the field
-                scoringPositionsAvailable.add(new ReefTarget(ReefBranch.K, ReefLevel.L4));
-                scoringPositionsAvailable.add(new ReefTarget(ReefBranch.L, ReefLevel.L4));
-                scoringPositionsAvailable.add(new ReefTarget(ReefBranch.A, ReefLevel.L4)); // 4-piece auton? Probably not...
-                scoringPositionsAvailable.add(new ReefTarget(ReefBranch.B, ReefLevel.L4)); // 5-piece auton!?! lol yeah right...   
-            } else {
+            if(RobotState.getInstance().isOnRightSide()) {
                 // If on the right side of the field
                 scoringPositionsAvailable.add(new ReefTarget(ReefBranch.D, ReefLevel.L4));
                 scoringPositionsAvailable.add(new ReefTarget(ReefBranch.C, ReefLevel.L4));
-                scoringPositionsAvailable.add(new ReefTarget(ReefBranch.B, ReefLevel.L4)); // 4-piece auton? Probably not...
+                scoringPositionsAvailable.add(new ReefTarget(ReefBranch.B, ReefLevel.L4));
                 scoringPositionsAvailable.add(new ReefTarget(ReefBranch.A, ReefLevel.L4)); // 5-piece auton!?! lol yeah right...
+            } else {
+                // If on the left side of the field
+                scoringPositionsAvailable.add(new ReefTarget(ReefBranch.K, ReefLevel.L4));
+                scoringPositionsAvailable.add(new ReefTarget(ReefBranch.L, ReefLevel.L4));
+                scoringPositionsAvailable.add(new ReefTarget(ReefBranch.A, ReefLevel.L4));
+                scoringPositionsAvailable.add(new ReefTarget(ReefBranch.B, ReefLevel.L4)); // 5-piece auton!?! lol yeah right...  
             }
         }), Commands.sequence( //
             new ScheduleCommand(IntakeCommands.autoIntake(intake, arm))

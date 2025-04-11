@@ -10,6 +10,9 @@ import java.util.stream.Stream;
 import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
 
+import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.util.FlippingUtil;
+
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -224,6 +227,16 @@ public class RobotState {
         return poseEstimator.getEstimatedPosition();
     }
 
+    /**
+     * Gets if the robot is currently on the right side of the field.
+     * @return
+     */
+    public boolean isOnRightSide() {
+        var bluePose = AutoBuilder.shouldFlip() ? FlippingUtil.flipFieldPose(RobotState.getInstance().getPose())
+            : RobotState.getInstance().getPose();
+        return bluePose.getY() < FieldConstants.fieldWidth / 2.;
+    }
+
     /** Returns the current odometry rotation. */
     public Rotation2d getRotation() {
         return getPose().getRotation();
@@ -310,6 +323,11 @@ public class RobotState {
         return coralPositions.stream().map(CoralPosition::translation);
     }
 
+    public static Pose3d coralTranslationToVisualizerPose(Translation2d translation) {
+        return new Pose3d(new Translation3d(translation.getX(), translation.getY(), FieldConstants.coralDiameter / 2.0),
+            new Rotation3d(new Rotation2d(Timer.getTimestamp() * 5.0)));
+    }
+
     /**
      * Updates and logs various periodic state information. This is called every loop iteration.
      */
@@ -317,11 +335,7 @@ public class RobotState {
         // Update the driver station interface
         DriverStationInterface.getInstance().updateRobotPose(getPose());
 
-        Logger.recordOutput("PieceVision/CoralPoses", getCoralTranslations()//
-            .map((translation) -> new Pose3d(
-                new Translation3d(translation.getX(), translation.getY(), FieldConstants.coralDiameter / 2.0),
-                new Rotation3d(new Rotation2d(Timer.getTimestamp() * 5.0)))//
-            )//
-            .toArray(Pose3d[]::new));
+        Logger.recordOutput("PieceVision/CoralPoses",
+            getCoralTranslations().map(RobotState::coralTranslationToVisualizerPose).toArray(Pose3d[]::new));
     }
 }

@@ -1,4 +1,4 @@
-package frc.robot.subsystems.arm;
+package frc.robot.util.simField;
 
 import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.MetersPerSecond;

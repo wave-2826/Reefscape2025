@@ -56,10 +56,11 @@ import frc.robot.subsystems.vision.VisionIOPhotonVisionSim;
 import frc.robot.util.DriverStationInterface;
 import frc.robot.util.SimControls;
 import frc.robot.util.sim.SimRobotGamePiece;
+import frc.robot.util.simField.CustomReefSimulation;
+
 import java.io.File;
 import org.ironmaple.simulation.SimulatedArena;
 import org.ironmaple.simulation.drivesims.SwerveDriveSimulation;
-import org.ironmaple.simulation.seasonspecific.reefscape2025.ReefscapeReefSimulation;
 import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
@@ -232,7 +233,7 @@ public class RobotContainer {
         if(Constants.currentMode != Constants.Mode.SIM) return;
 
         SimulatedArena.getInstance().resetFieldForAuto();
-        ReefscapeReefSimulation.getInstance().get().clearReef();
+        CustomReefSimulation.getInstance().get().clearReef();
     }
 
     public void resetSimulatedRobot() {

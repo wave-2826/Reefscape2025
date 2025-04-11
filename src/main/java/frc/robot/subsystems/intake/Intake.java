@@ -67,11 +67,6 @@ public class Intake extends SubsystemBase {
     private Debouncer middleDebouncer = new Debouncer(0.2, DebounceType.kFalling);
 
     /**
-     * Used to emulate a "middle sensor" that doesn't exist right now.
-     */
-    private boolean pieceMoving = false;
-
-    /**
      * A map from transport sensor states to the current target. The key is represented as binary in the form 0b(intake
      * sensor, middle sensor, end sensor)
      */
@@ -99,20 +94,14 @@ public class Intake extends SubsystemBase {
     public Intake(IntakeIO io) {
         this.io = io;
 
-        new Trigger(() -> inputs.intakeSensorTriggered)
-            .onTrue(Commands.sequence(Commands.runOnce(() -> pieceMoving = true),
-
-                Controls.getInstance().controllerRumbleWhileRunning(true, true, RumbleType.kBothRumble).withTimeout(0.1)
-                    .andThen(Commands.waitSeconds(0.05)).repeatedly().withTimeout(0.4)
-                    .onlyIf(DriverStation::isTeleop)));
-        new Trigger(() -> inputs.endSensorTriggered)
-            .onTrue(Commands.sequence(Commands.waitSeconds(0.3), Commands.runOnce(() -> pieceMoving = false)));
+        new Trigger(() -> inputs.intakeSensorTriggered).onTrue(
+            Controls.getInstance().controllerRumbleWhileRunning(true, true, RumbleType.kBothRumble).withTimeout(0.1)
+                .andThen(Commands.waitSeconds(0.05)).repeatedly().withTimeout(0.4).onlyIf(DriverStation::isTeleop));
     }
 
     private TransportTarget getTransportTarget() {
         int key = 0b000;
         if(inputs.intakeSensorTriggered) key |= 0b100;
-        // if(pieceMoving) key |= 0b010;
         if(middleDebouncer.calculate(inputs.middleSensorTriggered)) key |= 0b010;
         if(inputs.endSensorTriggered) key |= 0b001;
 
@@ -122,7 +111,6 @@ public class Intake extends SubsystemBase {
     public Command reset() {
         return runOnce(() -> {
             usingClosedLoopControl = true;
-            pieceMoving = false;
             targetIntakeState = IntakeState.Up;
         });
     }
@@ -198,7 +186,6 @@ public class Intake extends SubsystemBase {
         Logger.recordOutput("Intake/TargetPitch", targetIntakeState.pitch);
         Logger.recordOutput("Intake/TargetSpeed", targetIntakeState.speed);
         Logger.recordOutput("Intake/TargetTransportSpeed", transportTarget.speed);
-        Logger.recordOutput("Intake/PieceMoving", pieceMoving);
 
         LoggedTracer.record("Intake");
     }

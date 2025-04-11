@@ -22,7 +22,7 @@ public class IntakeCommands {
     }
 
     public static Command getPieceFromIntake(Arm arm) {
-        return Commands.sequence(arm.goToStateCommand(ArmConstants.restingState),
+        return Commands.sequence(arm.goToStateCommand(ArmConstants.restingState).onlyIf(DriverStation::isTeleop),
             arm.goToStateCommand(ArmConstants.getPieceState, 0.2), Commands.waitSeconds(0.06),
             arm.goToStateCommand(ArmConstants.restingState, 0.2),
             arm.goToStateCommand(ArmConstants.prepForScoringState, 0.2).onlyIf(DriverStation::isTeleop),

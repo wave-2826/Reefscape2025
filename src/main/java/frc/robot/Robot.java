@@ -24,12 +24,14 @@ import frc.robot.util.RioAlerts;
 import frc.robot.util.SimControls;
 import frc.robot.util.SparkUtil;
 import frc.robot.util.ThreadPriorityDummyLogReceiver;
+import frc.robot.util.simField.SimulatedReefscapeArena;
 
 import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.BiConsumer;
 
+import org.ironmaple.simulation.SimulatedArena;
 import org.littletonrobotics.junction.AutoLogOutputManager;
 import org.littletonrobotics.junction.LogFileUtil;
 import org.littletonrobotics.junction.LoggedRobot;
@@ -60,6 +62,8 @@ public class Robot extends LoggedRobot {
     private RobotContainer robotContainer;
 
     public Robot() {
+        if(Constants.isSim) SimulatedArena.overrideInstance(new SimulatedReefscapeArena());
+
         // Record metadata
         Logger.recordMetadata("TuningMode", Boolean.toString(Constants.tuningMode));
         Logger.recordMetadata("AprilTagLayout", VisionConstants.aprilTagLayout.toString());

@@ -10,6 +10,7 @@ import com.pathplanner.lib.util.FlippingUtil;
 
 import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Translation2d;
@@ -17,6 +18,7 @@ import edu.wpi.first.math.util.Units;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.drive.DriveConstants;
 import frc.robot.util.LoggedTunableNumber;
+import frc.robot.FieldConstants;
 import frc.robot.RobotState;
 import frc.robot.commands.drive.DriveToPose;
 
@@ -32,12 +34,23 @@ public class TrackCoral extends DriveToPose {
     private final Debouncer notFoundTimeout = new Debouncer(2.0, Debouncer.DebounceType.kRising);
     private final Runnable grabbingFailed;
 
-    public TrackCoral(Drive drive) {
+    public TrackCoral(Drive drive, boolean noFallback) {
         this(drive, () -> {
-        });
+        }, noFallback);
     }
 
     public TrackCoral(Drive drive, Runnable grabbingFailed) {
+        this(drive, grabbingFailed, false);
+    }
+
+    /**
+     * A command that tracks coral pieces and drives toward one. Ends automatically if no coral is seen for a few
+     * seconds.
+     * @param drive
+     * @param grabbingFailed Run when we failed to grab a coral.
+     * @param noFallback If true, we will not fallback to a default pose if no coral is found.
+     */
+    public TrackCoral(Drive drive, Runnable grabbingFailed, boolean noFallback) {
         super(drive, () -> {
             RobotState robotState = RobotState.getInstance();
             Pose2d robot = robotState.getPose();
@@ -54,16 +67,19 @@ public class TrackCoral extends DriveToPose {
                         .minus(robot.getRotation()).getDegrees()) <= coralMaxAngleDeg.get());
 
             Pose2d target = trackedCoralPosition.<Pose2d>map(coralPosition -> {
-                Logger.recordOutput("TrackCoral/TargetedCoral", new Translation2d[] {
-                    coralPosition
+                Logger.recordOutput("TrackCoral/TargetedCoral", new Pose3d[] {
+                    RobotState.coralTranslationToVisualizerPose(coralPosition),
                 });
                 return new Pose2d(coralPosition, robot.getTranslation().minus(coralPosition).getAngle())
                     .transformBy(new Transform2d(DriveConstants.bumperSizeMeters / 2.0, 0.0, Rotation2d.kZero));
             }).orElseGet(() -> {
-                Logger.recordOutput("TrackCoral/TargetedCoral", new Translation2d[] {});
+                Logger.recordOutput("TrackCoral/TargetedCoral", new Pose3d[] {});
 
-                // TODO: Flip for left/right side
-                Pose2d tempGrabPose = new Pose2d(2.38549, 1.8327, Rotation2d.fromRadians(1.06452));
+                if(noFallback) return robotState.getPose();
+
+                Pose2d tempGrabPose = new Pose2d(2.4,
+                    RobotState.getInstance().isOnRightSide() ? 1.83 : FieldConstants.fieldWidth - 1.83,
+                    Rotation2d.fromDegrees(60));
                 final Pose2d coralGrabPose = AutoBuilder.shouldFlip() ? FlippingUtil.flipFieldPose(tempGrabPose)
                     : tempGrabPose;
 
@@ -92,6 +108,6 @@ public class TrackCoral extends DriveToPose {
     @Override
     public void end(boolean interrupted) {
         super.end(interrupted);
-        Logger.recordOutput("TrackCoral/TargetedCoral", new Translation2d[] {});
+        Logger.recordOutput("TrackCoral/TargetedCoral", new Pose3d[] {});
     }
 }
