@@ -11,10 +11,7 @@ import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
-import edu.wpi.first.wpilibj2.command.ScheduleCommand;
-import frc.robot.commands.LoggedCommand;
 import frc.robot.commands.auto.AutoCommands;
 import frc.robot.commands.drive.DriveCommands;
 import frc.robot.commands.drive.DriveTuningCommands;
@@ -54,9 +51,8 @@ import frc.robot.subsystems.vision.VisionIO;
 import frc.robot.subsystems.vision.VisionIOPhotonVision;
 import frc.robot.subsystems.vision.VisionIOPhotonVisionSim;
 import frc.robot.util.DriverStationInterface;
-import frc.robot.util.SimControls;
 import frc.robot.util.sim.SimRobotGamePiece;
-import frc.robot.util.simField.CustomReefSimulation;
+import frc.robot.util.sim.simField.CustomReefSimulation;
 
 import java.io.File;
 import org.ironmaple.simulation.SimulatedArena;
@@ -192,7 +188,7 @@ public class RobotContainer {
 
         // Set up auto routines
         autoChooser = new LoggedDashboardChooser<>("Auto Choices",
-            AutoBuilder.buildAutoChooser(Constants.autoRunSimAuto ? "Auto vision coral right" : ""));
+            AutoBuilder.buildAutoChooser("Auto vision coral right"));
         DriveTuningCommands.addTuningCommandsToAutoChooser(drive, autoChooser);
         VisionTuningCommands.addTuningCommandsToAutoChooser(vision, autoChooser);
 
@@ -208,24 +204,12 @@ public class RobotContainer {
     }
 
     public Command getAutonomousCommand() {
-        if(Constants.autoRunSimAuto) {
-            return new LoggedCommand("AutoSimAuto", Commands.sequence(//
-                Commands.runOnce(() -> {
-                    System.out.println("Starting auto simulation");
-                    resetSimulatedRobot();
-                    resetSimulationField();
-                    ArmIOSim.addGamePiece();
-                }), //
-                new ScheduleCommand(autoChooser.get()),
-                new ScheduleCommand(Commands.sequence(Commands.waitSeconds(15), Commands.runOnce(() -> {
-                    CommandScheduler.getInstance().cancelAll();
-                }))),
-                // Emulate the human player dropping pieces
-                SimControls.dropCoralCommand(true, true), Commands.waitSeconds(4),
-                SimControls.dropCoralCommand(true, true), Commands.waitSeconds(4),
-                SimControls.dropCoralCommand(true, false), Commands.waitSeconds(4),
-                SimControls.dropCoralCommand(true, false)));
+        if(Constants.isSim) {
+            Command autoCommand = autoChooser.get();
+            for(var adapter : Constants.simAdapters) autoCommand = adapter.transformAutoCommand(autoCommand, this);
+            return autoCommand;
         }
+
         return autoChooser.get();
     }
 

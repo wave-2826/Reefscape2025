@@ -7,7 +7,6 @@ import edu.wpi.first.wpilibj.Filesystem;
 import edu.wpi.first.wpilibj.IterativeRobotBase;
 import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.Threads;
-import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.Watchdog;
 import edu.wpi.first.wpilibj.simulation.DriverStationSim;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -24,14 +23,12 @@ import frc.robot.util.RioAlerts;
 import frc.robot.util.SimControls;
 import frc.robot.util.SparkUtil;
 import frc.robot.util.ThreadPriorityDummyLogReceiver;
-import frc.robot.util.simField.SimulatedReefscapeArena;
 
 import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.BiConsumer;
 
-import org.ironmaple.simulation.SimulatedArena;
 import org.littletonrobotics.junction.AutoLogOutputManager;
 import org.littletonrobotics.junction.LogFileUtil;
 import org.littletonrobotics.junction.LoggedRobot;
@@ -62,7 +59,7 @@ public class Robot extends LoggedRobot {
     private RobotContainer robotContainer;
 
     public Robot() {
-        if(Constants.isSim) SimulatedArena.overrideInstance(new SimulatedReefscapeArena());
+        if(Constants.isSim) for(var adapter : Constants.simAdapters) adapter.preInit();
 
         // Record metadata
         Logger.recordMetadata("TuningMode", Boolean.toString(Constants.tuningMode));
@@ -256,7 +253,6 @@ public class Robot extends LoggedRobot {
     /** This function is called once when the robot is disabled. */
     @Override
     public void disabledInit() {
-        robotContainer.resetSimulationField();
     }
 
     /** This autonomous runs the autonomous command selected by your {@link RobotContainer} class. */
@@ -283,6 +279,7 @@ public class Robot extends LoggedRobot {
         CommandScheduler.getInstance().cancelAll();
 
         robotContainer.resetSimulatedRobot();
+        robotContainer.resetSimulationField();
     }
 
     @Override
@@ -303,17 +300,13 @@ public class Robot extends LoggedRobot {
     @Override
     public void simulationInit() {
         SimControls.getInstance().configureControls();
+        for(var adapter : Constants.simAdapters) adapter.postInit();
     }
 
     /** This function is called periodically whilst in simulation. */
     @Override
     public void simulationPeriodic() {
         robotContainer.updateSimulation();
-
-        if(Constants.autoRunSimAuto && Timer.getTimestamp() > 2.5) {
-            DriverStationSim.setDsAttached(true);
-            DriverStationSim.setEnabled(true);
-            DriverStationSim.setAutonomous(true);
-        }
+        for(var adapter : Constants.simAdapters) adapter.tick();
     }
 }

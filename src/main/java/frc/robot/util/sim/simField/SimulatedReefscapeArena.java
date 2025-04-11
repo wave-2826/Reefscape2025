@@ -1,4 +1,4 @@
-package frc.robot.util.simField;
+package frc.robot.util.sim.simField;
 
 import java.util.Arrays;
 import java.util.List;
