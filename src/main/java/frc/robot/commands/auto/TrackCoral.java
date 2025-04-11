@@ -79,7 +79,8 @@ public class TrackCoral extends DriveToPose {
 
                 Pose2d tempGrabPose = new Pose2d(2.4,
                     RobotState.getInstance().isOnRightSide() ? 1.83 : FieldConstants.fieldWidth - 1.83,
-                    Rotation2d.fromDegrees(60));
+                    RobotState.getInstance().isOnRightSide() ? Rotation2d.fromDegrees(-60)
+                        : Rotation2d.fromDegrees(60));
                 final Pose2d coralGrabPose = AutoBuilder.shouldFlip() ? FlippingUtil.flipFieldPose(tempGrabPose)
                     : tempGrabPose;
 
