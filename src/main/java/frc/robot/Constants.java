@@ -4,6 +4,7 @@ import edu.wpi.first.wpilibj.RobotBase;
 import frc.robot.util.sim.SimulationAdapter;
 import frc.robot.util.sim.adapters.AutoMatchTimeAdapter;
 import frc.robot.util.sim.adapters.CustomFieldSimAdapter;
+import frc.robot.util.sim.adapters.TeleopAdapter;
 import frc.robot.util.sim.adapters.VisionAutoTestSimAdapter;
 
 public final class Constants {
@@ -60,6 +61,8 @@ public final class Constants {
      * an overengineered system, but it was fun to make, so ¯\_(ツ)_/¯?
      */
     public static final SimulationAdapter[] simAdapters = new SimulationAdapter[] {
-        new CustomFieldSimAdapter(), new AutoMatchTimeAdapter(), new VisionAutoTestSimAdapter()
+        new CustomFieldSimAdapter(), new TeleopAdapter(),
+        // new AutoMatchTimeAdapter(),
+        new VisionAutoTestSimAdapter()
     };
 }
