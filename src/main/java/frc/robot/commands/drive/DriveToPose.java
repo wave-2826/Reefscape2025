@@ -56,7 +56,7 @@ public class DriveToPose extends Command {
     private static final LoggedTunableNumber driveMaxVelocityTop = new LoggedTunableNumber(//
         "DriveToPose/DriveMaxVelocityTop", DriveConstants.maxSpeedMetersPerSec);
     private static final LoggedTunableNumber driveMaxAccelerationTop = new LoggedTunableNumber(//
-        "DriveToPose/DriveMaxAccelerationTop", 1.75);
+        "DriveToPose/DriveMaxAccelerationTop", 2.5);
     private static final LoggedTunableNumber thetaMaxVelocityTop = new LoggedTunableNumber(//
         "DriveToPose/ThetaMaxVelocityTop", Units.degreesToRadians(300.0));
     private static final LoggedTunableNumber thetaMaxAccelerationTop = new LoggedTunableNumber(//

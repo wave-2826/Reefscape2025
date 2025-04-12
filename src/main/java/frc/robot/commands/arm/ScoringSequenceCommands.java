@@ -33,7 +33,7 @@ public class ScoringSequenceCommands {
     private static LoggedTunableNumber branchScorePitch = new LoggedTunableNumber(//
         "AutoScore/BranchScorePitch", 55.);
     private static LoggedTunableNumber L4ScorePitch = new LoggedTunableNumber(//
-        "AutoScore/L4ScorePitch", 43.);
+        "AutoScore/L4ScorePitch", 37.);
     private static LoggedTunableNumber branchScorePitchDown = new LoggedTunableNumber(//
         "AutoScore/BranchScorePitchDown", 35);
     private static LoggedTunableNumber L4PitchDown = new LoggedTunableNumber(//
@@ -43,7 +43,7 @@ public class ScoringSequenceCommands {
         new LoggedTunableNumber("AutoScore/L1ScoreHeight", 10), //
         new LoggedTunableNumber("AutoScore/L2ScoreHeight", 6), //
         new LoggedTunableNumber("AutoScore/L3ScoreHeight", 22), //
-        new LoggedTunableNumber("AutoScore/L4ScoreHeight", 51)
+        new LoggedTunableNumber("AutoScore/L4ScoreHeight", 52.5)
     };
 
     // HACK ..?
@@ -120,11 +120,14 @@ public class ScoringSequenceCommands {
             // @formatter:off
             return Commands.sequence(
                 Commands.parallel(
-                    new ScheduleCommand(arm.goToStateCommand(scoreDownState).withTimeout(0.3)),
+                    arm.goToStateCommand(scoreDownState).withTimeout(0.5),
                     minimalBackUp ? DriveCommands.driveStraightCommand(drive, Units.feetToMeters(-3.0), 0.25, () -> fieldAngle, null)
-                        : DriveCommands.driveStraightCommand(drive, Units.feetToMeters(-2.5), 0.7, () -> fieldAngle, null)
+                        : DriveCommands.driveStraightCommand(drive, Units.feetToMeters(-1.5), 1.5, () -> fieldAngle, null)
                 ),
-                minimalBackUp ? Commands.none() : arm.goToStateCommand(ArmConstants.restingState)
+                minimalBackUp ? new ScheduleCommand(Commands.sequence(
+                    Commands.waitSeconds(0.5),
+                    arm.goToStateCommand(ArmConstants.restingState)
+                )) : arm.goToStateCommand(ArmConstants.restingState)
             );
             // @formatter:on
         }
@@ -145,7 +148,7 @@ public class ScoringSequenceCommands {
                     Commands.waitSeconds(0.2),
                     arm.goToStateCommand(scoreDownState)
                 ),
-                DriveCommands.driveStraightCommand(drive, Units.feetToMeters(2.5), 0.15, () -> fieldAngle, null)
+                DriveCommands.driveStraightCommand(drive, Units.feetToMeters(2.5), minimalBackUp ? 0.15 : 0.7, () -> fieldAngle, null)
             ).withTimeout(0.75),
             Commands.parallel(
                 arm.goToStateCommand(scoreDownState2).withTimeout(0.75),

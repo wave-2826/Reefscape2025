@@ -1,6 +1,5 @@
 package frc.robot.commands;
 
-import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.BooleanSupplier;
@@ -15,14 +14,17 @@ import edu.wpi.first.util.function.BooleanConsumer;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import frc.robot.RobotState;
 import frc.robot.commands.arm.ScoringSequenceCommands;
 import frc.robot.commands.drive.ReefLineupCommand;
+import frc.robot.commands.drive.ReefLineupCommand.FinishBehavior;
 import frc.robot.commands.intake.IntakeCommands;
 import frc.robot.commands.util.RestartWhenCommand;
 import frc.robot.subsystems.arm.Arm;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.leds.LEDs;
 import frc.robot.subsystems.leds.LEDs.LEDState;
+import frc.robot.util.Container;
 import frc.robot.util.DriverStationInterface;
 import frc.robot.util.LoggedTunableNumber;
 import frc.robot.util.ReefTarget;
@@ -34,13 +36,13 @@ public class AutoScoreCommands {
     private static final BooleanSupplier resetElevatorDuringScoring = () -> false;
 
     public static Command autoAlign(Drive drive, LEDs leds, ReefTarget target, DoubleSupplier tweakX,
-        DoubleSupplier tweakY, Optional<BooleanSupplier> finishSequence, BooleanConsumer lineupFeedback) {
+        DoubleSupplier tweakY, Supplier<FinishBehavior> finishBehavior, BooleanConsumer lineupFeedback) {
         Supplier<Transform2d> getFieldRelativeOffset = () -> new Transform2d(
             new Translation2d(-tweakY.getAsDouble() * Units.inchesToMeters(autoAlignTweakAmount.get()),
                 -tweakX.getAsDouble() * Units.inchesToMeters(autoAlignTweakAmount.get())),
             Rotation2d.kZero);
 
-        return new ReefLineupCommand(drive, leds, target, getFieldRelativeOffset, finishSequence, lineupFeedback);
+        return new ReefLineupCommand(drive, leds, target, getFieldRelativeOffset, finishBehavior, lineupFeedback);
     }
 
     private static class AutoScoreState {
@@ -88,14 +90,28 @@ public class AutoScoreCommands {
     public static Command autoScoreCommand(Drive drive, Arm arm, LEDs leds, ReefTarget target,
         Optional<BooleanSupplier> finishSequence, BooleanSupplier finishSequenceSlow, DoubleSupplier tweakX,
         DoubleSupplier tweakY, BooleanConsumer lineupFeedback, boolean driveBackward) {
+        Container<Boolean> finishOnceAtSetpoint = new Container<>(false);
         Optional<BooleanSupplier> finish = finishSequence
-            .map(f -> (() -> f.getAsBoolean() || finishSequenceSlow.getAsBoolean()));
+            .map(f -> (() -> (f.getAsBoolean() || finishSequenceSlow.getAsBoolean())));
 
         return Commands.sequence(//
-            Commands.parallel(Commands.runOnce(() -> ScoringSequenceCommands.wristOverride = null),
+            Commands.runOnce(() -> {
+                finishOnceAtSetpoint.value = false;
+            }), Commands.parallel(Commands.runOnce(() -> ScoringSequenceCommands.wristOverride = null),
                 Commands.defer(() -> {
-                    return autoAlign(drive, leds, target, tweakX, tweakY, finish, lineupFeedback)
-                        .withTimeout(DriverStation.isAutonomous() ? 4. : 10000);
+                    return autoAlign(drive, leds, target, tweakX, tweakY, () -> {
+                        if(finishSequence.isPresent()
+                            && RobotState.getInstance().getPose().minus(ReefLineupCommand.getLineupPose(target))
+                                .getTranslation().getNorm() > Units.inchesToMeters(20)
+                            && finishSequence.get().getAsBoolean() && !finishOnceAtSetpoint.value) {
+                            finishOnceAtSetpoint.value = true;
+                        }
+
+                        if(finishOnceAtSetpoint.value || finish.isEmpty()) {
+                            return FinishBehavior.EndOnceAtSetpoint;
+                        } else if(finish.orElse(() -> false).getAsBoolean()) { return FinishBehavior.Finish; }
+                        return FinishBehavior.DoNotFinish;
+                    }, lineupFeedback).withTimeout(DriverStation.isAutonomous() ? 4. : 10000);
                 }, Set.of(drive)),
 
                 Commands.sequence(
@@ -103,14 +119,15 @@ public class AutoScoreCommands {
                         .onlyIf(DriverStation::isAutonomous),
                     ScoringSequenceCommands.middleArmMovement(target.level(), arm).withTimeout(3)
                         .andThen(Commands.runOnce(arm::resetToAbsolute).onlyIf(resetElevatorDuringScoring))//
-                )), Commands.select(Map.of(//
-                    false,
-                    ScoringSequenceCommands
-                        .scoreAtLevel(target.level(), arm, drive, target.branch().face.getFieldAngle(), !driveBackward)
-                        .deadlineFor(leds.runStateCommand(LEDState.AutoScoring)),
-                    true, ScoringSequenceCommands.scoreAtLevelSlowly(target.level(), arm)
-                        .deadlineFor(leds.runStateCommand(LEDState.AutoScoring)) //
-            ), finishSequenceSlow::getAsBoolean)).withName("AutoScore" + target.toString());
+                )),
+            Commands.either(
+                ScoringSequenceCommands.scoreAtLevelSlowly(target.level(), arm)
+                    .deadlineFor(leds.runStateCommand(LEDState.AutoScoring)),
+                ScoringSequenceCommands
+                    .scoreAtLevel(target.level(), arm, drive, target.branch().face.getFieldAngle(), !driveBackward)
+                    .deadlineFor(leds.runStateCommand(LEDState.AutoScoring)),
+                finishSequenceSlow::getAsBoolean))
+            .withName("AutoScore" + target.toString());
     }
 
     /**
@@ -152,19 +169,18 @@ public class AutoScoreCommands {
      * @param arm The arm subsystem
      * @param leds The LEDs subsystem
      * @param target The target to score at
-     * @param finishSequence If present, the reef lineup waits for this to be true before finishing. If not present, the
-     *            reef lineup finishes when the target is fully aligned.
      * @param tweakX The amount to tweak the X position during reef lineup
      * @param tweakY The amount to tweak the Y position during reef lineup
      * @return
      */
     public static Command removeAlgaeCommand(Drive drive, Arm arm, LEDs leds, ReefTarget target,
-        Optional<BooleanSupplier> finishSequence, DoubleSupplier tweakX, DoubleSupplier tweakY) {
+        BooleanSupplier finishSequence, DoubleSupplier tweakX, DoubleSupplier tweakY) {
         return Commands.sequence(//
             Commands.runOnce(() -> ScoringSequenceCommands.wristOverride = null), //
             ScoringSequenceCommands.prepForAlgaeRemoval(target.level(), arm).withTimeout(2)
                 .andThen(Commands.runOnce(arm::resetToAbsolute).onlyIf(resetElevatorDuringScoring)),
-            autoAlign(drive, leds, target, tweakX, tweakY, finishSequence, null), //
+            autoAlign(drive, leds, target, tweakX, tweakY,
+                () -> finishSequence.getAsBoolean() ? FinishBehavior.Finish : FinishBehavior.DoNotFinish, null), //
             ScoringSequenceCommands.removeAlgae(target.level(), arm, drive, target.branch().face.getFieldAngle())
                 .raceWith(leds.runStateCommand(LEDState.AutoScoring))//
         ).withName("RemoveAlgae" + target.toString());
@@ -185,8 +201,7 @@ public class AutoScoreCommands {
         AutoScoreState state = new AutoScoreState(DriverStationInterface.getInstance().getReefTarget());
 
         return new RestartWhenCommand(
-            () -> removeAlgaeCommand(drive, arm, leds, state.target.asAlgae(), Optional.of(finishSequence), tweakX,
-                tweakY),
+            () -> removeAlgaeCommand(drive, arm, leds, state.target.asAlgae(), finishSequence, tweakX, tweakY),
 
             // Restart when our target changes
             () -> {
