@@ -15,6 +15,7 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.wpilibj.Timer;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.drive.DriveConstants;
 import frc.robot.util.LoggedTunableNumber;
@@ -23,9 +24,9 @@ import frc.robot.RobotState;
 import frc.robot.commands.drive.DriveToPose;
 
 public class TrackCoral extends DriveToPose {
-    private static final LoggedTunableNumber lookAheadSecs = new LoggedTunableNumber("TrackCoral/LookAheadSecs", 0.3);
+    private static final LoggedTunableNumber lookAheadSecs = new LoggedTunableNumber("TrackCoral/LookAheadSecs", 0.4);
     private static final LoggedTunableNumber angleDifferenceWeight = new LoggedTunableNumber(
-        "TrackCoral/AngleDifferenceWeight", 0.25);
+        "TrackCoral/AngleDifferenceWeight", 0.2);
     private static final LoggedTunableNumber coralMaxDistance = new LoggedTunableNumber("TrackCoral/CoralMaxDistance",
         Units.feetToMeters(6.5));
     private static final LoggedTunableNumber coralMaxAngleDeg = new LoggedTunableNumber(
@@ -70,17 +71,26 @@ public class TrackCoral extends DriveToPose {
                 Logger.recordOutput("TrackCoral/TargetedCoral", new Pose3d[] {
                     RobotState.coralTranslationToVisualizerPose(coralPosition),
                 });
-                return new Pose2d(coralPosition, robot.getTranslation().minus(coralPosition).getAngle())
+                Pose2d coralPickupPose = new Pose2d(coralPosition,
+                    robot.getTranslation().minus(coralPosition).getAngle())
                     .transformBy(new Transform2d(DriveConstants.bumperSizeMeters / 2.0, 0.0, Rotation2d.kZero));
+
+                if(RobotState.getInstance().getPose().minus(coralPickupPose).getTranslation().getNorm() < Units
+                    .inchesToMeters(3)) {
+                    return coralPickupPose.plus(new Transform2d(Translation2d.kZero,
+                        // THIS IS SO BAD DO NOT COPY
+                        Rotation2d.fromDegrees(Math.sin(Timer.getTimestamp() * 2.5) * 20)));
+                }
+                return coralPickupPose;
             }).orElseGet(() -> {
                 Logger.recordOutput("TrackCoral/TargetedCoral", new Pose3d[] {});
 
                 if(noFallback) return robotState.getPose();
 
-                Pose2d tempGrabPose = new Pose2d(2.4,
-                    RobotState.getInstance().isOnRightSide() ? 1.83 : FieldConstants.fieldWidth - 1.83,
-                    RobotState.getInstance().isOnRightSide() ? Rotation2d.fromDegrees(-60)
-                        : Rotation2d.fromDegrees(60));
+                Pose2d tempGrabPose = new Pose2d(2.5,
+                    RobotState.getInstance().isOnRightSide() ? 2.2 : FieldConstants.fieldWidth - 2.2,
+                    RobotState.getInstance().isOnRightSide() ? Rotation2d.fromDegrees(70)
+                        : Rotation2d.fromDegrees(-70));
                 final Pose2d coralGrabPose = AutoBuilder.shouldFlip() ? FlippingUtil.flipFieldPose(tempGrabPose)
                     : tempGrabPose;
 

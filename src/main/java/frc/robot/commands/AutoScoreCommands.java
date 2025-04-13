@@ -102,7 +102,7 @@ public class AutoScoreCommands {
                     return autoAlign(drive, leds, target, tweakX, tweakY, () -> {
                         if(finishSequence.isPresent()
                             && RobotState.getInstance().getPose().minus(ReefLineupCommand.getLineupPose(target))
-                                .getTranslation().getNorm() > Units.inchesToMeters(20)
+                                .getTranslation().getNorm() > Units.inchesToMeters(6)
                             && finishSequence.get().getAsBoolean() && !finishOnceAtSetpoint.value) {
                             finishOnceAtSetpoint.value = true;
                         }

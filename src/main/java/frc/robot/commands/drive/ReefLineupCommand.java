@@ -2,8 +2,6 @@ package frc.robot.commands.drive;
 
 import static edu.wpi.first.units.Units.Meters;
 
-import java.util.Optional;
-import java.util.function.BooleanSupplier;
 import java.util.function.Supplier;
 
 import com.pathplanner.lib.auto.AutoBuilder;
@@ -29,13 +27,16 @@ import frc.robot.util.ReefTarget;
 public class ReefLineupCommand extends DriveToPose {
     private static final LoggedTunableNumber[] lineupDistances = new LoggedTunableNumber[] {
         new LoggedTunableNumber("AutoScore/L1ReefLineupDistance", 33.5),
-        new LoggedTunableNumber("AutoScore/L2ReefLineupDistance", 20.5),
-        new LoggedTunableNumber("AutoScore/L3ReefLineupDistance", 21.75),
-        new LoggedTunableNumber("AutoScore/L4ReefLineupDistance", 24)
+        new LoggedTunableNumber("AutoScore/L2ReefLineupDistance", 21),
+        new LoggedTunableNumber("AutoScore/L3ReefLineupDistance", 22.25),
+        new LoggedTunableNumber("AutoScore/L4ReefLineupDistance", 26)
     };
 
+    private static final LoggedTunableNumber algaeLineupDistance = new LoggedTunableNumber(//
+        "AutoScore/AlgaeLineupDistance", 24.);
+
     private static final LoggedTunableNumber centerDistanceTweak = new LoggedTunableNumber(//
-        "AutoScore/CenterDistanceTweak", 0.5);
+        "AutoScore/CenterDistanceTweak", 0.0);
     private static final LoggedTunableNumber centerDistanceTweakRight = new LoggedTunableNumber(//
         "AutoScore/CenterPositionTweakRight", -0.25);
     private static final LoggedTunableNumber safeOffsetOutward = new LoggedTunableNumber(//
@@ -70,7 +71,7 @@ public class ReefLineupCommand extends DriveToPose {
     private static Pose2d getLineupPose(ReefTarget target, double offsetOutwardInches) {
         double distanceAwayInches;
         if(target.isAlgaePosition()) {
-            distanceAwayInches = 30;
+            distanceAwayInches = algaeLineupDistance.get();
         } else {
             distanceAwayInches = lineupDistances[target.level().ordinal()].get();
         }
@@ -83,8 +84,11 @@ public class ReefLineupCommand extends DriveToPose {
         boolean isLeft = target.branch().isLeft;
         double horizontalOffset = (alignCenter ? 0. : (isLeft ? -centerDistance : centerDistance));
 
+        Translation2d fudge = target.branch().getFudge();
+
         Transform2d tagRelativeOffset = new Transform2d(new Translation2d(Units.inchesToMeters(distanceAwayInches),
-            horizontalOffset + Units.inchesToMeters(centerDistanceTweakRight.get())), Rotation2d.k180deg);
+            horizontalOffset + Units.inchesToMeters(centerDistanceTweakRight.get())), Rotation2d.k180deg)
+            .plus(new Transform2d(fudge, Rotation2d.kZero));
         Pose2d fieldPose = target.branch().face.getTagPose().transformBy(tagRelativeOffset);
 
         return fieldPose;

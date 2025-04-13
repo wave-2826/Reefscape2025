@@ -29,21 +29,21 @@ public class ScoringSequenceCommands {
     private static LoggedTunableNumber elevatorScoreHeightReduction = new LoggedTunableNumber(//
         "AutoScore/ScoreHeightReduction", 4);
     private static LoggedTunableNumber gamePieceEjectVelocity = new LoggedTunableNumber(//
-        "AutoScore/GamePieceEjectVelocity", 8);
+        "AutoScore/GamePieceEjectVelocity", 6);
     private static LoggedTunableNumber branchScorePitch = new LoggedTunableNumber(//
-        "AutoScore/BranchScorePitch", 55.);
+        "AutoScore/BranchScorePitch", 58.);
     private static LoggedTunableNumber L4ScorePitch = new LoggedTunableNumber(//
-        "AutoScore/L4ScorePitch", 37.);
+        "AutoScore/L4ScorePitch", 43.);
     private static LoggedTunableNumber branchScorePitchDown = new LoggedTunableNumber(//
         "AutoScore/BranchScorePitchDown", 35);
     private static LoggedTunableNumber L4PitchDown = new LoggedTunableNumber(//
-        "AutoScore/L4PitchDown", 45);
+        "AutoScore/L4PitchDown", 50);
 
     private static LoggedTunableNumber[] levelScoreHeights = new LoggedTunableNumber[] {
         new LoggedTunableNumber("AutoScore/L1ScoreHeight", 10), //
-        new LoggedTunableNumber("AutoScore/L2ScoreHeight", 6), //
-        new LoggedTunableNumber("AutoScore/L3ScoreHeight", 22), //
-        new LoggedTunableNumber("AutoScore/L4ScoreHeight", 52.5)
+        new LoggedTunableNumber("AutoScore/L2ScoreHeight", 6.25), //
+        new LoggedTunableNumber("AutoScore/L3ScoreHeight", 22.25), //
+        new LoggedTunableNumber("AutoScore/L4ScoreHeight", 53)
     };
 
     // HACK ..?
@@ -118,16 +118,15 @@ public class ScoringSequenceCommands {
                 EndEffectorState.velocity(gamePieceEjectVelocity.get()));
 
             // @formatter:off
-            return Commands.sequence(
+            return minimalBackUp ? Commands.parallel(
+                new ScheduleCommand(arm.goToStateCommand(scoreDownState)),
+                DriveCommands.driveStraightCommand(drive, Units.feetToMeters(-2), 0.25, () -> fieldAngle, null)
+            ) : Commands.sequence(
                 Commands.parallel(
-                    arm.goToStateCommand(scoreDownState).withTimeout(0.5),
-                    minimalBackUp ? DriveCommands.driveStraightCommand(drive, Units.feetToMeters(-3.0), 0.25, () -> fieldAngle, null)
-                        : DriveCommands.driveStraightCommand(drive, Units.feetToMeters(-1.5), 1.5, () -> fieldAngle, null)
+                    arm.goToStateCommand(scoreDownState),
+                    DriveCommands.driveStraightCommand(drive, Units.feetToMeters(-1.5), 1.5, () -> fieldAngle, null)
                 ),
-                minimalBackUp ? new ScheduleCommand(Commands.sequence(
-                    Commands.waitSeconds(0.5),
-                    arm.goToStateCommand(ArmConstants.restingState)
-                )) : arm.goToStateCommand(ArmConstants.restingState)
+                arm.goToStateCommand(ArmConstants.restingState)
             );
             // @formatter:on
         }
@@ -218,12 +217,12 @@ public class ScoringSequenceCommands {
     public static Command removeAlgae(ReefLevel level, Arm arm, Drive drive, Rotation2d fieldAngle) {
         if(level == ReefLevel.L3) {
             return Commands.parallel(
-                arm.goToStateCommand(new ArmState(Rotation2d.fromDegrees(30), Meters.of(0.65), WristRotation.Vertical,
+                arm.goToStateCommand(new ArmState(Rotation2d.fromDegrees(30), Inches.of(25), WristRotation.Vertical,
                     EndEffectorState.velocity(12))),
                 DriveCommands.driveStraightCommand(drive, Units.feetToMeters(-2.5), 1.5, () -> fieldAngle, null));
         } else {
             return Commands.parallel(
-                arm.goToStateCommand(new ArmState(Rotation2d.fromDegrees(-30), Meters.of(0.95), WristRotation.Vertical,
+                arm.goToStateCommand(new ArmState(Rotation2d.fromDegrees(-30), Inches.of(37), WristRotation.Vertical,
                     EndEffectorState.velocity(12))),
                 DriveCommands.driveStraightCommand(drive, Units.feetToMeters(-2.5), 1.5, () -> fieldAngle, null));
         }

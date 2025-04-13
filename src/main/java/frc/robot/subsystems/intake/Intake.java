@@ -99,10 +99,11 @@ public class Intake extends SubsystemBase {
                 .andThen(Commands.waitSeconds(0.05)).repeatedly().withTimeout(0.4).onlyIf(DriverStation::isTeleop));
     }
 
-    private TransportTarget getTransportTarget() {
+    private TransportTarget getTransportTarget(boolean useDebounce) {
         int key = 0b000;
         if(inputs.intakeSensorTriggered) key |= 0b100;
-        if(middleDebouncer.calculate(inputs.middleSensorTriggered)) key |= 0b010;
+        if(useDebounce ? middleDebouncer.calculate(inputs.middleSensorTriggered)
+            : inputs.middleSensorTriggered) key |= 0b010;
         if(inputs.endSensorTriggered) key |= 0b001;
 
         return transportTargetMap.get(key);
@@ -152,7 +153,7 @@ public class Intake extends SubsystemBase {
     }
 
     public boolean pieceWaitingForArm() {
-        return getTransportTarget() == TransportTarget.PieceWaitingForArm;
+        return getTransportTarget(false) == TransportTarget.PieceWaitingForArm;
     }
 
     @Override
@@ -160,7 +161,7 @@ public class Intake extends SubsystemBase {
         io.updateInputs(inputs);
         Logger.processInputs("Intake", inputs);
 
-        TransportTarget transportTarget = getTransportTarget();
+        TransportTarget transportTarget = getTransportTarget(true);
 
         if(usingClosedLoopControl) {
             if(Math.abs(

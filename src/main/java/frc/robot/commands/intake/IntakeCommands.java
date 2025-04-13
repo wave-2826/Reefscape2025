@@ -7,6 +7,7 @@ import org.littletonrobotics.junction.AutoLogOutput;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.ProxyCommand;
 import frc.robot.subsystems.arm.Arm;
 import frc.robot.subsystems.arm.ArmConstants;
 import frc.robot.subsystems.intake.Intake;
@@ -24,9 +25,9 @@ public class IntakeCommands {
     public static Command getPieceFromIntake(Arm arm) {
         return Commands.sequence(arm.goToStateCommand(ArmConstants.restingState).onlyIf(DriverStation::isTeleop),
             arm.goToStateCommand(ArmConstants.getPieceState, 0.2), Commands.waitSeconds(0.06),
-            arm.goToStateCommand(ArmConstants.restingState, 0.2),
+            arm.goToStateCommand(ArmConstants.restingState, 0.2), Commands.runOnce(() -> waitingForPiece = false),
             arm.goToStateCommand(ArmConstants.prepForScoringState, 0.2).onlyIf(DriverStation::isTeleop),
-            Commands.runOnce(() -> waitingForPiece = false));
+            Commands.idle(arm).withTimeout(0.25), arm.runOnce(arm::resetToAbsolute).onlyIf(DriverStation::isTeleop));
     }
 
     @AutoLogOutput(key = "Intake/CanTake")
@@ -45,12 +46,13 @@ public class IntakeCommands {
             intake.runOnce(() -> {
                 intake.setIntakeState(IntakeState.IntakeDown);
             }),
+            Commands.waitSeconds(0.6),
             arm.goToStateCommand(ArmConstants.restingState),
             Commands.waitUntil(intake::pieceWaitingForArm),
             intake.runOnce(() -> {
                 intake.setIntakeState(IntakeState.Up);
             }),
-            getPieceFromIntake(arm) 
+            new ProxyCommand(getPieceFromIntake(arm)) 
         ).withName("AutoIntakeSequence");
         // @formatter:on
     }

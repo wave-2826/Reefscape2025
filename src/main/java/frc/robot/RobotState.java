@@ -231,6 +231,7 @@ public class RobotState {
      * Gets if the robot is currently on the right side of the field.
      * @return
      */
+    @AutoLogOutput(key = "Odometry/IsOnRightSide")
     public boolean isOnRightSide() {
         var bluePose = AutoBuilder.shouldFlip() ? FlippingUtil.flipFieldPose(RobotState.getInstance().getPose())
             : RobotState.getInstance().getPose();

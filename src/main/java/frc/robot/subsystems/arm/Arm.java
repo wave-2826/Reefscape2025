@@ -8,6 +8,7 @@ import java.util.function.Supplier;
 import org.littletonrobotics.junction.Logger;
 
 import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.DriverStation;
@@ -74,6 +75,10 @@ public class Arm extends SubsystemBase {
 
     public Command goToStateCommand(Supplier<ArmState> state) {
         return Commands.defer(() -> goToStateCommand(state.get()), Set.of(this));
+    }
+
+    public void setTargetState(ArmState state) {
+        targetState = state;
     }
 
     public Command setTargetStateCommand(Supplier<ArmState> state) {
@@ -167,23 +172,25 @@ public class Arm extends SubsystemBase {
     public boolean getReefLineupSafe() {
         if(adjustedTarget == null) return true;
 
+        double lookaheadSecs = 0.25;
+        Rotation2d lookaheadArmPosition = inputs.armPitchPosition
+            .plus(Rotation2d.fromRadians(inputs.armPitchVelocity * lookaheadSecs));
+
         // If the current and target arm pitch is less than the given threshold, we aren't safe to line up
         double lowDangerPitch = -90 + 30;
-        if(adjustedTarget.pitch().getDegrees() < lowDangerPitch
-            && inputs.armPitchPosition.getDegrees() < lowDangerPitch) {
+        if(adjustedTarget.pitch().getDegrees() < lowDangerPitch && lookaheadArmPosition.getDegrees() < lowDangerPitch) {
             return false;
         }
 
         // If the current target arm pitch is above the given threshold, we are safe to line up
-        double highSafePitch = 45;
-        if(adjustedTarget.pitch().getDegrees() > highSafePitch
-            && inputs.armPitchPosition.getDegrees() > highSafePitch) {
+        double highSafePitch = 20;
+        if(adjustedTarget.pitch().getDegrees() > highSafePitch && lookaheadArmPosition.getDegrees() > highSafePitch) {
             return true;
         }
 
         // If the elevator and arm are relatively close to their setpoints, we trust ourself
         if(Math.abs(inputs.elevatorHeightMeters - adjustedTarget.height().in(Meters)) < Units.inchesToMeters(4)
-            && Math.abs(inputs.armPitchPosition.getRadians() - adjustedTarget.pitch().getRadians()) < Units
+            && Math.abs(lookaheadArmPosition.getRadians() - adjustedTarget.pitch().getRadians()) < Units
                 .degreesToRadians(10)) {
             return true;
         }

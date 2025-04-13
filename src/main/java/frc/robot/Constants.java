@@ -61,8 +61,8 @@ public final class Constants {
      * an overengineered system, but it was fun to make, so ¯\_(ツ)_/¯?
      */
     public static final SimulationAdapter[] simAdapters = new SimulationAdapter[] {
-        new CustomFieldSimAdapter(), new TeleopAdapter(),
-        // new AutoMatchTimeAdapter(),
-        new VisionAutoTestSimAdapter()
+        new CustomFieldSimAdapter(),
+        // new TeleopAdapter(),
+        new AutoMatchTimeAdapter(), new VisionAutoTestSimAdapter()
     };
 }

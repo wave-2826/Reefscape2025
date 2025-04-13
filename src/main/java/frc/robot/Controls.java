@@ -83,7 +83,8 @@ public class Controls {
             () -> -driver.getRightX()));
 
         // Switch to X pattern when X button is pressed
-        driver.x().whileTrue(new TrackCoral(drive, true));
+        driver.x().whileTrue(
+            new TrackCoral(drive, true).alongWith(IntakeCommands.intakeCommand(intake, arm, () -> true, () -> false)));
 
         // Auto score
         driver.b().debounce(Controls.debounceTime, DebounceType.kFalling)

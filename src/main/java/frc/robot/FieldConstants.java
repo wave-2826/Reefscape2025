@@ -55,6 +55,8 @@ public class FieldConstants {
 
     public static final Translation2d reefCenter = new Translation2d(Units.inchesToMeters(176.746), fieldWidth / 2.);
 
+    private static final Translation2d baseFudge = new Translation2d(Units.inchesToMeters(9.5), 0);
+
     /**
      * A reef branch, as labelled by the FMS. See
      * https://firstfrc.blob.core.windows.net/frc2025/Manual/HTML/2025GameManual_files/image016.png
@@ -89,10 +91,39 @@ public class FieldConstants {
         public ReefFace face;
         public boolean isLeft;
 
+        // TODO: Fudge factor tunables and sim testing
+        public final Translation2d blueFudge;
+        public final Translation2d redFudge;
+
         ReefBranch(ReefFace face, boolean left) {
+            this(face, left, new Translation2d(), new Translation2d());
+        }
+
+        ReefBranch(ReefFace face, boolean left, Rotation2d blueFudgeAngle, Rotation2d redFudgeAngle) {
             this.pose = left ? face.getLeftBranchPose() : face.getRightBranchPose();
             this.face = face;
             this.isLeft = left;
+
+            Translation2d normalRotation = baseFudge.rotateBy(face.getFieldAngle().plus(Rotation2d.k180deg));
+            this.blueFudge = normalRotation.rotateBy(blueFudgeAngle).minus(normalRotation);
+            this.redFudge = normalRotation.rotateBy(redFudgeAngle).minus(normalRotation);
+        }
+
+        ReefBranch(ReefFace face, boolean left, Translation2d blueFudge, Translation2d redFudge) {
+            this.pose = left ? face.getLeftBranchPose() : face.getRightBranchPose();
+            this.face = face;
+            this.isLeft = left;
+
+            this.blueFudge = blueFudge;
+            this.redFudge = redFudge;
+        }
+
+        public Translation2d getFudge(boolean isRed) {
+            return isRed ? redFudge : blueFudge;
+        }
+
+        public Translation2d getFudge() {
+            return getFudge(DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red);
         }
     }
 

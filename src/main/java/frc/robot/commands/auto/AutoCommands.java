@@ -10,6 +10,8 @@ import com.pathplanner.lib.util.FlippingUtil;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Transform2d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
@@ -84,7 +86,7 @@ public class AutoCommands {
 
         registerLoggedNamedCommand("Prep arm", new ScheduleCommand(Commands.sequence(Commands.runOnce(() -> {
             IntakeCommands.waitingForPiece = false;
-        }), arm.goToStateCommand(ArmConstants.prepForScoringState, 1.0), Commands.runOnce(arm::resetToAbsolute))));
+        }), arm.goToStateCommand(ArmConstants.prepForScoringState, 1.0))));
     }
 
     private static void registerLoggedNamedCommand(String name, Command command) {
@@ -122,7 +124,8 @@ public class AutoCommands {
                 if(intake.intakeSensorTriggered()) return true;
 
                 // If the robot is at risk of running into the wall, stop.
-                var nextPosition = RobotState.getInstance().getLookaheadPose(0.5);
+                var intakeOrigin = new Transform2d(new Translation2d(Units.inchesToMeters(-20), 0), Rotation2d.kZero);
+                var nextPosition = RobotState.getInstance().getLookaheadPose(0.5).transformBy(intakeOrigin);
                 if(nextPosition.getX() < 0.0 || nextPosition.getY() < 0.0
                     || nextPosition.getX() > FieldConstants.fieldLength
                     || nextPosition.getY() > FieldConstants.fieldWidth) {
@@ -142,7 +145,7 @@ public class AutoCommands {
                 var nextAvailableTarget = scoringPositionsAvailable.remove(0);
 
                 return AutoScoreCommands.autoScoreCommand(drive, arm, leds, nextAvailableTarget, false);
-            }, Set.of(drive, arm))) //
+            }, Set.of(drive, arm))).unless(() -> grabbingCoralFailed) //
         ).repeatedly().until(() -> grabbingCoralFailed)).withName("ScoreUntilFailure");
     }
 

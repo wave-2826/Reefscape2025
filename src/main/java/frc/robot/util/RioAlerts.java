@@ -21,7 +21,7 @@ public class RioAlerts {
     /**
      * The minimum voltage for the battery to be considered low when the robot is disabled.
      */
-    private static final double LOW_BATTERY_VOLTAGE = 11.0;
+    private static final double LOW_BATTERY_VOLTAGE = 11.7;
     private final Alert lowBatteryAlert = new Alert("RoboRIO: Battery voltage low! Please replace the battery soon.",
         AlertType.kWarning);
 

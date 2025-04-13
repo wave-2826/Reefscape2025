@@ -179,6 +179,9 @@ public class Robot extends LoggedRobot {
         // Elastic dashboard utilities and setup
         WebServer.start(5800, Filesystem.getDeployDirectory().getPath());
 
+        RobotModeTriggers.autonomous().onTrue(Commands.runOnce(() -> {
+            Elastic.selectTab("Autonomous");
+        }));
         RobotModeTriggers.teleop().onTrue(Commands.runOnce(() -> {
             Elastic.selectTab("Teleoperated");
         }));
