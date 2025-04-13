@@ -32,7 +32,7 @@ public class ScoringSequenceCommands {
     private static LoggedTunableNumber branchScorePitch = new LoggedTunableNumber(//
         "AutoScore/BranchScorePitch", 58.);
     private static LoggedTunableNumber L4ScorePitch = new LoggedTunableNumber(//
-        "AutoScore/L4ScorePitch", 41.);
+        "AutoScore/L4ScorePitch", 43.);
     private static LoggedTunableNumber branchScorePitchDown = new LoggedTunableNumber(//
         "AutoScore/BranchScorePitchDown", 35);
     private static LoggedTunableNumber L4PitchDown = new LoggedTunableNumber(//
