@@ -334,7 +334,7 @@ public class RobotState {
      */
     public void update() {
         // Update the driver station interface
-        DriverStationInterface.getInstance().updateRobotPose(getPose());
+        DriverStationInterface.getInstance().update(getPose());
 
         Logger.recordOutput("PieceVision/CoralPoses",
             getCoralTranslations().map(RobotState::coralTranslationToVisualizerPose).toArray(Pose3d[]::new));

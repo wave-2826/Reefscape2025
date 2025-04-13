@@ -53,6 +53,11 @@ public class DriverStationInterface {
     private LoggedNetworkNumber robotRotationEntry = new LoggedNetworkNumber("/DriverStationInterface/RobotRotation",
         0);
     /**
+     * The current remaining match time (in seconds) entry in the NetworkTables table.
+     */
+    private LoggedNetworkNumber matchTimeEntry = new LoggedNetworkNumber("/DriverStationInterface/MatchTime", 0);
+
+    /**
      * The current robot x position (in meters) entry in the NetworkTables table. We currently don't just use the pose
      * because deserializing it is a bit difficult.
      */
@@ -113,8 +118,8 @@ public class DriverStationInterface {
 
                 PathPlannerTrajectory simulatedPath = simulateAuto(paths, DriveConstants.pathplannerConfig);
 
-                double sampleInterval = 0.02;
-                double totalTime = simulatedPath.getTotalTimeSeconds();
+                double sampleInterval = 0.04;
+                double totalTime = Math.min(simulatedPath.getTotalTimeSeconds(), 15);
 
                 for(double t = 0; t < totalTime; t += sampleInterval) {
                     PathPlannerTrajectoryState state = simulatedPath.sample(t);
@@ -159,8 +164,7 @@ public class DriverStationInterface {
 
             double startTime = lastState != null ? lastState.timeSeconds : 0;
             for(PathPlannerTrajectoryState s : simPath.getStates()) {
-                s.timeSeconds += startTime;
-                allStates.add(s);
+                allStates.add(s.copyWithTime(s.timeSeconds + startTime));
             }
 
             lastState = allStates.get(allStates.size() - 1);
@@ -195,11 +199,12 @@ public class DriverStationInterface {
     }
 
     /**
-     * Updates the driver station dashboard with the robot position and orientation.
+     * Updates the driver station dashboard with the robot position, orientation, and other state.
      */
-    public void updateRobotPose(Pose2d pose) {
+    public void update(Pose2d pose) {
         robotRotationEntry.set(pose.getRotation().getRadians());
         robotXEntry.set(pose.getX());
         robotYEntry.set(pose.getY());
+        matchTimeEntry.set(DriverStation.getMatchTime());
     }
 }

@@ -9,7 +9,6 @@ import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
-import edu.wpi.first.wpilibj2.command.ScheduleCommand;
 import frc.robot.Constants;
 import frc.robot.FieldConstants.ReefLevel;
 import frc.robot.commands.drive.DriveCommands;
@@ -119,8 +118,11 @@ public class ScoringSequenceCommands {
 
             // @formatter:off
             return minimalBackUp ? Commands.parallel(
-                new ScheduleCommand(arm.goToStateCommand(scoreDownState)),
-                DriveCommands.driveStraightCommand(drive, Units.feetToMeters(-2), 0.25, () -> fieldAngle, null)
+                arm.goToStateCommand(scoreDownState),
+                Commands.sequence(
+                    Commands.waitSeconds(0.2),
+                    DriveCommands.driveStraightCommand(drive, Units.feetToMeters(-6), 0.2, () -> fieldAngle, null)
+                )
             ) : Commands.sequence(
                 Commands.parallel(
                     arm.goToStateCommand(scoreDownState),
