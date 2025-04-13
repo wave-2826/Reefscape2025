@@ -28,7 +28,7 @@ public class TrackCoral extends DriveToPose {
     private static final LoggedTunableNumber angleDifferenceWeight = new LoggedTunableNumber(
         "TrackCoral/AngleDifferenceWeight", 0.2);
     private static final LoggedTunableNumber coralMaxDistance = new LoggedTunableNumber("TrackCoral/CoralMaxDistance",
-        Units.feetToMeters(6.5));
+        Units.feetToMeters(8));
     private static final LoggedTunableNumber coralMaxAngleDeg = new LoggedTunableNumber(
         "TrackCoral/CoralMaxAngleDegrees", 70.0);
 
@@ -60,6 +60,8 @@ public class TrackCoral extends DriveToPose {
             Logger.recordOutput("TrackCoral/LookAheadPose", predictedRobot);
 
             Optional<Translation2d> trackedCoralPosition = robotState.getCoralTranslations()
+                .filter(coral -> coral.getX() >= 0 && coral.getY() >= 0 && coral.getX() <= FieldConstants.fieldLength
+                    && coral.getY() <= FieldConstants.fieldWidth)
                 .min(Comparator.comparingDouble(coral -> coral.getDistance(predictedRobot.getTranslation())
                     + Math.abs(coral.minus(robot.getTranslation()).getAngle().plus(Rotation2d.kPi)
                         .minus(robot.getRotation()).getRadians() * angleDifferenceWeight.get())))
@@ -76,7 +78,7 @@ public class TrackCoral extends DriveToPose {
                     .transformBy(new Transform2d(DriveConstants.bumperSizeMeters / 2.0, 0.0, Rotation2d.kZero));
 
                 if(RobotState.getInstance().getPose().minus(coralPickupPose).getTranslation().getNorm() < Units
-                    .inchesToMeters(3)) {
+                    .inchesToMeters(5)) {
                     return coralPickupPose.plus(new Transform2d(Translation2d.kZero,
                         // THIS IS SO BAD DO NOT COPY
                         Rotation2d.fromDegrees(Math.sin(Timer.getTimestamp() * 2.5) * 20)));
@@ -87,10 +89,10 @@ public class TrackCoral extends DriveToPose {
 
                 if(noFallback) return robotState.getPose();
 
-                Pose2d tempGrabPose = new Pose2d(2.5,
-                    RobotState.getInstance().isOnRightSide() ? 2.2 : FieldConstants.fieldWidth - 2.2,
-                    RobotState.getInstance().isOnRightSide() ? Rotation2d.fromDegrees(70)
-                        : Rotation2d.fromDegrees(-70));
+                Pose2d tempGrabPose = new Pose2d(2.6,
+                    RobotState.getInstance().isOnRightSide() ? 2.3 : FieldConstants.fieldWidth - 2.3,
+                    RobotState.getInstance().isOnRightSide() ? Rotation2d.fromDegrees(50)
+                        : Rotation2d.fromDegrees(-50));
                 final Pose2d coralGrabPose = AutoBuilder.shouldFlip() ? FlippingUtil.flipFieldPose(tempGrabPose)
                     : tempGrabPose;
 

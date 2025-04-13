@@ -46,7 +46,7 @@ public class IntakeCommands {
             intake.runOnce(() -> {
                 intake.setIntakeState(IntakeState.IntakeDown);
             }),
-            Commands.waitSeconds(0.6),
+            Commands.waitSeconds(0.1),
             arm.goToStateCommand(ArmConstants.restingState),
             Commands.waitUntil(intake::pieceWaitingForArm),
             intake.runOnce(() -> {

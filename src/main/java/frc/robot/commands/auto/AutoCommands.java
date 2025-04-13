@@ -120,12 +120,14 @@ public class AutoCommands {
             new ScheduleCommand(IntakeCommands.autoIntake(intake, arm))
                 .beforeStarting(() -> IntakeCommands.waitingForPiece = true), //
 
+            // TODO: DO not try to track if the piece vision camera is disconnected
             new LoggedCommand("Grab Coral", new TrackCoral(drive, () -> grabbingCoralFailed = true).until(() -> {
                 if(intake.intakeSensorTriggered()) return true;
 
                 // If the robot is at risk of running into the wall, stop.
-                var intakeOrigin = new Transform2d(new Translation2d(Units.inchesToMeters(-20), 0), Rotation2d.kZero);
-                var nextPosition = RobotState.getInstance().getLookaheadPose(0.5).transformBy(intakeOrigin);
+                var intakeOrigin = new Transform2d(new Translation2d(Units.inchesToMeters(-16), 0), Rotation2d.kZero);
+                var nextPosition = RobotState.getInstance().getLookaheadPose(0.2).transformBy(intakeOrigin);
+                // TODO: Detect this as a polygon, not a rectangle. Don't run into the source!
                 if(nextPosition.getX() < 0.0 || nextPosition.getY() < 0.0
                     || nextPosition.getX() > FieldConstants.fieldLength
                     || nextPosition.getY() > FieldConstants.fieldWidth) {
@@ -133,7 +135,7 @@ public class AutoCommands {
                     return true;
                 }
                 return false;
-            }).withTimeout(5.)).unless(intake::pieceInTransport), //
+            }).withTimeout(6.)).unless(intake::pieceInTransport), //
 
             new LoggedCommand("AutoTargetScoring", Commands.defer(() -> {
                 if(scoringPositionsAvailable.isEmpty()) {

@@ -64,7 +64,7 @@ public class Intake extends SubsystemBase {
     /**
      * A debouncer for the middle sensor.
      */
-    private Debouncer middleDebouncer = new Debouncer(0.2, DebounceType.kFalling);
+    private Debouncer middleDebouncer = new Debouncer(0.0, DebounceType.kFalling);
 
     /**
      * A map from transport sensor states to the current target. The key is represented as binary in the form 0b(intake

@@ -28,25 +28,25 @@ import org.littletonrobotics.junction.Logger;
 public class DriveToPose extends Command {
     // Drive and turn PID gains
     private static final LoggedTunableNumber drivekP = new LoggedTunableNumber(//
-        "DriveToPose/DrivekP", 3);
+        "DriveToPose/DrivekP", 1);
     private static final LoggedTunableNumber drivekD = new LoggedTunableNumber(//
-        "DriveToPose/DrivekD", 0.5);
+        "DriveToPose/DrivekD", 0.0);
     private static final LoggedTunableNumber thetakP = new LoggedTunableNumber(//
-        "DriveToPose/ThetakP", 6.0);
+        "DriveToPose/ThetakP", 4.0);
     private static final LoggedTunableNumber thetakD = new LoggedTunableNumber(//
-        "DriveToPose/ThetakD", 0.2);
+        "DriveToPose/ThetakD", 0.0);
 
     // Tolerances for drive and theta
     private static final LoggedTunableNumber driveTolerance = new LoggedTunableNumber(//
-        "DriveToPose/DriveTolerance", Units.inchesToMeters(0.35));
+        "DriveToPose/DriveTolerance", Units.inchesToMeters(0.7));
     private static final LoggedTunableNumber thetaTolerance = new LoggedTunableNumber(//
-        "DriveToPose/ThetaTolerance", Units.degreesToRadians(1.0));
+        "DriveToPose/ThetaTolerance", Units.degreesToRadians(1.5));
 
     // Drive and turn constraints when the elevator is at the bottom
     private static final LoggedTunableNumber driveMaxVelocity = new LoggedTunableNumber(//
         "DriveToPose/DriveMaxVelocity", DriveConstants.maxSpeedMetersPerSec);
     private static final LoggedTunableNumber driveMaxAcceleration = new LoggedTunableNumber(//
-        "DriveToPose/DriveMaxAcceleration", 4.5);
+        "DriveToPose/DriveMaxAcceleration", 5);
     private static final LoggedTunableNumber thetaMaxVelocity = new LoggedTunableNumber(//
         "DriveToPose/ThetaMaxVelocity", Units.degreesToRadians(720.0));
     private static final LoggedTunableNumber thetaMaxAcceleration = new LoggedTunableNumber(//
@@ -56,11 +56,11 @@ public class DriveToPose extends Command {
     private static final LoggedTunableNumber driveMaxVelocityTop = new LoggedTunableNumber(//
         "DriveToPose/DriveMaxVelocityTop", DriveConstants.maxSpeedMetersPerSec);
     private static final LoggedTunableNumber driveMaxAccelerationTop = new LoggedTunableNumber(//
-        "DriveToPose/DriveMaxAccelerationTop", 2.5);
+        "DriveToPose/DriveMaxAccelerationTop", 2);
     private static final LoggedTunableNumber thetaMaxVelocityTop = new LoggedTunableNumber(//
         "DriveToPose/ThetaMaxVelocityTop", Units.degreesToRadians(300.0));
     private static final LoggedTunableNumber thetaMaxAccelerationTop = new LoggedTunableNumber(//
-        "DriveToPose/ThetaMaxAccelerationTop", Units.degreesToRadians(500));
+        "DriveToPose/ThetaMaxAccelerationTop", Units.degreesToRadians(400));
 
     // The minimum height (as a percentage) of the elevator before we start interpolating towards the top constraints
     private static final LoggedTunableNumber elevatorMinExtension = new LoggedTunableNumber(

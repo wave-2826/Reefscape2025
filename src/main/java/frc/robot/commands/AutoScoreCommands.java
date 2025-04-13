@@ -111,14 +111,14 @@ public class AutoScoreCommands {
                             return FinishBehavior.EndOnceAtSetpoint;
                         } else if(finish.orElse(() -> false).getAsBoolean()) { return FinishBehavior.Finish; }
                         return FinishBehavior.DoNotFinish;
-                    }, lineupFeedback).withTimeout(DriverStation.isAutonomous() ? 4. : 10000);
+                    }, lineupFeedback);
                 }, Set.of(drive)),
 
                 Commands.sequence(
                     Commands.waitUntil(() -> !IntakeCommands.waitingForPiece).withTimeout(3)
                         .onlyIf(DriverStation::isAutonomous),
-                    ScoringSequenceCommands.middleArmMovement(target.level(), arm).withTimeout(3)
-                        .andThen(Commands.runOnce(arm::resetToAbsolute).onlyIf(resetElevatorDuringScoring))//
+                    ScoringSequenceCommands.middleArmMovement(target.level(), arm).withTimeout(3).andThen(
+                        Commands.runOnce(arm::resetToAbsolute).withTimeout(0.2).onlyIf(resetElevatorDuringScoring))//
                 )),
             Commands.either(
                 ScoringSequenceCommands.scoreAtLevelSlowly(target.level(), arm)
@@ -178,7 +178,7 @@ public class AutoScoreCommands {
         return Commands.sequence(//
             Commands.runOnce(() -> ScoringSequenceCommands.wristOverride = null), //
             ScoringSequenceCommands.prepForAlgaeRemoval(target.level(), arm).withTimeout(2)
-                .andThen(Commands.runOnce(arm::resetToAbsolute).onlyIf(resetElevatorDuringScoring)),
+                .andThen(arm.run(arm::resetToAbsolute).withTimeout(0.2).onlyIf(resetElevatorDuringScoring)),
             autoAlign(drive, leds, target, tweakX, tweakY,
                 () -> finishSequence.getAsBoolean() ? FinishBehavior.Finish : FinishBehavior.DoNotFinish, null), //
             ScoringSequenceCommands.removeAlgae(target.level(), arm, drive, target.branch().face.getFieldAngle())
