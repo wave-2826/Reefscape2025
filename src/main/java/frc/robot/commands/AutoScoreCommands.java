@@ -33,7 +33,7 @@ public class AutoScoreCommands {
     private static final LoggedTunableNumber autoAlignTweakAmount = new LoggedTunableNumber(//
         "AutoScore/AutoAlignTweakInches", 4.5);
 
-    private static final BooleanSupplier resetElevatorDuringScoring = () -> false;
+    private static final BooleanSupplier resetElevatorDuringScoring = DriverStation::isTeleop;
 
     public static Command autoAlign(Drive drive, LEDs leds, ReefTarget target, DoubleSupplier tweakX,
         DoubleSupplier tweakY, Supplier<FinishBehavior> finishBehavior, BooleanConsumer lineupFeedback) {
@@ -51,6 +51,15 @@ public class AutoScoreCommands {
         public AutoScoreState(ReefTarget target) {
             this.target = target;
         }
+    }
+
+    private static Command resetArmCommand(Arm arm) {
+        // TODO:
+        // - Wait for elevator absolute to be correct before scoring
+        // - Reset automatically if wrong
+        // - Add operator control to turn off
+        return arm.defer(() -> Commands.waitSeconds(0.2).andThen(Commands.runOnce(arm::resetToAbsolute)))
+            .onlyIf(resetElevatorDuringScoring);
     }
 
     /**
@@ -111,15 +120,14 @@ public class AutoScoreCommands {
                             return FinishBehavior.EndOnceAtSetpoint;
                         } else if(finish.orElse(() -> false).getAsBoolean()) { return FinishBehavior.Finish; }
                         return FinishBehavior.DoNotFinish;
-                    }, lineupFeedback);
+                    }, lineupFeedback).withTimeout(DriverStation.isAutonomous() ? 5. : 10000.);
                 }, Set.of(drive)),
 
                 Commands.sequence(
                     Commands.waitUntil(() -> !IntakeCommands.waitingForPiece).withTimeout(3)
                         .onlyIf(DriverStation::isAutonomous),
-                    ScoringSequenceCommands.middleArmMovement(target.level(), arm).withTimeout(3).andThen(
-                        Commands.runOnce(arm::resetToAbsolute).withTimeout(0.2).onlyIf(resetElevatorDuringScoring))//
-                )),
+                    ScoringSequenceCommands.middleArmMovement(target.level(), arm).withTimeout(3),
+                    resetArmCommand(arm))),
             Commands.either(
                 ScoringSequenceCommands.scoreAtLevelSlowly(target.level(), arm)
                     .deadlineFor(leds.runStateCommand(LEDState.AutoScoring)),
@@ -177,8 +185,7 @@ public class AutoScoreCommands {
         BooleanSupplier finishSequence, DoubleSupplier tweakX, DoubleSupplier tweakY) {
         return Commands.sequence(//
             Commands.runOnce(() -> ScoringSequenceCommands.wristOverride = null), //
-            ScoringSequenceCommands.prepForAlgaeRemoval(target.level(), arm).withTimeout(2)
-                .andThen(arm.run(arm::resetToAbsolute).withTimeout(0.2).onlyIf(resetElevatorDuringScoring)),
+            ScoringSequenceCommands.prepForAlgaeRemoval(target.level(), arm).withTimeout(2), resetArmCommand(arm),
             autoAlign(drive, leds, target, tweakX, tweakY,
                 () -> finishSequence.getAsBoolean() ? FinishBehavior.Finish : FinishBehavior.DoNotFinish, null), //
             ScoringSequenceCommands.removeAlgae(target.level(), arm, drive, target.branch().face.getFieldAngle())

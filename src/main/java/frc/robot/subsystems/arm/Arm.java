@@ -172,7 +172,7 @@ public class Arm extends SubsystemBase {
     public boolean getReefLineupSafe() {
         if(adjustedTarget == null) return true;
 
-        double lookaheadSecs = 0.5;
+        double lookaheadSecs = 0.4;
         Rotation2d lookaheadArmPosition = inputs.armPitchPosition
             .plus(Rotation2d.fromRadians(inputs.armPitchVelocity * lookaheadSecs));
 

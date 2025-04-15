@@ -28,7 +28,7 @@ import frc.robot.util.LoggedTunableNumber;
 public class PieceVision extends SubsystemBase {
     public static final LoggedTunableNumber coralOverlap = new LoggedTunableNumber("PieceVision/CoralOverlap", .5);
     public static final LoggedTunableNumber coralPersistenceTime = new LoggedTunableNumber(
-        "PieceVision/CoralPersistenceTime", 2.0);
+        "PieceVision/CoralPersistenceTime", 1.0);
 
     public record CoralPosition(Translation2d translation, double timestamp) {
     }

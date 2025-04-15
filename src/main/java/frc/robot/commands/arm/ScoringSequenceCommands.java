@@ -31,18 +31,18 @@ public class ScoringSequenceCommands {
         "AutoScore/GamePieceEjectVelocity", 6);
     private static LoggedTunableNumber branchScorePitch = new LoggedTunableNumber(//
         "AutoScore/BranchScorePitch", 58.);
-    private static LoggedTunableNumber L4ScorePitch = new LoggedTunableNumber(//
-        "AutoScore/L4ScorePitch", 43.);
     private static LoggedTunableNumber branchScorePitchDown = new LoggedTunableNumber(//
         "AutoScore/BranchScorePitchDown", 35);
+    private static LoggedTunableNumber L4ScorePitch = new LoggedTunableNumber(//
+        "AutoScore/L4ScorePitch", 56.);
     private static LoggedTunableNumber L4PitchDown = new LoggedTunableNumber(//
-        "AutoScore/L4PitchDown", 50);
+        "AutoScore/L4PitchDown", 65);
 
     private static LoggedTunableNumber[] levelScoreHeights = new LoggedTunableNumber[] {
         new LoggedTunableNumber("AutoScore/L1ScoreHeight", 10), //
         new LoggedTunableNumber("AutoScore/L2ScoreHeight", 6.25), //
         new LoggedTunableNumber("AutoScore/L3ScoreHeight", 22.25), //
-        new LoggedTunableNumber("AutoScore/L4ScoreHeight", 54)
+        new LoggedTunableNumber("AutoScore/L4ScoreHeight", 53.5)
     };
 
     // HACK ..?
@@ -118,11 +118,11 @@ public class ScoringSequenceCommands {
 
             // @formatter:off
             return minimalBackUp ? Commands.parallel(
-                arm.goToStateCommand(scoreDownState),
+                arm.goToStateCommand(scoreDownState, 0.25),
                 DriveCommands.driveStraightCommand(drive, Units.feetToMeters(-8), 0.15, () -> fieldAngle, null)
             ) : Commands.sequence(
                 Commands.parallel(
-                    arm.goToStateCommand(scoreDownState),
+                    arm.goToStateCommand(scoreDownState, 0.25),
                     DriveCommands.driveStraightCommand(drive, Units.feetToMeters(-1.5), 1.5, () -> fieldAngle, null)
                 ),
                 arm.goToStateCommand(ArmConstants.restingState)

@@ -18,6 +18,7 @@ import frc.robot.subsystems.drive.DriveConstants;
 import frc.robot.util.LoggedTunableNumber;
 
 import java.util.OptionalDouble;
+import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
 import org.littletonrobotics.junction.Logger;
 
@@ -28,17 +29,17 @@ import org.littletonrobotics.junction.Logger;
 public class DriveToPose extends Command {
     // Drive and turn PID gains
     private static final LoggedTunableNumber drivekP = new LoggedTunableNumber(//
-        "DriveToPose/DrivekP", 1);
+        "DriveToPose/DrivekP", 3.5);
     private static final LoggedTunableNumber drivekD = new LoggedTunableNumber(//
         "DriveToPose/DrivekD", 0.0);
     private static final LoggedTunableNumber thetakP = new LoggedTunableNumber(//
         "DriveToPose/ThetakP", 4.0);
     private static final LoggedTunableNumber thetakD = new LoggedTunableNumber(//
-        "DriveToPose/ThetakD", 0.0);
+        "DriveToPose/ThetakD", 0.5);
 
     // Tolerances for drive and theta
     private static final LoggedTunableNumber driveTolerance = new LoggedTunableNumber(//
-        "DriveToPose/DriveTolerance", Units.inchesToMeters(0.7));
+        "DriveToPose/DriveTolerance", Units.inchesToMeters(0.5));
     private static final LoggedTunableNumber thetaTolerance = new LoggedTunableNumber(//
         "DriveToPose/ThetaTolerance", Units.degreesToRadians(1.5));
 
@@ -56,20 +57,30 @@ public class DriveToPose extends Command {
     private static final LoggedTunableNumber driveMaxVelocityTop = new LoggedTunableNumber(//
         "DriveToPose/DriveMaxVelocityTop", DriveConstants.maxSpeedMetersPerSec);
     private static final LoggedTunableNumber driveMaxAccelerationTop = new LoggedTunableNumber(//
-        "DriveToPose/DriveMaxAccelerationTop", 2);
+        "DriveToPose/DriveMaxAccelerationTop", 2.5);
     private static final LoggedTunableNumber thetaMaxVelocityTop = new LoggedTunableNumber(//
         "DriveToPose/ThetaMaxVelocityTop", Units.degreesToRadians(300.0));
     private static final LoggedTunableNumber thetaMaxAccelerationTop = new LoggedTunableNumber(//
         "DriveToPose/ThetaMaxAccelerationTop", Units.degreesToRadians(400));
 
     // The minimum height (as a percentage) of the elevator before we start interpolating towards the top constraints
-    private static final LoggedTunableNumber elevatorMinExtension = new LoggedTunableNumber(
+    private static final LoggedTunableNumber elevatorMinExtension = new LoggedTunableNumber(//
         "DriveToPose/ElevatorMinExtension", 0.4);
 
-    private static final LoggedTunableNumber setpointMinVelocity = new LoggedTunableNumber(
+    private static final LoggedTunableNumber setpointMinVelocity = new LoggedTunableNumber(//
         "DriveToPose/SetpointMinVelocity", -0.5); // The most negative velocity we will command after velocity correction.
-    private static final LoggedTunableNumber minDistanceVelocityCorrection = new LoggedTunableNumber(
+    private static final LoggedTunableNumber minDistanceVelocityCorrection = new LoggedTunableNumber(//
         "DriveToPose/MinDistanceVelocityCorrection", Units.inchesToMeters(0.4)); // When below this distance, we stop correcting the velocity based on the target direction delta.
+
+    // The range that we start to interpolate from feedforward setpoints using our trapezoidal profile
+    private static final LoggedTunableNumber linearFFMinRadius = new LoggedTunableNumber(//
+        "DriveToPose/LinearFFMinRadius", 0.01);
+    private static final LoggedTunableNumber linearFFMaxRadius = new LoggedTunableNumber(//
+        "DriveToPose/LinearFFMaxRadius", 0.05);
+    private static final LoggedTunableNumber thetaFFMinError = new LoggedTunableNumber(//
+        "DriveToPose/ThetaFFMinError", 0.0);
+    private static final LoggedTunableNumber thetaFFMaxError = new LoggedTunableNumber(//
+        "DriveToPose/ThetaFFMaxError", 0.0);
 
     private final Drive drive;
 
@@ -93,6 +104,9 @@ public class DriveToPose extends Command {
     private final boolean endWhenAtTarget;
     private final OptionalDouble endLinearTolerance;
     private final OptionalDouble endThetaTolerance;
+
+    private Supplier<Translation2d> linearDriverFeedforward = () -> Translation2d.kZero;
+    private DoubleSupplier thetaDriverFeedforward = () -> 0.0;
 
     /**
      * A command that drives to the given pose and ends once it gets there. Defaults to a tolerance of 5 inches and 5
@@ -145,6 +159,17 @@ public class DriveToPose extends Command {
     }
 
     /**
+     * A command that drives to the given pose and never ends. Includes a feedforward for driver controls added to the
+     * commanded velocity.
+     */
+    public DriveToPose(Drive drive, Supplier<Pose2d> getTarget, Supplier<Translation2d> linearDriverFeedforward,
+        DoubleSupplier thetaDriverFeedforward) {
+        this(drive, getTarget, false, OptionalDouble.empty(), OptionalDouble.empty());
+        this.linearDriverFeedforward = linearDriverFeedforward;
+        this.thetaDriverFeedforward = thetaDriverFeedforward;
+    }
+
+    /**
      * A command that drives to the given pose and never ends. This constructor is used when we want to use a different
      * pose supplier than the default vision-based odometry estimate.
      */
@@ -187,6 +212,23 @@ public class DriveToPose extends Command {
         Translation2d driveVelocity = calculateDriveVelocity(currentPose, targetPose);
         double thetaVelocity = calculateThetaVelocity(currentPose, targetPose);
 
+        // Incorporate driver feedforward -- half of full speed will take over control entirely.
+        final double linearInterp = MathUtil.clamp(linearDriverFeedforward.get().getNorm() * 2.0, 0.0, 1.0);
+        final double thetaInterp = MathUtil.clamp(Math.abs(thetaDriverFeedforward.getAsDouble()) * 2.0, 0.0, 1.0);
+
+        driveVelocity = driveVelocity
+            .interpolate(linearDriverFeedforward.get().times(DriveConstants.maxSpeedMetersPerSec), linearInterp);
+        thetaVelocity = MathUtil.interpolate(thetaVelocity,
+            thetaDriverFeedforward.getAsDouble() * DriveConstants.maxAngularSpeedRadPerSec, thetaInterp);
+        ChassisSpeeds fieldVelocity = RobotState.getInstance().getFieldVelocity();
+        Translation2d linearFieldVelocity = new Translation2d(fieldVelocity.vxMetersPerSecond,
+            fieldVelocity.vyMetersPerSecond);
+
+        // Reset profiles if there's enough driver input
+        if(linearInterp >= 0.3 || thetaInterp >= 0.3) {
+            resetProfile();
+        }
+
         drive.runVelocity(ChassisSpeeds.fromFieldRelativeSpeeds(//
             driveVelocity.getX(), driveVelocity.getY(), //
             thetaVelocity, //
@@ -196,9 +238,6 @@ public class DriveToPose extends Command {
         // Log
         Logger.recordOutput("DriveToPose/DistanceMeasured", absoluteTranslationError);
 
-        ChassisSpeeds fieldVelocity = RobotState.getInstance().getFieldVelocity();
-        Translation2d linearFieldVelocity = new Translation2d(fieldVelocity.vxMetersPerSecond,
-            fieldVelocity.vyMetersPerSecond);
         Logger.recordOutput("DriveToPose/VelocityMeasured",
             -linearFieldVelocity.toVector()
                 .dot(targetPose.getTranslation().minus(currentPose.getTranslation()).toVector())
@@ -236,6 +275,10 @@ public class DriveToPose extends Command {
      * Calculates our target field-relative drive velocity based on the current pose and target pose.
      */
     private Translation2d calculateDriveVelocity(Pose2d currentPose, Pose2d targetPose) {
+        double linearFeedforwardScalar = MathUtil.clamp(
+            (absoluteTranslationError - linearFFMinRadius.get()) / (linearFFMaxRadius.get() - linearFFMinRadius.get()),
+            0.0, 1.0);
+
         var direction = targetPose.getTranslation().minus(lastSetpointTranslation).toVector();
 
         double setpointVelocity = direction.norm() <= minDistanceVelocityCorrection.get() // Don't calculate velocity in direction when really close
@@ -250,7 +293,7 @@ public class DriveToPose extends Command {
         Logger.recordOutput("DriveToPose/VelocitySetpoint", driveSetpoint.velocity);
 
         double driveVelocityScalar = driveController.calculate(absoluteTranslationError, driveSetpoint.position)
-            + driveSetpoint.velocity;
+            + driveSetpoint.velocity * linearFeedforwardScalar;
         if(absoluteTranslationError < driveController.getErrorTolerance()) driveVelocityScalar = 0.0;
 
         Rotation2d targetToCurrentAngle = currentPose.getTranslation().minus(targetPose.getTranslation()).getAngle();
@@ -267,12 +310,17 @@ public class DriveToPose extends Command {
      * Calculates our target theta velocity based on the current pose and target pose.
      */
     private double calculateThetaVelocity(Pose2d currentPose, Pose2d targetPose) {
+        double thetaFeedforwardScalar = MathUtil
+            .clamp((Units.radiansToDegrees(absoluteThetaError) - thetaFFMinError.get())
+                / (thetaFFMaxError.get() - thetaFFMinError.get()), 0.0, 1.0);
+
         double thetaSetpointVelocity = Math.abs((targetPose.getRotation().minus(lastGoalRotation)).getDegrees()) < 10.0
             ? (targetPose.getRotation().minus(lastGoalRotation)).getRadians() / 0.02
             : thetaController.getSetpoint().velocity;
+
         double thetaVelocity = thetaController.calculate(currentPose.getRotation().getRadians(),
             new State(targetPose.getRotation().getRadians(), thetaSetpointVelocity))
-            + thetaController.getSetpoint().velocity;
+            + thetaController.getSetpoint().velocity * thetaFeedforwardScalar;
 
         if(absoluteThetaError < thetaController.getPositionTolerance()) thetaVelocity = 0.0;
         lastGoalRotation = targetPose.getRotation();

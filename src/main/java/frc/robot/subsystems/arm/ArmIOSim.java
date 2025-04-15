@@ -9,6 +9,8 @@ import org.ironmaple.simulation.SimulatedArena;
 import com.revrobotics.sim.SparkAbsoluteEncoderSim;
 import com.revrobotics.sim.SparkMaxSim;
 
+import edu.wpi.first.math.filter.Debouncer;
+import edu.wpi.first.math.filter.Debouncer.DebounceType;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform3d;
@@ -63,6 +65,8 @@ public class ArmIOSim extends ArmIOReal {
     private Supplier<Pose2d> drivetrainPoseSupplier;
     private Supplier<ChassisSpeeds> robotSpeedSupplier;
 
+    private Debouncer pieceLeavingArmDebounce = new Debouncer(0.1, DebounceType.kRising);
+
     public ArmIOSim(Supplier<Pose2d> drivetrainPoseSupplier, Supplier<ChassisSpeeds> robotSpeedSupplier) {
         super(
             // Override the elevator height sensor with a simulated one.
@@ -97,6 +101,8 @@ public class ArmIOSim extends ArmIOReal {
 
         this.drivetrainPoseSupplier = drivetrainPoseSupplier;
         this.robotSpeedSupplier = robotSpeedSupplier;
+
+        needsToReset = true;
     }
 
     /**
@@ -156,7 +162,7 @@ public class ArmIOSim extends ArmIOReal {
         if(inputs.absoluteHeightMeters < Units.inchesToMeters(15) && inputs.armPitchPosition.getDegrees() < -80
             && inputs.endEffectorVelocity < -0.1 && IntakeIOSim.takeCoral()) {
             gamePieceInEndEffector = true;
-        } else if(gamePieceInEndEffector && inputs.endEffectorVelocity > 5.0) {
+        } else if(pieceLeavingArmDebounce.calculate(gamePieceInEndEffector && inputs.endEffectorVelocity > 5.0)) {
             gamePieceInEndEffector = false;
 
             Pose2d drivetrainPose = drivetrainPoseSupplier.get();

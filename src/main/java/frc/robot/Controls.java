@@ -4,6 +4,9 @@ import static edu.wpi.first.units.Units.Meters;
 
 import java.util.HashMap;
 import org.ironmaple.simulation.drivesims.SwerveDriveSimulation;
+
+import com.pathplanner.lib.auto.AutoBuilder;
+
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.filter.Debouncer.DebounceType;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -83,8 +86,12 @@ public class Controls {
             () -> -driver.getRightX()));
 
         // Switch to X pattern when X button is pressed
-        driver.x().whileTrue(
-            new TrackCoral(drive, true).alongWith(IntakeCommands.intakeCommand(intake, arm, () -> true, () -> false)));
+        driver.x()
+            .whileTrue(new TrackCoral(drive, true,
+                () -> DriveCommands.getLinearVelocityFromJoysticks(-driver.getLeftY(), -driver.getLeftX())
+                    .times(AutoBuilder.shouldFlip() ? -1.0 : 1.0),
+                () -> -driver.getRightX())
+                .alongWith(IntakeCommands.intakeCommand(intake, arm, () -> true, () -> false)));
 
         // Auto score
         driver.b().debounce(Controls.debounceTime, DebounceType.kFalling)

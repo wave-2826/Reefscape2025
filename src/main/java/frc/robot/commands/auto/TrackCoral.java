@@ -2,6 +2,8 @@ package frc.robot.commands.auto;
 
 import java.util.Comparator;
 import java.util.Optional;
+import java.util.function.DoubleSupplier;
+import java.util.function.Supplier;
 
 import org.littletonrobotics.junction.Logger;
 
@@ -37,11 +39,17 @@ public class TrackCoral extends DriveToPose {
 
     public TrackCoral(Drive drive, boolean noFallback) {
         this(drive, () -> {
-        }, noFallback);
+        }, noFallback, () -> Translation2d.kZero, () -> 0);
+    }
+
+    public TrackCoral(Drive drive, boolean noFallback, Supplier<Translation2d> linearDriverFeedforward,
+        DoubleSupplier thetaDriverFeedforward) {
+        this(drive, () -> {
+        }, noFallback, linearDriverFeedforward, thetaDriverFeedforward);
     }
 
     public TrackCoral(Drive drive, Runnable grabbingFailed) {
-        this(drive, grabbingFailed, false);
+        this(drive, grabbingFailed, false, () -> Translation2d.kZero, () -> 0);
     }
 
     /**
@@ -50,8 +58,13 @@ public class TrackCoral extends DriveToPose {
      * @param drive
      * @param grabbingFailed Run when we failed to grab a coral.
      * @param noFallback If true, we will not fallback to a default pose if no coral is found.
+     * @param linearDriverFeedforward The linear feedforward for the driver. This is used to partially override the
+     *            tracking velocity based on driver input.
+     * @param thetaDriverFeedforward The angular feedforward for the driver. This is used to partially override the
+     *            tracking velocity based on driver input.
      */
-    public TrackCoral(Drive drive, Runnable grabbingFailed, boolean noFallback) {
+    public TrackCoral(Drive drive, Runnable grabbingFailed, boolean noFallback,
+        Supplier<Translation2d> linearDriverFeedforward, DoubleSupplier thetaDriverFeedforward) {
         super(drive, () -> {
             RobotState robotState = RobotState.getInstance();
             Pose2d robot = robotState.getPose();
@@ -100,7 +113,7 @@ public class TrackCoral extends DriveToPose {
             });
 
             return target;
-        });
+        }, linearDriverFeedforward, thetaDriverFeedforward);
 
         this.grabbingFailed = grabbingFailed;
     }

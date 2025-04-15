@@ -293,6 +293,11 @@ public class Robot extends LoggedRobot {
     }
 
     @Override
+    public void testPeriodic() {
+        // Stop the default "override me" alert
+    }
+
+    @Override
     public void simulationInit() {
         SimControls.getInstance().configureControls();
         for(var adapter : Constants.simAdapters) adapter.postInit();
