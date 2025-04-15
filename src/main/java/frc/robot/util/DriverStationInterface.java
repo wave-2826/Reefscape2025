@@ -55,7 +55,13 @@ public class DriverStationInterface {
     /**
      * The current remaining match time (in seconds) entry in the NetworkTables table.
      */
-    private LoggedNetworkNumber matchTimeEntry = new LoggedNetworkNumber("/DriverStationInterface/MatchTime", 0);
+    private LoggedNetworkNumber matchTimeEntry = new LoggedNetworkNumber("/DriverStationInterface/MatchTime", -1);
+    /**
+     * The robot state entry in the NetworkTables table. This is used to determine if the robot is in autonomous,
+     * teleop, test, or is disabled.
+     */
+    private LoggedNetworkString robotStateEntry = new LoggedNetworkString("/DriverStationInterface/RobotState",
+        "Disabled");
 
     /**
      * The current robot x position (in meters) entry in the NetworkTables table. We currently don't just use the pose
@@ -108,6 +114,9 @@ public class DriverStationInterface {
 
             List<String> autoNames = AutoBuilder.getAllAutoNames();
             for(String choice : autoNames) {
+                // Skip autos that don't make sense to show
+                if(choice.contains("testing") || choice.toLowerCase().contains("tuning")) continue;
+
                 jsonData.append("{\"name\": \"").append(choice).append("\", \"poses\": [");
 
                 List<PathPlannerPath> paths = new ArrayList<>();
@@ -206,5 +215,15 @@ public class DriverStationInterface {
         robotXEntry.set(pose.getX());
         robotYEntry.set(pose.getY());
         matchTimeEntry.set(DriverStation.getMatchTime());
+
+        if(DriverStation.isDisabled()) {
+            robotStateEntry.set("Disabled");
+        } else if(DriverStation.isAutonomous()) {
+            robotStateEntry.set("Autonomous");
+        } else if(DriverStation.isTest()) {
+            robotStateEntry.set("Test");
+        } else {
+            robotStateEntry.set("Teleop");
+        }
     }
 }
