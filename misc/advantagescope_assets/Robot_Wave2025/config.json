@@ -21,17 +21,17 @@
             "rotations": [
                 {
                     "axis": "y",
-                    "degrees": 0
+                    "degrees": 14.6
                 },
                 {
                     "axis": "z",
-                    "degrees": 0
+                    "degrees": -33.7
                 }
             ],
             "position": [
-                0,
-                0,
-                0
+                0.26,
+                0.27,
+                0.33
             ],
             "resolution": [
                 1280,
@@ -44,17 +44,17 @@
             "rotations": [
                 {
                     "axis": "y",
-                    "degrees": 0
+                    "degrees": 13.0
                 },
                 {
                     "axis": "z",
-                    "degrees": 0
+                    "degrees": 33.6
                 }
             ],
             "position": [
-                0,
-                0,
-                0
+                0.26,
+                -0.27,
+                0.32
             ],
             "resolution": [
                 1280,
@@ -67,17 +67,17 @@
             "rotations": [
                 {
                     "axis": "y",
-                    "degrees": 0
+                    "degrees": 1.5
                 },
                 {
                     "axis": "z",
-                    "degrees": 0
+                    "degrees": 151.4
                 }
             ],
             "position": [
-                0,
-                0,
-                0
+                0.18,
+                0.23,
+                0.67
             ],
             "resolution": [
                 1280,
@@ -90,17 +90,17 @@
             "rotations": [
                 {
                     "axis": "y",
-                    "degrees": 0
+                    "degrees": -0.9
                 },
                 {
                     "axis": "z",
-                    "degrees": 0
+                    "degrees": -142.9
                 }
             ],
             "position": [
-                0,
-                0,
-                0
+                0.10,
+                -0.20,
+                0.66
             ],
             "resolution": [
                 1280,
