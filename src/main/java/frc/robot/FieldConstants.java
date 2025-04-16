@@ -14,6 +14,7 @@ import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import frc.robot.subsystems.vision.VisionConstants;
+import frc.robot.util.LoggedTunableNumber;
 
 /**
  * Field-related constants for the 2025 game. All measurements are by default relative to the blue alliance.
@@ -32,20 +33,27 @@ public class FieldConstants {
      */
     public enum ReefLevel {
         // @formatter:off
-        L1(Inches.of(18), Degrees.of(0)),
-        L2(Inches.of(31.875), Degrees.of(-35)),
-        L3(Inches.of(47.625), Degrees.of(-35)),
-        L4(Inches.of(72), Degrees.of(-90));
+        // TODO: Re-measure the offsets outward.
+        L1(Inches.of(18), Inches.of(0.0), Degrees.of(0)),
+        L2(Inches.of(31.875), Inches.of(8.0), Degrees.of(-35)),
+        L3(Inches.of(47.625), Inches.of(8.0), Degrees.of(-35)),
+        L4(Inches.of(72), Inches.of(9.5), Degrees.of(-90));
         // @formatter:on
 
         public final Distance height;
+        /**
+         * The offset outward from the back of the branch post. Used for fudge factors only; this doesn't hold
+         * significance for how we score.
+         */
+        public final Distance offsetOutward;
         /**
          * The angle of this reef position. Negative values are upward.
          */
         public final Angle pitch;
 
-        ReefLevel(Distance height, Angle pitch) {
+        ReefLevel(Distance height, Distance offsetOutward, Angle pitch) {
             this.height = height;
+            this.offsetOutward = offsetOutward;
             this.pitch = pitch; // in degrees
         }
     }
@@ -54,8 +62,6 @@ public class FieldConstants {
     public static final Distance reefBranchInset = Inches.of(12.066);
 
     public static final Translation2d reefCenter = new Translation2d(Units.inchesToMeters(176.746), fieldWidth / 2.);
-
-    private static final Translation2d baseFudge = new Translation2d(Units.inchesToMeters(9.5), 0);
 
     /**
      * A reef branch, as labelled by the FMS. See
@@ -87,16 +93,18 @@ public class FieldConstants {
         /** The right branch of the face on the left when at driver stations. */
         L(ReefFace.FrontLeft, false);
 
+        private static final LoggedTunableNumber fudgeFactorScalar = new LoggedTunableNumber(
+            "FieldConstants/FudgeFactorScalar", 1.0);
+
         public Pose2d pose;
         public ReefFace face;
         public boolean isLeft;
 
-        // TODO: Fudge factor tunables and sim testing
-        public final Translation2d blueFudge;
-        public final Translation2d redFudge;
+        public final Rotation2d blueFudge;
+        public final Rotation2d redFudge;
 
         ReefBranch(ReefFace face, boolean left) {
-            this(face, left, new Translation2d(), new Translation2d());
+            this(face, left, Rotation2d.kZero, Rotation2d.kZero);
         }
 
         ReefBranch(ReefFace face, boolean left, Rotation2d blueFudgeAngle, Rotation2d redFudgeAngle) {
@@ -104,26 +112,22 @@ public class FieldConstants {
             this.face = face;
             this.isLeft = left;
 
-            Translation2d normalRotation = baseFudge.rotateBy(face.getFieldAngle().plus(Rotation2d.k180deg));
-            this.blueFudge = normalRotation.rotateBy(blueFudgeAngle).minus(normalRotation);
-            this.redFudge = normalRotation.rotateBy(redFudgeAngle).minus(normalRotation);
+            this.blueFudge = blueFudgeAngle;
+            this.redFudge = redFudgeAngle;
         }
 
-        ReefBranch(ReefFace face, boolean left, Translation2d blueFudge, Translation2d redFudge) {
-            this.pose = left ? face.getLeftBranchPose() : face.getRightBranchPose();
-            this.face = face;
-            this.isLeft = left;
+        public Translation2d getFudge(boolean isRed, ReefLevel level) {
+            Translation2d baseFudge = new Translation2d(level.offsetOutward.in(Meters), 0);
 
-            this.blueFudge = blueFudge;
-            this.redFudge = redFudge;
+            Rotation2d fudgeAngle = isRed ? redFudge : blueFudge;
+            Translation2d standardPostLocation = baseFudge.rotateBy(face.getFieldAngle().plus(Rotation2d.k180deg));
+
+            Translation2d fudge = standardPostLocation.rotateBy(fudgeAngle).minus(standardPostLocation);
+            return fudge.times(fudgeFactorScalar.get());
         }
 
-        public Translation2d getFudge(boolean isRed) {
-            return isRed ? redFudge : blueFudge;
-        }
-
-        public Translation2d getFudge() {
-            return getFudge(DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red);
+        public Translation2d getFudge(ReefLevel level) {
+            return getFudge(DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red, level);
         }
     }
 

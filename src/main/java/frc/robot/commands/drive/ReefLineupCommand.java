@@ -4,6 +4,8 @@ import static edu.wpi.first.units.Units.Meters;
 
 import java.util.function.Supplier;
 
+import org.littletonrobotics.junction.Logger;
+
 import com.pathplanner.lib.auto.AutoBuilder;
 
 import edu.wpi.first.math.filter.Debouncer;
@@ -84,11 +86,8 @@ public class ReefLineupCommand extends DriveToPose {
         boolean isLeft = target.branch().isLeft;
         double horizontalOffset = (alignCenter ? 0. : (isLeft ? -centerDistance : centerDistance));
 
-        Translation2d fudge = target.branch().getFudge();
-
         Transform2d tagRelativeOffset = new Transform2d(new Translation2d(Units.inchesToMeters(distanceAwayInches),
-            horizontalOffset + Units.inchesToMeters(centerDistanceTweakRight.get())), Rotation2d.k180deg)
-            .plus(new Transform2d(fudge, Rotation2d.kZero));
+            horizontalOffset + Units.inchesToMeters(centerDistanceTweakRight.get())), Rotation2d.k180deg);
         Pose2d fieldPose = target.branch().face.getTagPose().transformBy(tagRelativeOffset);
 
         return fieldPose;
@@ -136,6 +135,11 @@ public class ReefLineupCommand extends DriveToPose {
             }
 
             Pose2d pose = getLineupPose(target);
+            Logger.recordOutput("DriveToPose/ReefLineup/PreFudgeTarget", pose);
+
+            Translation2d fudge = target.branch().getFudge(target.level());
+            pose = pose.plus(new Transform2d(fudge, Rotation2d.kZero));
+
             return new Pose2d(pose.getTranslation().plus(absoluteOffset.getTranslation()),
                 pose.getRotation().plus(absoluteOffset.getRotation()));
         }, () -> {
