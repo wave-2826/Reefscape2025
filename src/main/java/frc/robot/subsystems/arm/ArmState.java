@@ -22,8 +22,6 @@ public record ArmState(Rotation2d pitch, Distance height, WristRotation wristRot
         /** Vertical wrist rotation / horizontal coral rotation, 180 degrees offset. */
         VerticalFlipped(Rotation2d.fromDegrees(270));
 
-        // TODO: Showing off mode, as per B-G's recommendation
-
         Rotation2d rotation;
 
         WristRotation(Rotation2d rotation) {

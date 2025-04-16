@@ -94,7 +94,6 @@ public class ModuleIOSpark implements ModuleIO {
         // setting with SmartMotion or MAXMotion, but it doesn't support PID position wrapping :(
         turnConfig.closedLoop.feedbackSensor(FeedbackSensor.kPrimaryEncoder).positionWrappingEnabled(true)
             .positionWrappingInputRange(turnPIDMinInput, turnPIDMaxInput).pidf(turnKp, 0.0, turnKd, 0.0);
-        // TODO: Compare odometry accuracy
         turnConfig.signals.analogPositionAlwaysOn(true).analogPositionPeriodMs(20).analogVelocityAlwaysOn(true)
             .analogVelocityPeriodMs(20).primaryEncoderPositionAlwaysOn(true)
             .primaryEncoderPositionPeriodMs((int) (1000.0 / DriveConstants.odometryFrequency))

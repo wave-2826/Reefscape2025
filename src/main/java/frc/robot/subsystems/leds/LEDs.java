@@ -25,8 +25,6 @@ import frc.robot.subsystems.intake.Intake;
 import frc.robot.util.LoggedTracer;
 import frc.robot.util.RioAlerts;
 
-// TODO: Alpha compositing with custom RGBA color class? (not that we care _that_ much, I suppose...)
-
 /**
  * The LED subsystem. Manages the LED states. This is massively overengineered, but I like LEDs ;)
  */

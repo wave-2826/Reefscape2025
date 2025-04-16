@@ -54,7 +54,6 @@ public class AutoScoreCommands {
     }
 
     private static Command resetArmCommand(Arm arm) {
-        // TODO: Add operator control to turn off
         return arm.waitForCorrectAbsolute().onlyIf(resetElevatorDuringScoring);
     }
 

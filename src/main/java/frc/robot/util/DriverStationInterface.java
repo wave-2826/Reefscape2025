@@ -48,7 +48,7 @@ public class DriverStationInterface {
     private LoggedNetworkString reefLevelEntry = new LoggedNetworkString("/DriverStationInterface/ReefLevel", "L1");
     /**
      * The current robot rotation (in radians) entry in the NetworkTables table. We currently don't just use the pose
-     * because deserializing it is a bit difficult. TODO: Use the pose instead of this.
+     * because deserializing it is a bit difficult.
      */
     private LoggedNetworkNumber robotRotationEntry = new LoggedNetworkNumber("/DriverStationInterface/RobotRotation",
         0);

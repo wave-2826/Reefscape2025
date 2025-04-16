@@ -111,7 +111,6 @@ public class Drive extends SubsystemBase {
         AutoBuilder.configure(robotState::getPose, this::setPose, this::getChassisSpeeds,
             this::runVelocityWithFeedforward,
             Constants.isSim ? DriveConstants.simHolonomicDriveController : DriveConstants.realHolonomicDriveController,
-            // TODO: WHY DOESN'T THIS FLIP ON THE FMS?? ahghghghhhh
             pathplannerConfig, () -> DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red, this);
         Pathfinding.setPathfinder(new LocalADStarAK());
         PathPlannerLogging.setLogActivePathCallback((activePath) -> {

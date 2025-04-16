@@ -156,8 +156,6 @@ public class Arm extends SubsystemBase {
     }
 
     public void resetToAbsolute() {
-        if(!resetWithAbsoluteSensorEnabled) return;
-
         if(!inputs.validAbsoluteMeasurement) {
             if(DriverStation.isTeleop()) {
                 Controls.getInstance().controllerRumbleWhileRunning(false, true, RumbleType.kBothRumble)
