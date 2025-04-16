@@ -278,7 +278,7 @@ public class Arm extends SubsystemBase {
             Logger.recordOutput("Arm/AtTarget", isAtTarget());
         }
 
-        visualizer.update(inputs.absoluteHeightMeters, inputs.armPitchPosition, inputs.armWristPosition,
+        visualizer.update(inputs.elevatorHeightMeters, inputs.armPitchPosition, inputs.armWristPosition,
             inputs.gamePiecePresent);
 
         RobotState.getInstance().updateElevatorHeightPercent(getElevatorHeightPercent());
