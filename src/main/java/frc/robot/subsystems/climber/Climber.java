@@ -20,6 +20,7 @@ public class Climber extends SubsystemBase {
     ClimberVisualizer visualizer = new ClimberVisualizer("climber");
 
     private final Alert climberDisconnectedAlert = new Alert("Climber motor disconnected!", AlertType.kError);
+    private final Alert climberEncoderDisconnectedAlert = new Alert("Climber encoder reading 0!", AlertType.kWarning);
 
     /**
      * The pitch of the climber. 0 is fully back and positive numbers move outward.
@@ -59,6 +60,7 @@ public class Climber extends SubsystemBase {
         visualizer.update(inputs.climberAbsolutePosition);
 
         climberDisconnectedAlert.set(!inputs.climberMotorConnected);
+        climberEncoderDisconnectedAlert.set(inputs.climberAbsolutePosition.getRadians() == 0);
 
         LoggedTracer.record("Climber");
     }

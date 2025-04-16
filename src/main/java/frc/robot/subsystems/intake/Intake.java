@@ -87,6 +87,8 @@ public class Intake extends SubsystemBase {
         AlertType.kError);
     private final Alert intakePitchMotorDisconnectedAlert = new Alert("Intake pitch motor disconnected!",
         AlertType.kError);
+    private final Alert intakePitchEncoderDisconnectedAlert = new Alert("Intake pitch encoder reading 0!",
+        AlertType.kWarning);
 
     /**
      * The mappings from intake state sensors to our target state.
@@ -181,6 +183,7 @@ public class Intake extends SubsystemBase {
         transportMotorDisconnectedAlert.set(!inputs.transportMotorConnected);
         intakePowerMotorDisconnectedAlert.set(!inputs.intakePowerMotorConnected);
         intakePitchMotorDisconnectedAlert.set(!inputs.intakePitchMotorConnected);
+        intakePitchEncoderDisconnectedAlert.set(inputs.intakePitch.getRadians() == 0);
 
         visualizer.update(inputs.intakePitch);
 

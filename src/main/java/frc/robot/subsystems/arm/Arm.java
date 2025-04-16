@@ -49,6 +49,11 @@ public class Arm extends SubsystemBase {
     private final Alert endEffectorMotorDisconnectedAlert = new Alert("End effector motor disconnected!",
         AlertType.kError);
 
+    private final Alert armPitchEncoderDisconnectedAlert = new Alert("Arm pitch encoder reading 0!",
+        AlertType.kWarning);
+    private final Alert armWristEncoderDisconnectedAlert = new Alert("Arm wrist encoder reading 0!",
+        AlertType.kWarning);
+
     private static final LoggedTunableNumber elevatorKg = new LoggedTunableNumber("Arm/elevatorKg");
     private static final LoggedTunableNumber armPitchKg = new LoggedTunableNumber("Arm/pitchKg");
 
@@ -289,6 +294,9 @@ public class Arm extends SubsystemBase {
         endEffectorMotorDisconnectedAlert.set(!inputs.endEffectorMotorConnected);
 
         resetWithAbsoluteSensorOffAlert.set(!resetWithAbsoluteSensorEnabled);
+
+        armPitchEncoderDisconnectedAlert.set(inputs.armPitchPosition.getRadians() == 0);
+        armWristEncoderDisconnectedAlert.set(inputs.armWristPosition.getRadians() == 0);
 
         LoggedTracer.record("Arm");
     }
