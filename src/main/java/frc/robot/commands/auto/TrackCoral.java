@@ -35,6 +35,7 @@ public class TrackCoral extends DriveToPose {
         "TrackCoral/CoralMaxAngleDegrees", 70.0);
 
     private final Debouncer notFoundTimeout = new Debouncer(2.0, Debouncer.DebounceType.kRising);
+    private final Debouncer disconnectedDebounce = new Debouncer(0.25);
     private final Runnable grabbingFailed;
 
     public TrackCoral(Drive drive, boolean noFallback) {
@@ -126,6 +127,8 @@ public class TrackCoral extends DriveToPose {
 
     @Override
     public boolean isFinished() {
+        if(disconnectedDebounce.calculate(RobotState.getInstance().pieceVisionDisconnected)) return true;
+
         boolean timedOut = notFoundTimeout.calculate(RobotState.getInstance().getCoralTranslations().count() == 0);
         if(timedOut && grabbingFailed != null) grabbingFailed.run();
         return timedOut;

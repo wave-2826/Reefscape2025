@@ -84,6 +84,10 @@ public class RobotState {
      * The tracked positions of coral game pieces.
      */
     public ArrayList<CoralPosition> coralPositions = new ArrayList<>();
+    /**
+     * If the piece vision camera is disconnected.
+     */
+    public boolean pieceVisionDisconnected = false;
 
     @AutoLogOutput(key = "Odometry/RobotVelocity")
     private ChassisSpeeds robotVelocity = new ChassisSpeeds();
