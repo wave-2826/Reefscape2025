@@ -234,7 +234,7 @@ public class RobotContainer {
 
         if(DriverStation.isDisabled() && RobotBase.isReal()) {
             // Check if "/U/" exists
-            var file = new File("/U/");
+            var file = new File("/U/logs");
             noThumbDriveAlert.set(!file.exists() || !file.isDirectory());
         }
     }

@@ -34,15 +34,15 @@ public class ScoringSequenceCommands {
     private static LoggedTunableNumber branchScorePitchDown = new LoggedTunableNumber(//
         "AutoScore/BranchScorePitchDown", 35);
     private static LoggedTunableNumber L4ScorePitch = new LoggedTunableNumber(//
-        "AutoScore/L4ScorePitch", 56.);
+        "AutoScore/L4ScorePitch", 45.);
     private static LoggedTunableNumber L4PitchDown = new LoggedTunableNumber(//
-        "AutoScore/L4PitchDown", 65);
+        "AutoScore/L4PitchDown", 54);
 
     private static LoggedTunableNumber[] levelScoreHeights = new LoggedTunableNumber[] {
         new LoggedTunableNumber("AutoScore/L1ScoreHeight", 10), //
         new LoggedTunableNumber("AutoScore/L2ScoreHeight", 6.25), //
         new LoggedTunableNumber("AutoScore/L3ScoreHeight", 22.25), //
-        new LoggedTunableNumber("AutoScore/L4ScoreHeight", 53.5)
+        new LoggedTunableNumber("AutoScore/L4ScoreHeight", 52)
     };
 
     // HACK ..?

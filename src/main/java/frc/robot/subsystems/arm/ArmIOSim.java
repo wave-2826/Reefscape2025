@@ -65,7 +65,7 @@ public class ArmIOSim extends ArmIOReal {
     private Supplier<Pose2d> drivetrainPoseSupplier;
     private Supplier<ChassisSpeeds> robotSpeedSupplier;
 
-    private Debouncer pieceLeavingArmDebounce = new Debouncer(0.1, DebounceType.kRising);
+    private Debouncer pieceLeavingArmDebounce = new Debouncer(0.05, DebounceType.kRising);
 
     public ArmIOSim(Supplier<Pose2d> drivetrainPoseSupplier, Supplier<ChassisSpeeds> robotSpeedSupplier) {
         super(

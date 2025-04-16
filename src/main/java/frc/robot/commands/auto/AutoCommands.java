@@ -48,27 +48,11 @@ public class AutoCommands {
             for(var level : ReefLevel.values()) {
                 ReefTarget target = new ReefTarget(branch, level);
                 // @formatter:off
-                registerLoggedNamedCommand("Wait/Score " + branch.toString() + " " + level.toString(),
-                    Commands.defer(() -> Commands.sequence(
-                        drive.runOnce(drive::stop),
-                        Commands.waitUntil(() -> !IntakeCommands.waitingForPiece).withTimeout(2.5),
-                        AutoScoreCommands.autoScoreCommand(drive, arm, leds, target, true)
-                            .onlyIf(() -> !IntakeCommands.waitingForPiece)
-                    ), Set.of(drive, arm))
-                );
                 registerLoggedNamedCommand("Score " + branch.toString() + " " + level.toString(), Commands.defer(() ->
                     AutoScoreCommands.autoScoreCommand(drive, arm, leds, target, true),
                     Set.of(drive, arm)
                 ));
                 
-                registerLoggedNamedCommand("Fast Wait/Score " + branch.toString() + " " + level.toString(),
-                    Commands.defer(() -> Commands.sequence(
-                        drive.runOnce(drive::stop),
-                        Commands.waitUntil(() -> !IntakeCommands.waitingForPiece).withTimeout(1.5),
-                        AutoScoreCommands.autoScoreCommand(drive, arm, leds, target, false)
-                            .onlyIf(() -> !IntakeCommands.waitingForPiece)
-                    ), Set.of(drive, arm))
-                );
                 registerLoggedNamedCommand("Fast Score " + branch.toString() + " " + level.toString(), Commands.defer(() ->
                     AutoScoreCommands.autoScoreCommand(drive, arm, leds, target, false),
                     Set.of(drive, arm)
@@ -183,7 +167,7 @@ public class AutoCommands {
                 
                 return false;
             }).withTimeout(3.0),
-            new DriveToPose(drive, () -> endPose.value).withTimeout(2.0)
+            new DriveToPose(drive, () -> endPose.value, true).withTimeout(2.0)
         );
         // @formatter:on
     }

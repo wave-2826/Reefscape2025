@@ -61,7 +61,7 @@
         {
           "type": "named",
           "data": {
-            "name": "Fast Wait/Score A L4"
+            "name": "Fast Score A L4"
           }
         },
         {
@@ -91,7 +91,7 @@
         {
           "type": "named",
           "data": {
-            "name": "Wait/Score B L4"
+            "name": "Score B L4"
           }
         }
       ]

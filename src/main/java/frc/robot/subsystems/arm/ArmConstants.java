@@ -1,7 +1,6 @@
 package frc.robot.subsystems.arm;
 
 import static edu.wpi.first.units.Units.Inches;
-import static edu.wpi.first.units.Units.Meters;
 
 import com.revrobotics.spark.ClosedLoopSlot;
 
@@ -21,10 +20,10 @@ import frc.robot.util.GearRatios.UltraPlanetaryRatio;
  */
 public class ArmConstants {
     /** The state that the arm rests in while waiting for a game piece. */
-    public static final ArmState restingState = new ArmState(Rotation2d.fromDegrees(-102), Meters.of(0.5),
+    public static final ArmState restingState = new ArmState(Rotation2d.fromDegrees(-102), Inches.of(18.5),
         WristRotation.Horizontal, EndEffectorState.hold());
     /** The state the arm is in when getting a piece. */
-    public static final ArmState getPieceState = new ArmState(Rotation2d.fromDegrees(-102), Inches.of(11.5),
+    public static final ArmState getPieceState = new ArmState(Rotation2d.fromDegrees(-102), Inches.of(11.25),
         WristRotation.Horizontal, EndEffectorState.velocity(-20));
 
     /** The state when the arm is intaking from the source. */
@@ -92,7 +91,7 @@ public class ArmConstants {
         /**
          * The margin on the elevator top soft stop.
          */
-        public static final Distance softStopMarginTop = Inches.of(5.5);
+        public static final Distance softStopMarginTop = Inches.of(1.5);
 
         /**
          * The translation from the center of the robot at the floor to the center of the elevator support structure on

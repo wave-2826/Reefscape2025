@@ -33,7 +33,7 @@ public class AutoScoreCommands {
     private static final LoggedTunableNumber autoAlignTweakAmount = new LoggedTunableNumber(//
         "AutoScore/AutoAlignTweakInches", 4.5);
 
-    private static final BooleanSupplier resetElevatorDuringScoring = DriverStation::isTeleop;
+    private static final BooleanSupplier resetElevatorDuringScoring = () -> true; // DriverStation::isTeleop;
 
     public static Command autoAlign(Drive drive, LEDs leds, ReefTarget target, DoubleSupplier tweakX,
         DoubleSupplier tweakY, Supplier<FinishBehavior> finishBehavior, BooleanConsumer lineupFeedback) {
@@ -54,12 +54,8 @@ public class AutoScoreCommands {
     }
 
     private static Command resetArmCommand(Arm arm) {
-        // TODO:
-        // - Wait for elevator absolute to be correct before scoring
-        // - Reset automatically if wrong
-        // - Add operator control to turn off
-        return arm.defer(() -> Commands.waitSeconds(0.2).andThen(Commands.runOnce(arm::resetToAbsolute)))
-            .onlyIf(resetElevatorDuringScoring);
+        // TODO: Add operator control to turn off
+        return arm.waitForCorrectAbsolute().onlyIf(resetElevatorDuringScoring);
     }
 
     /**

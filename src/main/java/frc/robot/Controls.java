@@ -212,6 +212,9 @@ public class Controls {
             wristRotation.value = wristRotation.value.next();
         }));
 
+        operator.povRight().and(operatorManual)
+            .onTrue(Commands.runOnce(() -> Arm.resetWithAbsoluteSensorEnabled = !Arm.resetWithAbsoluteSensorEnabled));
+
         operator.b().and(operatorManual).onTrue(Commands.sequence(//
             Commands.runOnce(() -> operatorMode = OperatorMode.Normal), //
             arm.goToStateCommand(ArmConstants.restingState)//
@@ -274,6 +277,9 @@ public class Controls {
             Commands.runOnce(() -> operatorMode = OperatorMode.Normal), //
             arm.goToStateCommand(ArmConstants.restingState)//
         ));
+
+        operator.povRight().and(operatorOverride)
+            .onTrue(Commands.runOnce(() -> Arm.resetWithAbsoluteSensorEnabled = !Arm.resetWithAbsoluteSensorEnabled));
 
         operatorOverride.and(intakeOverride.negate()).and(climberOverride.negate()).whileTrue(arm.run(() -> {
             // Arm control mode

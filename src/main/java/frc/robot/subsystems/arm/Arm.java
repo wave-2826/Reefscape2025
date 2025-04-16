@@ -23,6 +23,8 @@ import frc.robot.RobotState;
 import frc.robot.subsystems.arm.ArmState.WristRotation;
 import frc.robot.util.LoggedTracer;
 import frc.robot.util.LoggedTunableNumber;
+import frc.robot.util.SuppliedWait;
+import frc.robot.commands.LoggedCommand;
 
 /**
  * The arm subsystem. Manages the elevator, arm pitch, arm wrist rotation, and end effector. We combine all these into
@@ -49,6 +51,15 @@ public class Arm extends SubsystemBase {
 
     private static final LoggedTunableNumber elevatorKg = new LoggedTunableNumber("Arm/elevatorKg");
     private static final LoggedTunableNumber armPitchKg = new LoggedTunableNumber("Arm/pitchKg");
+
+    private static final LoggedTunableNumber armResetTolerance = new LoggedTunableNumber(// Inches
+        "Arm/Reset/Tolerance", 0.25);
+    private static final LoggedTunableNumber armResetTimeout = new LoggedTunableNumber(// Seconds
+        "Arm/Reset/Timeout", 0.5);
+
+    public static boolean resetWithAbsoluteSensorEnabled = true;
+    private final Alert resetWithAbsoluteSensorOffAlert = new Alert("Elevator reset with LaserCAN turned off!",
+        AlertType.kInfo);
 
     static {
         elevatorKg.initDefault(Constants.isSim ? ArmConstants.ElevatorConstants.elevatorKgSim
@@ -87,6 +98,26 @@ public class Arm extends SubsystemBase {
         });
     }
 
+    public Command waitForCorrectAbsolute() {
+        if(!resetWithAbsoluteSensorEnabled) return Commands.none();
+
+        // @formatter:off
+        return new LoggedCommand("WaitForCorrect", Commands.sequence(
+            new SuppliedWait(armResetTimeout::get),
+            Commands.runOnce(this::resetToAbsolute)
+        )).until(this::correctAbsoluteMeasurement).andThen(
+            new LoggedCommand("WaitForTargetAfterReset",
+                new SuppliedWait(armResetTimeout::get).until(this::atTargetHeight)
+            )
+        );
+        // @formatter:on
+    }
+
+    private boolean correctAbsoluteMeasurement() {
+        return Math.abs(inputs.absoluteHeightMeters - inputs.elevatorHeightMeters) < Units
+            .inchesToMeters(armResetTolerance.get()) && inputs.validAbsoluteMeasurement;
+    }
+
     private static final double TARGET_HEIGHT_TOLERANCE_METERS = Units.inchesToMeters(1.5);
     private static final double TARGET_PITCH_TOLERANCE_DEGREES = 8.0;
     private static final double TARGET_WRIST_TOLERANCE_DEGREES = 5.0;
@@ -120,9 +151,13 @@ public class Arm extends SubsystemBase {
     }
 
     public void resetToAbsolute() {
-        if(!inputs.validAbsoluteMeasurement && DriverStation.isTeleop()) {
-            Controls.getInstance().controllerRumbleWhileRunning(false, true, RumbleType.kBothRumble).withTimeout(0.2)
-                .andThen(Commands.waitSeconds(0.1)).repeatedly().withTimeout(1).schedule();
+        if(!resetWithAbsoluteSensorEnabled) return;
+
+        if(!inputs.validAbsoluteMeasurement) {
+            if(DriverStation.isTeleop()) {
+                Controls.getInstance().controllerRumbleWhileRunning(false, true, RumbleType.kBothRumble)
+                    .withTimeout(0.2).andThen(Commands.waitSeconds(0.1)).repeatedly().withTimeout(1).schedule();
+            }
         } else {
             io.resetToAbsolute();
         }
@@ -252,6 +287,8 @@ public class Arm extends SubsystemBase {
         armPitchMotorDisconnectedAlert.set(!inputs.armPitchMotorConnected);
         armWristMotorDisconnectedAlert.set(!inputs.armWristMotorConnected);
         endEffectorMotorDisconnectedAlert.set(!inputs.endEffectorMotorConnected);
+
+        resetWithAbsoluteSensorOffAlert.set(!resetWithAbsoluteSensorEnabled);
 
         LoggedTracer.record("Arm");
     }

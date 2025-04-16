@@ -1,6 +1,5 @@
 package frc.robot.subsystems.arm;
 
-import static edu.wpi.first.units.Units.Meters;
 import static frc.robot.util.SparkUtil.*;
 
 import org.littletonrobotics.junction.Logger;
@@ -23,7 +22,6 @@ import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.Alert.AlertType;
@@ -323,13 +321,8 @@ public class ArmIOReal implements ArmIO {
 
     @Override
     public void setElevatorHeight(double heightMeters, double feedforwardVolts) {
-        double extraMargin = Units.inchesToMeters(0.25);
-        double minValue = ArmConstants.ElevatorConstants.softStopMarginBottom.in(Meters) + extraMargin;
-        double maxValue = ArmConstants.ElevatorConstants.maxElevatorHeight.in(Meters)
-            - ArmConstants.ElevatorConstants.softStopMarginTop.in(Meters) - extraMargin;
-
-        elevatorHeightController.setReference(MathUtil.clamp(heightMeters, minValue, maxValue), ControlType.kPosition,
-            ClosedLoopSlot.kSlot0, feedforwardVolts, ArbFFUnits.kVoltage);
+        elevatorHeightController.setReference(heightMeters, ControlType.kPosition, ClosedLoopSlot.kSlot0,
+            feedforwardVolts, ArbFFUnits.kVoltage);
     }
 
     @Override

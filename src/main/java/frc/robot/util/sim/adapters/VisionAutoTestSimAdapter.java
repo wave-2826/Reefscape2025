@@ -28,8 +28,8 @@ public class VisionAutoTestSimAdapter implements SimulationAdapter {
                 boolean onRight = RobotState.getInstance().isOnRightSide();
                 return Commands.sequence(SimControls.dropCoralCommand(onRight, true), Commands.waitSeconds(4),
                     SimControls.dropCoralCommand(onRight, true), Commands.waitSeconds(4),
-                    SimControls.dropCoralCommand(onRight, false), Commands.waitSeconds(4),
-                    SimControls.dropCoralCommand(onRight, false));
+                    SimControls.dropCoralCommand(onRight, true), Commands.waitSeconds(4),
+                    SimControls.dropCoralCommand(onRight, true));
             }, Set.of())//
         ));
     }
