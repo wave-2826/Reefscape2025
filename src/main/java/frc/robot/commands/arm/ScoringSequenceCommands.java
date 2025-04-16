@@ -30,19 +30,19 @@ public class ScoringSequenceCommands {
     private static LoggedTunableNumber gamePieceEjectVelocity = new LoggedTunableNumber(//
         "AutoScore/GamePieceEjectVelocity", 6);
     private static LoggedTunableNumber branchScorePitch = new LoggedTunableNumber(//
-        "AutoScore/BranchScorePitch", 58.);
+        "AutoScore/BranchScorePitch", 58);
     private static LoggedTunableNumber branchScorePitchDown = new LoggedTunableNumber(//
         "AutoScore/BranchScorePitchDown", 35);
     private static LoggedTunableNumber L4ScorePitch = new LoggedTunableNumber(//
-        "AutoScore/L4ScorePitch", 45.);
+        "AutoScore/L4ScorePitch", 40);
     private static LoggedTunableNumber L4PitchDown = new LoggedTunableNumber(//
-        "AutoScore/L4PitchDown", 54);
+        "AutoScore/L4PitchDown", 49);
 
     private static LoggedTunableNumber[] levelScoreHeights = new LoggedTunableNumber[] {
         new LoggedTunableNumber("AutoScore/L1ScoreHeight", 10), //
         new LoggedTunableNumber("AutoScore/L2ScoreHeight", 6.25), //
         new LoggedTunableNumber("AutoScore/L3ScoreHeight", 22.25), //
-        new LoggedTunableNumber("AutoScore/L4ScoreHeight", 52)
+        new LoggedTunableNumber("AutoScore/L4ScoreHeight", 51)
     };
 
     // HACK ..?

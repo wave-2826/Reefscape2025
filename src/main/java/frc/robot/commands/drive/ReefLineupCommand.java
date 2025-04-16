@@ -143,7 +143,10 @@ public class ReefLineupCommand extends DriveToPose {
             return new Pose2d(pose.getTranslation().plus(absoluteOffset.getTranslation()),
                 pose.getRotation().plus(absoluteOffset.getRotation()));
         }, () -> {
-            return RobotState.getInstance().getIndividualReefTagPose(target.branch().face, getLineupPose(target));
+            var estimate = RobotState.getInstance().getIndividualReefTagPose(target.branch().face,
+                getLineupPose(target, 0));
+            Logger.recordOutput("DriveToPose/ReefLineup/Interpolation", estimate.interpolation());
+            return estimate.pose();
         });
 
         this.leds = leds;

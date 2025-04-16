@@ -220,9 +220,6 @@ public class DriveToPose extends Command {
             .interpolate(linearDriverFeedforward.get().times(DriveConstants.maxSpeedMetersPerSec), linearInterp);
         thetaVelocity = MathUtil.interpolate(thetaVelocity,
             thetaDriverFeedforward.getAsDouble() * DriveConstants.maxAngularSpeedRadPerSec, thetaInterp);
-        ChassisSpeeds fieldVelocity = RobotState.getInstance().getFieldVelocity();
-        Translation2d linearFieldVelocity = new Translation2d(fieldVelocity.vxMetersPerSecond,
-            fieldVelocity.vyMetersPerSecond);
 
         // Reset profiles if there's enough driver input
         if(linearInterp >= 0.3 || thetaInterp >= 0.3) {
@@ -236,12 +233,9 @@ public class DriveToPose extends Command {
         ));
 
         // Log
-        Logger.recordOutput("DriveToPose/DistanceMeasured", absoluteTranslationError);
+        Logger.recordOutput("DriveToPose/CurrentPose", currentPose);
 
-        Logger.recordOutput("DriveToPose/VelocityMeasured",
-            -linearFieldVelocity.toVector()
-                .dot(targetPose.getTranslation().minus(currentPose.getTranslation()).toVector())
-                / absoluteTranslationError);
+        Logger.recordOutput("DriveToPose/DistanceMeasured", absoluteTranslationError);
 
         Logger.recordOutput("DriveToPose/ThetaMeasured", currentPose.getRotation().getRadians());
         Logger.recordOutput("DriveToPose/ThetaSetpoint", thetaController.getSetpoint().position);
