@@ -31,7 +31,7 @@ public class ReefLineupCommand extends DriveToPose {
         new LoggedTunableNumber("AutoScore/L1ReefLineupDistance", 33.5),
         new LoggedTunableNumber("AutoScore/L2ReefLineupDistance", 21),
         new LoggedTunableNumber("AutoScore/L3ReefLineupDistance", 22.25),
-        new LoggedTunableNumber("AutoScore/L4ReefLineupDistance", 26)
+        new LoggedTunableNumber("AutoScore/L4ReefLineupDistance", 25.5)
     };
 
     private static final LoggedTunableNumber algaeLineupDistance = new LoggedTunableNumber(//

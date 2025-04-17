@@ -26,8 +26,7 @@ public class IntakeCommands {
         return Commands.sequence(arm.goToStateCommand(ArmConstants.restingState),
             arm.goToStateCommand(ArmConstants.getPieceState, 0.2), Commands.waitSeconds(0.06),
             arm.goToStateCommand(ArmConstants.restingState, 0.2), Commands.runOnce(() -> waitingForPiece = false),
-            arm.goToStateCommand(ArmConstants.prepForScoringState, 0.2).onlyIf(DriverStation::isTeleop),
-            Commands.idle(arm).withTimeout(0.25), arm.runOnce(arm::resetToAbsolute).onlyIf(DriverStation::isTeleop));
+            arm.goToStateCommand(ArmConstants.prepForScoringState, 0.2).onlyIf(DriverStation::isTeleop));
     }
 
     @AutoLogOutput(key = "Intake/CanTake")
