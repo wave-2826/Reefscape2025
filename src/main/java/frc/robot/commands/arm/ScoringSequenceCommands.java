@@ -39,8 +39,8 @@ public class ScoringSequenceCommands {
 
     private static LoggedTunableNumber[] levelScoreHeights = new LoggedTunableNumber[] {
         new LoggedTunableNumber("AutoScore/L1ScoreHeight", 10), //
-        new LoggedTunableNumber("AutoScore/L2ScoreHeight", 6.25), //
-        new LoggedTunableNumber("AutoScore/L3ScoreHeight", 22.25), //
+        new LoggedTunableNumber("AutoScore/L2ScoreHeight", 5.5), //
+        new LoggedTunableNumber("AutoScore/L3ScoreHeight", 21.5), //
         new LoggedTunableNumber("AutoScore/L4ScoreHeight", 51)
     };
 
