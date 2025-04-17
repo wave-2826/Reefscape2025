@@ -56,6 +56,38 @@ public class TrackCoral extends DriveToPose {
         this(drive, leds, grabbingFailed, false, () -> Translation2d.kZero, () -> 0);
     }
 
+    private static boolean isInAcceptablePosition(Translation2d position) {
+        // TODO: Move this to field constants
+        Translation2d sourceSide1 = new Translation2d(0, 6.822);
+        Translation2d sourceSide2 = new Translation2d(1.712, 8.075);
+        double moveDistance = Units.inchesToMeters(14);
+        Translation2d moveBy = new Translation2d(moveDistance, 0.);
+        Rotation2d slope = sourceSide2.minus(sourceSide2).getAngle();
+        Rotation2d moveNormal = slope.plus(Rotation2d.kCW_90deg);
+
+        sourceSide1 = sourceSide1.plus(moveBy.rotateBy(moveNormal));
+        sourceSide2 = sourceSide2.plus(moveBy.rotateBy(moveNormal));
+
+        Translation2d blueSidePosition = AutoBuilder.shouldFlip() ? FlippingUtil.flipFieldPosition(position) : position;
+        boolean isOnRight = blueSidePosition.getY() < FieldConstants.fieldWidth / 2.;
+        Translation2d quadrantPosition = isOnRight ? blueSidePosition
+            : new Translation2d(blueSidePosition.getX(), FieldConstants.fieldWidth - blueSidePosition.getY());
+
+        double lineSlope = Math.atan(slope.getRadians());
+        double yIntercept = sourceSide1.getY() - sourceSide1.getX() * lineSlope;
+        double lineY = lineSlope * quadrantPosition.getX() + yIntercept;
+
+        Logger.recordOutput("Something/ahah", new Pose2d[] {
+            new Pose2d(sourceSide1, Rotation2d.kZero), new Pose2d(sourceSide2, Rotation2d.kZero)
+        });
+        Logger.recordOutput("Something/QuadrantPose", new Pose2d(quadrantPosition, Rotation2d.kZero));
+
+        if(lineY <= quadrantPosition.getY()) return false;
+
+        return position.getX() >= 0 && position.getY() >= 0 && position.getX() <= FieldConstants.fieldLength
+            && position.getY() <= FieldConstants.fieldWidth;
+    }
+
     /**
      * A command that tracks coral pieces and drives toward one. Ends automatically if no coral is seen for a few
      * seconds.
@@ -77,8 +109,7 @@ public class TrackCoral extends DriveToPose {
             Logger.recordOutput("TrackCoral/LookAheadPose", predictedRobot);
 
             Optional<Translation2d> trackedCoralPosition = robotState.getCoralTranslations()
-                .filter(coral -> coral.getX() >= 0 && coral.getY() >= 0 && coral.getX() <= FieldConstants.fieldLength
-                    && coral.getY() <= FieldConstants.fieldWidth)
+                .filter(TrackCoral::isInAcceptablePosition)
                 .min(Comparator.comparingDouble(coral -> coral.getDistance(predictedRobot.getTranslation())
                     + Math.abs(coral.minus(robot.getTranslation()).getAngle().plus(Rotation2d.kPi)
                         .minus(robot.getRotation()).getRadians() * angleDifferenceWeight.get())))

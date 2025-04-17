@@ -141,15 +141,9 @@ public class ScoringSequenceCommands {
 
         // @formatter:off
         return Commands.sequence(
+            arm.goToStateCommand(scoreDownState).withTimeout(0.5),
             Commands.parallel(
-                Commands.sequence(
-                    Commands.waitSeconds(0.2),
-                    arm.goToStateCommand(scoreDownState)
-                ),
-                DriveCommands.driveStraightCommand(drive, Units.feetToMeters(2.5), minimalBackUp ? 0.15 : 0.7, () -> fieldAngle, null)
-            ).withTimeout(0.75),
-            Commands.parallel(
-                arm.goToStateCommand(scoreDownState2).withTimeout(0.75),
+                arm.goToStateCommand(scoreDownState2).withTimeout(0.5),
                 DriveCommands.driveStraightCommand(drive, Units.feetToMeters(minimalBackUp ? -4 : -2), minimalBackUp ? 0.3 : 1.25, () -> fieldAngle, null)
             )
         ).withName("ScoreAt" + level.name() + "Sequence");
