@@ -89,16 +89,16 @@ public class AutoCommands {
 
             if(RobotState.getInstance().isOnRightSide()) {
                 // If on the right side of the field
-                scoringPositionsAvailable.add(new ReefTarget(ReefBranch.D, ReefLevel.L4));
                 scoringPositionsAvailable.add(new ReefTarget(ReefBranch.C, ReefLevel.L4));
                 scoringPositionsAvailable.add(new ReefTarget(ReefBranch.B, ReefLevel.L4));
-                scoringPositionsAvailable.add(new ReefTarget(ReefBranch.A, ReefLevel.L4)); // 5-piece auton!?! lol yeah right...
+                scoringPositionsAvailable.add(new ReefTarget(ReefBranch.A, ReefLevel.L4));
+                scoringPositionsAvailable.add(new ReefTarget(ReefBranch.D, ReefLevel.L4));
             } else {
                 // If on the left side of the field
                 scoringPositionsAvailable.add(new ReefTarget(ReefBranch.K, ReefLevel.L4));
                 scoringPositionsAvailable.add(new ReefTarget(ReefBranch.L, ReefLevel.L4));
                 scoringPositionsAvailable.add(new ReefTarget(ReefBranch.A, ReefLevel.L4));
-                scoringPositionsAvailable.add(new ReefTarget(ReefBranch.B, ReefLevel.L4)); // 5-piece auton!?! lol yeah right...  
+                scoringPositionsAvailable.add(new ReefTarget(ReefBranch.B, ReefLevel.L4));
             }
         }), Commands.sequence( //
             new ScheduleCommand(IntakeCommands.autoIntake(intake, arm))

@@ -78,6 +78,24 @@ public class Arm extends SubsystemBase {
         this.inputs = new ArmIOInputsAutoLogged();
     }
 
+    // HACK
+    public static WristRotation wristOverride = null;
+
+    public static Command adjustWrist(Arm arm, boolean next) {
+        return Commands.runOnce(() -> {
+            if(wristOverride == null) wristOverride = arm.getCurrentTargetState().wristRotation();
+            if(next) {
+                wristOverride = wristOverride.next();
+            } else {
+                wristOverride = wristOverride.previous();
+            }
+        });
+    }
+
+    public static void resetWristOverride() {
+        wristOverride = null;
+    }
+
     public Command goToStateCommand(ArmState state, double timeoutSeconds) {
         return this.run(() -> {
             targetState = state;
@@ -250,6 +268,7 @@ public class Arm extends SubsystemBase {
             targetEndEffector = EndEffectorState.velocity(-8 * degreesOff / 90.);
         }
 
+        if(wristOverride != null) targetWrist = wristOverride;
         return new ArmState(targetState.pitch(), targetState.height(), targetWrist, targetEndEffector);
     }
 

@@ -29,13 +29,13 @@ import org.littletonrobotics.junction.Logger;
 public class DriveToPose extends Command {
     // Drive and turn PID gains
     private static final LoggedTunableNumber drivekP = new LoggedTunableNumber(//
-        "DriveToPose/DrivekP", 3.0);
+        "DriveToPose/DrivekP", 2.75);
     private static final LoggedTunableNumber drivekD = new LoggedTunableNumber(//
         "DriveToPose/DrivekD", 0.0);
     private static final LoggedTunableNumber thetakP = new LoggedTunableNumber(//
-        "DriveToPose/ThetakP", 3.0);
+        "DriveToPose/ThetakP", 2.5);
     private static final LoggedTunableNumber thetakD = new LoggedTunableNumber(//
-        "DriveToPose/ThetakD", 0.0);
+        "DriveToPose/ThetakD", 0.5);
 
     // Tolerances for drive and theta
     private static final LoggedTunableNumber driveTolerance = new LoggedTunableNumber(//

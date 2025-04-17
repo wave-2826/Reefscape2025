@@ -23,9 +23,10 @@ public class IntakeCommands {
     }
 
     public static Command getPieceFromIntake(Arm arm) {
-        return Commands.sequence(arm.goToStateCommand(ArmConstants.restingState),
-            arm.goToStateCommand(ArmConstants.getPieceState, 0.2), Commands.waitSeconds(0.06),
-            arm.goToStateCommand(ArmConstants.restingState, 0.2), Commands.runOnce(() -> waitingForPiece = false),
+        return Commands.sequence(Commands.runOnce(Arm::resetWristOverride),
+            arm.goToStateCommand(ArmConstants.restingState), arm.goToStateCommand(ArmConstants.getPieceState, 0.2),
+            Commands.waitSeconds(0.06), arm.goToStateCommand(ArmConstants.restingState, 0.2),
+            Commands.runOnce(() -> waitingForPiece = false),
             arm.goToStateCommand(ArmConstants.prepForScoringState, 0.2).onlyIf(DriverStation::isTeleop));
     }
 
@@ -42,6 +43,7 @@ public class IntakeCommands {
     public static Command autoIntake(Intake intake, Arm arm) {
         // @formatter:off
         return Commands.sequence(
+            Commands.runOnce(Arm::resetWristOverride),
             intake.runOnce(() -> {
                 intake.setIntakeState(IntakeState.IntakeDown);
             }),
