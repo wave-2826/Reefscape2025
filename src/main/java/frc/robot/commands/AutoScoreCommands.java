@@ -101,22 +101,21 @@ public class AutoScoreCommands {
         return Commands.sequence(//
             Commands.runOnce(() -> {
                 finishOnceAtSetpoint.value = false;
-            }), Commands.parallel(Commands.runOnce(() -> ScoringSequenceCommands.wristOverride = null),
-                Commands.defer(() -> {
-                    return autoAlign(drive, leds, target, tweakX, tweakY, () -> {
-                        if(finishSequence.isPresent()
-                            && RobotState.getInstance().getPose().minus(ReefLineupCommand.getLineupPose(target))
-                                .getTranslation().getNorm() > Units.inchesToMeters(6)
-                            && finishSequence.get().getAsBoolean() && !finishOnceAtSetpoint.value) {
-                            finishOnceAtSetpoint.value = true;
-                        }
+            }), Commands.parallel(Commands.runOnce(Arm::resetWristOverride), Commands.defer(() -> {
+                return autoAlign(drive, leds, target, tweakX, tweakY, () -> {
+                    if(finishSequence.isPresent()
+                        && RobotState.getInstance().getPose().minus(ReefLineupCommand.getLineupPose(target))
+                            .getTranslation().getNorm() > Units.inchesToMeters(6)
+                        && finishSequence.get().getAsBoolean() && !finishOnceAtSetpoint.value) {
+                        finishOnceAtSetpoint.value = true;
+                    }
 
-                        if(finishOnceAtSetpoint.value || finish.isEmpty()) {
-                            return FinishBehavior.EndOnceAtSetpoint;
-                        } else if(finish.orElse(() -> false).getAsBoolean()) { return FinishBehavior.Finish; }
-                        return FinishBehavior.DoNotFinish;
-                    }, lineupFeedback).withTimeout(DriverStation.isAutonomous() ? 5. : 10000.);
-                }, Set.of(drive)),
+                    if(finishOnceAtSetpoint.value || finish.isEmpty()) {
+                        return FinishBehavior.EndOnceAtSetpoint;
+                    } else if(finish.orElse(() -> false).getAsBoolean()) { return FinishBehavior.Finish; }
+                    return FinishBehavior.DoNotFinish;
+                }, lineupFeedback).withTimeout(DriverStation.isAutonomous() ? 5. : 10000.);
+            }, Set.of(drive)),
 
                 Commands.sequence(
                     Commands.waitUntil(() -> !IntakeCommands.waitingForPiece).withTimeout(3)
@@ -179,7 +178,7 @@ public class AutoScoreCommands {
     public static Command removeAlgaeCommand(Drive drive, Arm arm, LEDs leds, ReefTarget target,
         BooleanSupplier finishSequence, DoubleSupplier tweakX, DoubleSupplier tweakY) {
         return Commands.sequence(//
-            Commands.runOnce(() -> ScoringSequenceCommands.wristOverride = null), //
+            Commands.runOnce(Arm::resetWristOverride), //
             ScoringSequenceCommands.prepForAlgaeRemoval(target.level(), arm).withTimeout(2), resetArmCommand(arm),
             autoAlign(drive, leds, target, tweakX, tweakY,
                 () -> finishSequence.getAsBoolean() ? FinishBehavior.Finish : FinishBehavior.DoNotFinish, null), //
