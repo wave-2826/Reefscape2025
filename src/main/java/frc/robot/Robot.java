@@ -300,13 +300,13 @@ public class Robot extends LoggedRobot {
     @Override
     public void simulationInit() {
         SimControls.getInstance().configureControls();
-        for(var adapter : Constants.simAdapters) adapter.postInit();
+        if(Constants.isSim) for(var adapter : Constants.simAdapters) adapter.postInit();
     }
 
     /** This function is called periodically whilst in simulation. */
     @Override
     public void simulationPeriodic() {
         robotContainer.updateSimulation();
-        for(var adapter : Constants.simAdapters) adapter.tick();
+        if(Constants.isSim) for(var adapter : Constants.simAdapters) adapter.tick();
     }
 }

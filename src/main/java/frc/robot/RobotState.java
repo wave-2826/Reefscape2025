@@ -200,7 +200,7 @@ public class RobotState {
             (currentPose.getTranslation().getDistance(finalPose.getTranslation()) - minSingleTagBlendDistance.get())
                 / (maxSingleTagBlendDistance.get() - minSingleTagBlendDistance.get()),
             0.0, 1.0);
-        return new ReefTagPoseEstimate(currentPose.interpolate(individualTagPose.get(), 1.0 - t), 1.0 - t);
+        return new ReefTagPoseEstimate(currentPose.interpolate(individualTagPose.get(), 1 - t), 1 - t);
     }
 
     /**

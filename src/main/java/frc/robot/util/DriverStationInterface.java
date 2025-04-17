@@ -119,13 +119,8 @@ public class DriverStationInterface {
 
                 jsonData.append("{\"name\": \"").append(choice).append("\", \"poses\": [");
 
-                List<PathPlannerPath> paths = new ArrayList<>();
-                paths = PathPlannerAuto.getPathGroupFromAutoFile(choice);
-                for(PathPlannerPath path : paths) {
-                    path.preventFlipping = true;
-                }
-
-                PathPlannerTrajectory simulatedPath = simulateAuto(paths, DriveConstants.pathplannerConfig);
+                List<PathPlannerPath> pathGroup = PathPlannerAuto.getPathGroupFromAutoFile(choice);
+                PathPlannerTrajectory simulatedPath = simulateAuto(pathGroup, DriveConstants.pathplannerConfig);
 
                 double sampleInterval = 0.04;
                 double totalTime = Math.min(simulatedPath.getTotalTimeSeconds(), 15);
