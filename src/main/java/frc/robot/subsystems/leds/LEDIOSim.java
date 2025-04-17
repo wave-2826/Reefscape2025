@@ -1,7 +1,7 @@
 package frc.robot.subsystems.leds;
 
-import org.littletonrobotics.junction.Logger;
-
+import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.networktables.StringArrayPublisher;
 import edu.wpi.first.wpilibj.util.Color;
 
 /**
@@ -11,6 +11,8 @@ import edu.wpi.first.wpilibj.util.Color;
  */
 public class LEDIOSim implements LEDIO {
     private final String[] LEDData;
+    private final StringArrayPublisher ledsPath = NetworkTableInstance.getDefault().getStringArrayTopic("Sim/LEDs")
+        .publish();
 
     public LEDIOSim() {
         LEDData = new String[LEDConstants.ledCount];
@@ -26,6 +28,6 @@ public class LEDIOSim implements LEDIO {
             LEDData[i] = colors[i].toHexString();
         }
 
-        Logger.recordOutput("LEDs/SimLEDs", LEDData);
+        ledsPath.accept(LEDData);
     }
 }

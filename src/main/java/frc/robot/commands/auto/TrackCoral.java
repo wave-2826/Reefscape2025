@@ -20,6 +20,8 @@ import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.Timer;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.drive.DriveConstants;
+import frc.robot.subsystems.leds.LEDs;
+import frc.robot.subsystems.leds.LEDs.LEDState;
 import frc.robot.util.LoggedTunableNumber;
 import frc.robot.FieldConstants;
 import frc.robot.RobotState;
@@ -37,20 +39,21 @@ public class TrackCoral extends DriveToPose {
     private final Debouncer notFoundTimeout = new Debouncer(2.0, Debouncer.DebounceType.kRising);
     private final Debouncer disconnectedDebounce = new Debouncer(0.25);
     private final Runnable grabbingFailed;
+    private final LEDs leds;
 
-    public TrackCoral(Drive drive, boolean noFallback) {
-        this(drive, () -> {
+    public TrackCoral(Drive drive, LEDs leds, boolean noFallback) {
+        this(drive, leds, () -> {
         }, noFallback, () -> Translation2d.kZero, () -> 0);
     }
 
-    public TrackCoral(Drive drive, boolean noFallback, Supplier<Translation2d> linearDriverFeedforward,
+    public TrackCoral(Drive drive, LEDs leds, boolean noFallback, Supplier<Translation2d> linearDriverFeedforward,
         DoubleSupplier thetaDriverFeedforward) {
-        this(drive, () -> {
+        this(drive, leds, () -> {
         }, noFallback, linearDriverFeedforward, thetaDriverFeedforward);
     }
 
-    public TrackCoral(Drive drive, Runnable grabbingFailed) {
-        this(drive, grabbingFailed, false, () -> Translation2d.kZero, () -> 0);
+    public TrackCoral(Drive drive, LEDs leds, Runnable grabbingFailed) {
+        this(drive, leds, grabbingFailed, false, () -> Translation2d.kZero, () -> 0);
     }
 
     /**
@@ -64,7 +67,7 @@ public class TrackCoral extends DriveToPose {
      * @param thetaDriverFeedforward The angular feedforward for the driver. This is used to partially override the
      *            tracking velocity based on driver input.
      */
-    public TrackCoral(Drive drive, Runnable grabbingFailed, boolean noFallback,
+    public TrackCoral(Drive drive, LEDs leds, Runnable grabbingFailed, boolean noFallback,
         Supplier<Translation2d> linearDriverFeedforward, DoubleSupplier thetaDriverFeedforward) {
         super(drive, () -> {
             RobotState robotState = RobotState.getInstance();
@@ -82,6 +85,8 @@ public class TrackCoral extends DriveToPose {
                 .filter(coral -> coral.getDistance(predictedRobot.getTranslation()) <= coralMaxDistance.get()
                     && Math.abs(coral.minus(robot.getTranslation()).getAngle().plus(Rotation2d.kPi)
                         .minus(robot.getRotation()).getDegrees()) <= coralMaxAngleDeg.get());
+
+            leds.setStateActive(LEDState.CoralSeen, trackedCoralPosition.isPresent());
 
             Pose2d target = trackedCoralPosition.<Pose2d>map(coralPosition -> {
                 Logger.recordOutput("TrackCoral/TargetedCoral", new Pose3d[] {
@@ -117,6 +122,7 @@ public class TrackCoral extends DriveToPose {
         }, linearDriverFeedforward, thetaDriverFeedforward);
 
         this.grabbingFailed = grabbingFailed;
+        this.leds = leds;
     }
 
     @Override
@@ -138,5 +144,6 @@ public class TrackCoral extends DriveToPose {
     public void end(boolean interrupted) {
         super.end(interrupted);
         Logger.recordOutput("TrackCoral/TargetedCoral", new Pose3d[] {});
+        leds.disableState(LEDState.CoralSeen);
     }
 }

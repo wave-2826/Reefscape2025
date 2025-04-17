@@ -105,7 +105,7 @@ public class AutoCommands {
                 .beforeStarting(() -> IntakeCommands.waitingForPiece = true), //
 
             // TODO: DO not try to track if the piece vision camera is disconnected
-            new LoggedCommand("Grab Coral", new TrackCoral(drive, () -> grabbingCoralFailed = true).until(() -> {
+            new LoggedCommand("Grab Coral", new TrackCoral(drive, leds, () -> grabbingCoralFailed = true).until(() -> {
                 if(intake.intakeSensorTriggered()) return true;
 
                 // If the robot is at risk of running into the wall, stop.

@@ -87,7 +87,7 @@ public class Controls {
 
         // Switch to X pattern when X button is pressed
         driver.x()
-            .whileTrue(new TrackCoral(drive, true,
+            .whileTrue(new TrackCoral(drive, leds, true,
                 () -> DriveCommands.getLinearVelocityFromJoysticks(-driver.getLeftY(), -driver.getLeftX())
                     .times(AutoBuilder.shouldFlip() ? -1.0 : 1.0),
                 () -> -driver.getRightX())

@@ -126,6 +126,8 @@ public class LEDs extends SubsystemBase {
         AutoScoring((leds) -> leds.rainbow()), //
         AutoScoreReady((leds) -> leds.pulse(Color.kPurple, Color.kPink, 0.3)), //
 
+        CoralSeen((leds) -> leds.rainbow(0.5, 0.5)), // Active during coral tracking when a piece is seen
+
         HitWall(LEDs::hitWall, LEDCompositingMode.Value), // Active when the robot hits a wall
 
         Disabled((leds) -> leds.gradient(leds.allianceDark(), leds.allianceLight(), 5.0)), // Active when the robot is disabled
@@ -313,10 +315,17 @@ public class LEDs extends SubsystemBase {
     /**
      * A moving rainbow effect.
      */
-    public void rainbow() {
+    private void rainbow() {
+        rainbow(1, 1);
+    }
+
+    /**
+     * A moving rainbow effect.
+     */
+    public void rainbow(double saturationScalar, double speedScalar) {
         for(int i = 0; i < LEDConstants.ledCount; i++) {
-            double t = (time + i / (double) LEDConstants.ledCount) % 1.;
-            setLEDColor(i, Color.fromHSV((int) (t * 255), 255, 255));
+            double t = (time * speedScalar + i / (double) LEDConstants.ledCount) % 1.;
+            setLEDColor(i, Color.fromHSV((int) (t * 255), (int) (255 * saturationScalar), 255));
         }
     }
 
