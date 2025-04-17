@@ -35,7 +35,7 @@ public class DriveToPose extends Command {
     private static final LoggedTunableNumber thetakP = new LoggedTunableNumber(//
         "DriveToPose/ThetakP", 2.5);
     private static final LoggedTunableNumber thetakD = new LoggedTunableNumber(//
-        "DriveToPose/ThetakD", 0.5);
+        "DriveToPose/ThetakD", 0.0);
 
     // Tolerances for drive and theta
     private static final LoggedTunableNumber driveTolerance = new LoggedTunableNumber(//
@@ -89,7 +89,7 @@ public class DriveToPose extends Command {
 
     private TrapezoidProfile driveProfile;
     private final PIDController driveController = new PIDController(0.0, 0.0, 0.0);
-    private final ProfiledPIDController thetaController = new ProfiledPIDController(0.0, 0.0, 0.0,
+    protected final ProfiledPIDController thetaController = new ProfiledPIDController(0.0, 0.0, 0.0,
         new TrapezoidProfile.Constraints(0.0, 0.0));
 
     private Translation2d lastSetpointTranslation = Translation2d.kZero;

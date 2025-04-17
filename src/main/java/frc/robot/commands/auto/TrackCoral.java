@@ -163,6 +163,12 @@ public class TrackCoral extends DriveToPose {
     }
 
     @Override
+    public void execute() {
+        thetaController.setP(2.0);
+        super.execute();
+    }
+
+    @Override
     public boolean isFinished() {
         if(disconnectedDebounce.calculate(RobotState.getInstance().pieceVisionDisconnected)) return true;
 
