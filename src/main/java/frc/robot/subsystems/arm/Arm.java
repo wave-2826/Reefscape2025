@@ -298,6 +298,7 @@ public class Arm extends SubsystemBase {
 
             State goalState = new State(adjustedTarget.height().in(Meters), 0);
             State targetState = elevatorProfile.calculate(0.02, lastTrapezoidTargetState, goalState);
+            lastTrapezoidTargetState = targetState;
 
             io.setElevatorHeight(targetState.position, elevatorKg.get());
             io.setArmPitchPosition(adjustedTarget.pitch(),
