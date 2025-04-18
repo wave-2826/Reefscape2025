@@ -55,14 +55,15 @@ public class ArmConstants {
         public static final double elevatorKgReal = 0.3;
         public static final double elevatorKgSim = 0.3;
 
-        public static final int elevatorMotorCurrentLimit = 45;
+        public static final int elevatorMotorCurrentLimit = 40;
         public static final boolean elevatorMotorInverted = true;
 
         public static final double elevatorReduction = 5.;
+        public static final double elevatorMovementCorrectionFactor = 0.797 / 0.834;
         public static final double elevatorDrumRadiusMeters = Units.inchesToMeters(1.88 / 2.);
         /** The conversion factor from elevator motor rotations to height in meters. */
         public static final double elevatorPositionConversionFactor = 2 * Math.PI * elevatorDrumRadiusMeters
-            / elevatorReduction;
+            / elevatorReduction * elevatorMovementCorrectionFactor;
 
         /** The conversion factor from elevator motor RPM to velocity in meters per second. */
         public static final double elevatorVelocityConversionFactor = elevatorPositionConversionFactor / 60.;
