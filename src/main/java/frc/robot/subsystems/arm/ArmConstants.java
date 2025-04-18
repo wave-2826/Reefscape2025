@@ -40,8 +40,8 @@ public class ArmConstants {
         public static final double elevatorStartingHeightMeters = 0.34;
         public static final double bottomResetHeightMeters = 0.085;
 
-        public static final int elevatorHeightMotor1Id = 50;
-        public static final int elevatorHeightMotor2Id = 51;
+        public static final int elevatorHeightMotorLeaderId = 50;
+        public static final int elevatorHeightMotorFollowerId = 51;
         public static final int elevatorHeightSensorId = 54;
 
         // PID constants for the elevator position PID

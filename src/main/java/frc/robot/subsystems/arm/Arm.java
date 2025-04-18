@@ -9,6 +9,8 @@ import org.littletonrobotics.junction.Logger;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.trajectory.TrapezoidProfile;
+import edu.wpi.first.math.trajectory.TrapezoidProfile.State;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.DriverStation;
@@ -62,6 +64,11 @@ public class Arm extends SubsystemBase {
     private static final LoggedTunableNumber armResetTimeout = new LoggedTunableNumber(// Seconds
         "Arm/Reset/Timeout", 0.25);
 
+    private static final LoggedTunableNumber elevatorMaxAcceleration = new LoggedTunableNumber( // Meters per second per second
+        "Arm/ElevatorMaxAcceleration", 6); // Determined from match data
+    private static final LoggedTunableNumber elevatorMaxVelocity = new LoggedTunableNumber( // Meters per second
+        "Arm/ElevatorMaxVelocity", 1000); // No limit
+
     public static boolean resetWithAbsoluteSensorEnabled = true;
     private final Alert resetWithAbsoluteSensorOffAlert = new Alert("Elevator reset with LaserCAN turned off!",
         AlertType.kInfo);
@@ -72,6 +79,8 @@ public class Arm extends SubsystemBase {
         armPitchKg.initDefault(Constants.isSim ? ArmConstants.ShoulderConstants.armPitchKgSim
             : ArmConstants.ShoulderConstants.armPitchKgReal);
     }
+
+    private TrapezoidProfile elevatorProfile = new TrapezoidProfile(new TrapezoidProfile.Constraints(0, 0));
 
     public Arm(ArmIO io) {
         this.io = io;
@@ -277,10 +286,19 @@ public class Arm extends SubsystemBase {
         io.updateInputs(inputs);
         Logger.processInputs("Arm", inputs);
 
+        if(elevatorMaxAcceleration.hasChanged(hashCode()) || elevatorMaxVelocity.hasChanged(hashCode())) {
+            elevatorProfile = new TrapezoidProfile(
+                new TrapezoidProfile.Constraints(elevatorMaxAcceleration.get(), elevatorMaxVelocity.get()));
+        }
+
         if(targetState != null) {
             adjustedTarget = getAdjustedTarget();
 
-            io.setElevatorHeight(adjustedTarget.height().in(Meters), elevatorKg.get());
+            State goalState = new State(adjustedTarget.height().in(Meters), 0);
+            State targetState = elevatorProfile.calculate(0.02,
+                new State(inputs.elevatorHeightMeters, inputs.elevatorVelocityMetersPerSecond), goalState);
+
+            io.setElevatorHeight(targetState.position, elevatorKg.get());
             io.setArmPitchPosition(adjustedTarget.pitch(),
                 Math.abs(Math.cos(inputs.armPitchPosition.getRadians())) * armPitchKg.get());
             io.setWristRotation(adjustedTarget.wristRotation());
