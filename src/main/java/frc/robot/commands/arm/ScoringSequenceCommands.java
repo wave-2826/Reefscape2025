@@ -33,9 +33,9 @@ public class ScoringSequenceCommands {
     private static LoggedTunableNumber branchScorePitchDown = new LoggedTunableNumber(//
         "AutoScore/BranchScorePitchDown", 50);
     private static LoggedTunableNumber L4ScorePitch = new LoggedTunableNumber(//
-        "AutoScore/L4ScorePitch", 40);
+        "AutoScore/L4ScorePitch", 43);
     private static LoggedTunableNumber L4PitchDown = new LoggedTunableNumber(//
-        "AutoScore/L4PitchDown", 49);
+        "AutoScore/L4PitchDown", 52);
 
     private static LoggedTunableNumber[] levelScoreHeights = new LoggedTunableNumber[] {
         new LoggedTunableNumber("AutoScore/L1ScoreHeight", 10), //
@@ -124,7 +124,10 @@ public class ScoringSequenceCommands {
         return Commands.parallel(
             Commands.runOnce(Arm::resetWristOverride),
             arm.goToStateCommand(scoreDownState).withTimeout(0.75),
-            DriveCommands.driveStraightCommand(drive, Units.feetToMeters(minimalBackUp ? -4 : -1.5), minimalBackUp ? 0.3 : 1.5, () -> fieldAngle, null)
+            Commands.sequence(
+                Commands.waitSeconds(0.15),
+                DriveCommands.driveStraightCommand(drive, Units.feetToMeters(minimalBackUp ? -4 : -3), minimalBackUp ? 0.3 : 1.5, () -> fieldAngle, null)
+            )
         ).withName("ScoreAt" + level.name() + "Sequence");
         // @formatter:on
     }
