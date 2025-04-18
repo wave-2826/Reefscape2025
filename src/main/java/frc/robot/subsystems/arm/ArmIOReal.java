@@ -262,9 +262,9 @@ public class ArmIOReal implements ArmIO {
 
         // NOTE: We used to take the average of these two motors. DO NOT DO THIS WITH FOLLOWER MODE!!
         // This was the source of longstanding resetting bugs :(
-        ifOk(elevatorHeightMotorLeader, leaderElevatorHeightEncoder::getPosition,
+        ifOk(elevatorHeightMotorFollower, followerElevatorHeightEncoder::getPosition,
             (v) -> inputs.elevatorHeightMeters = v);
-        ifOk(elevatorHeightMotorLeader, leaderElevatorHeightEncoder::getVelocity,
+        ifOk(elevatorHeightMotorFollower, followerElevatorHeightEncoder::getVelocity,
             (v) -> inputs.elevatorVelocityMetersPerSecond = v);
         inputs.elevatorMotorsConnected = elevatorConnectedDebouncer.calculate(!sparkStickyFault);
 

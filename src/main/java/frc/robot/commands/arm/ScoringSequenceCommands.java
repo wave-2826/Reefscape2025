@@ -101,9 +101,8 @@ public class ScoringSequenceCommands {
                 EndEffectorState.velocity(gamePieceEjectVelocity.get()));
 
             // @formatter:off
-            return minimalBackUp ? Commands.parallel(
-                arm.goToStateCommand(scoreDownState, 0.25),
-                DriveCommands.driveStraightCommand(drive, Units.feetToMeters(-8), 0.15, () -> fieldAngle, null)
+            return minimalBackUp ? arm.goToStateCommand(scoreDownState, 0.25).deadlineFor(
+                DriveCommands.driveStraightCommand(drive, Units.feetToMeters(-8), () -> fieldAngle, null)
             ) : Commands.sequence(
                 Commands.parallel(
                     arm.goToStateCommand(scoreDownState, 0.25),
