@@ -65,7 +65,7 @@ public class Arm extends SubsystemBase {
         "Arm/Reset/Timeout", 0.25);
 
     private static final LoggedTunableNumber elevatorMaxAcceleration = new LoggedTunableNumber( // Meters per second per second
-        "Arm/ElevatorMaxAcceleration", 6); // Determined from match data
+        "Arm/ElevatorMaxAcceleration", 25); // Determined from match data
     private static final LoggedTunableNumber elevatorMaxVelocity = new LoggedTunableNumber( // Meters per second
         "Arm/ElevatorMaxVelocity", 1000); // No limit
 
