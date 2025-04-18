@@ -55,7 +55,7 @@ public class ArmConstants {
         public static final double elevatorKgReal = 0.3;
         public static final double elevatorKgSim = 0.3;
 
-        public static final int elevatorMotorCurrentLimit = 45;
+        public static final int elevatorMotorCurrentLimit = 20;
         public static final boolean elevatorMotorInverted = true;
 
         public static final double elevatorReduction = 5.;
