@@ -98,11 +98,14 @@ public class AutoScoreCommands {
         Optional<BooleanSupplier> finish = finishSequence
             .map(f -> (() -> (f.getAsBoolean() || finishSequenceSlow.getAsBoolean())));
 
-        return Commands.sequence(//
-            Commands.runOnce(() -> {
-                finishOnceAtSetpoint.value = false;
-            }), Commands.parallel(Commands.runOnce(Arm::resetWristOverride), Commands.defer(() -> {
-                return autoAlign(drive, leds, target, tweakX, tweakY, () -> {
+        // @formatter:off
+        return Commands.sequence(
+            Commands.parallel(
+                Commands.runOnce(() -> {
+                    finishOnceAtSetpoint.value = false;
+                    Arm.resetWristOverride();
+                }),
+                Commands.defer(() -> autoAlign(drive, leds, target, tweakX, tweakY, () -> {
                     if(finishSequence.isPresent()
                         && RobotState.getInstance().getPose().minus(ReefLineupCommand.getLineupPose(target))
                             .getTranslation().getNorm() > Units.inchesToMeters(6)
@@ -112,24 +115,28 @@ public class AutoScoreCommands {
 
                     if(finishOnceAtSetpoint.value || finish.isEmpty()) {
                         return FinishBehavior.EndOnceAtSetpoint;
-                    } else if(finish.orElse(() -> false).getAsBoolean()) { return FinishBehavior.Finish; }
+                    } else if(finish.orElse(() -> false).getAsBoolean()) {
+                        return FinishBehavior.Finish;
+                    }
                     return FinishBehavior.DoNotFinish;
-                }, lineupFeedback).withTimeout(DriverStation.isAutonomous() ? 5. : 10000.);
-            }, Set.of(drive)),
+                }, lineupFeedback).withTimeout(DriverStation.isAutonomous() ? 5. : 10000.), Set.of(drive)),
 
                 Commands.sequence(
-                    Commands.waitUntil(() -> !IntakeCommands.waitingForPiece).withTimeout(3)
-                        .onlyIf(DriverStation::isAutonomous),
+                    Commands.waitUntil(() -> !IntakeCommands.waitingForPiece).withTimeout(3).onlyIf(DriverStation::isAutonomous),
                     ScoringSequenceCommands.middleArmMovement(target.level(), arm).withTimeout(3),
-                    resetArmCommand(arm))),
+                    resetArmCommand(arm)
+                )
+            ),
             Commands.either(
                 ScoringSequenceCommands.scoreAtLevelSlowly(target.level(), arm)
                     .deadlineFor(leds.runStateCommand(LEDState.AutoScoring)),
                 ScoringSequenceCommands
                     .scoreAtLevel(target.level(), arm, drive, target.branch().face.getFieldAngle(), !driveBackward)
                     .deadlineFor(leds.runStateCommand(LEDState.AutoScoring)),
-                finishSequenceSlow::getAsBoolean))
-            .withName("AutoScore" + target.toString());
+                finishSequenceSlow::getAsBoolean
+            )
+        ).withName("AutoScore" + target.toString());
+        // @formatter:on
     }
 
     /**
