@@ -305,6 +305,7 @@ public class Arm extends SubsystemBase {
             io.setEndEffectorState(adjustedTarget.endEffectorState());
 
             Logger.recordOutput("Arm/TargetHeight", adjustedTarget.height().in(Meters));
+            Logger.recordOutput("Arm/TargetHeightProfiled", targetState.position);
             Logger.recordOutput("Arm/TargetPitch", adjustedTarget.pitch().getRadians());
             Logger.recordOutput("Arm/TargetWrist", adjustedTarget.wristRotation().rotation.getRadians());
             Logger.recordOutput("Arm/TargetEndEffector",
