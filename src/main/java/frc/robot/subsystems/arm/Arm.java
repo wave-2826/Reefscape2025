@@ -248,6 +248,12 @@ public class Arm extends SubsystemBase {
             return false;
         }
 
+        // If the elevator is far from our setpoint, don't trust ourself
+        // HACK?
+        if(Math.abs(inputs.elevatorHeightMeters - adjustedTarget.height().in(Meters)) > Units.inchesToMeters(5)) {
+            return false;
+        }
+
         // If the current target arm pitch is above the given threshold, we are safe to line up
         double highSafePitch = 20;
         if(adjustedTarget.pitch().getDegrees() > highSafePitch && lookaheadArmPosition.getDegrees() > highSafePitch) {
