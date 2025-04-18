@@ -288,7 +288,7 @@ public class Arm extends SubsystemBase {
 
         if(elevatorMaxAcceleration.hasChanged(hashCode()) || elevatorMaxVelocity.hasChanged(hashCode())) {
             elevatorProfile = new TrapezoidProfile(
-                new TrapezoidProfile.Constraints(elevatorMaxAcceleration.get(), elevatorMaxVelocity.get()));
+                new TrapezoidProfile.Constraints(elevatorMaxVelocity.get(), elevatorMaxAcceleration.get()));
         }
 
         if(targetState != null) {
