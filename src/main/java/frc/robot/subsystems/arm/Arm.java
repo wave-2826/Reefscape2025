@@ -65,9 +65,9 @@ public class Arm extends SubsystemBase {
         "Arm/Reset/Timeout", 0.25);
 
     private static final LoggedTunableNumber elevatorMaxAcceleration = new LoggedTunableNumber( // Meters per second per second
-        "Arm/ElevatorMaxAcceleration", 20); // Determined from match data
+        "Arm/ElevatorMaxAcceleration", 30); // Determined from match data
     private static final LoggedTunableNumber elevatorMaxVelocity = new LoggedTunableNumber( // Meters per second
-        "Arm/ElevatorMaxVelocity", 1000); // No limit
+        "Arm/ElevatorMaxVelocity", 1); // No limit
 
     public static boolean resetWithAbsoluteSensorEnabled = true;
     private final Alert resetWithAbsoluteSensorOffAlert = new Alert("Elevator reset with LaserCAN turned off!",
