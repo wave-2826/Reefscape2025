@@ -81,6 +81,7 @@ public class Arm extends SubsystemBase {
     }
 
     private TrapezoidProfile elevatorProfile = new TrapezoidProfile(new TrapezoidProfile.Constraints(0, 0));
+    private State lastTrapezoidTargetState = new State(0, 0);
 
     public Arm(ArmIO io) {
         this.io = io;
@@ -289,14 +290,14 @@ public class Arm extends SubsystemBase {
         if(elevatorMaxAcceleration.hasChanged(hashCode()) || elevatorMaxVelocity.hasChanged(hashCode())) {
             elevatorProfile = new TrapezoidProfile(
                 new TrapezoidProfile.Constraints(elevatorMaxVelocity.get(), elevatorMaxAcceleration.get()));
+            lastTrapezoidTargetState = new State(inputs.elevatorHeightMeters, inputs.elevatorVelocityMetersPerSecond);
         }
 
         if(targetState != null) {
             adjustedTarget = getAdjustedTarget();
 
             State goalState = new State(adjustedTarget.height().in(Meters), 0);
-            State targetState = elevatorProfile.calculate(0.02,
-                new State(inputs.elevatorHeightMeters, inputs.elevatorVelocityMetersPerSecond), goalState);
+            State targetState = elevatorProfile.calculate(0.02, lastTrapezoidTargetState, goalState);
 
             io.setElevatorHeight(targetState.position, elevatorKg.get());
             io.setArmPitchPosition(adjustedTarget.pitch(),
@@ -314,6 +315,8 @@ public class Arm extends SubsystemBase {
             Logger.recordOutput("Arm/AtTargetWrist", atTargetWrist());
             Logger.recordOutput("Arm/AtTargetHeight", atTargetHeight());
             Logger.recordOutput("Arm/AtTarget", isAtTarget());
+        } else {
+            lastTrapezoidTargetState = new State(inputs.elevatorHeightMeters, inputs.elevatorVelocityMetersPerSecond);
         }
 
         visualizer.update(inputs.elevatorHeightMeters, inputs.armPitchPosition, inputs.armWristPosition,
