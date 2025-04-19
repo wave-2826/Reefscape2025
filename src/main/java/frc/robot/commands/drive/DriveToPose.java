@@ -39,7 +39,7 @@ public class DriveToPose extends Command {
 
     // Tolerances for drive and theta
     private static final LoggedTunableNumber driveTolerance = new LoggedTunableNumber(//
-        "DriveToPose/DriveTolerance", 0.35);
+        "DriveToPose/DriveTolerance", 0.4);
     private static final LoggedTunableNumber thetaTolerance = new LoggedTunableNumber(//
         "DriveToPose/ThetaTolerance", 1);
 
