@@ -23,7 +23,7 @@ public class ArmConstants {
     public static final ArmState restingState = new ArmState(Rotation2d.fromDegrees(-102), Inches.of(18.5),
         WristRotation.Horizontal, EndEffectorState.hold());
     /** The state the arm is in when getting a piece. */
-    public static final ArmState getPieceState = new ArmState(Rotation2d.fromDegrees(-102), Inches.of(11.25),
+    public static final ArmState getPieceState = new ArmState(Rotation2d.fromDegrees(-102), Inches.of(11.5),
         WristRotation.Horizontal, EndEffectorState.velocity(-20));
 
     /** The state when the arm is intaking from the source. */
@@ -40,8 +40,8 @@ public class ArmConstants {
         public static final double elevatorStartingHeightMeters = 0.34;
         public static final double bottomResetHeightMeters = 0.085;
 
-        public static final int elevatorHeightMotor1Id = 50;
-        public static final int elevatorHeightMotor2Id = 51;
+        public static final int elevatorHeightMotorLeaderId = 50;
+        public static final int elevatorHeightMotorFollowerId = 51;
         public static final int elevatorHeightSensorId = 54;
 
         // PID constants for the elevator position PID
@@ -59,10 +59,12 @@ public class ArmConstants {
         public static final boolean elevatorMotorInverted = true;
 
         public static final double elevatorReduction = 5.;
+        // public static final double elevatorMovementCorrectionFactor = 0.797 / 0.834;
+        public static final double elevatorMovementCorrectionFactor = 1;
         public static final double elevatorDrumRadiusMeters = Units.inchesToMeters(1.88 / 2.);
         /** The conversion factor from elevator motor rotations to height in meters. */
         public static final double elevatorPositionConversionFactor = 2 * Math.PI * elevatorDrumRadiusMeters
-            / elevatorReduction;
+            / elevatorReduction * elevatorMovementCorrectionFactor;
 
         /** The conversion factor from elevator motor RPM to velocity in meters per second. */
         public static final double elevatorVelocityConversionFactor = elevatorPositionConversionFactor / 60.;
@@ -124,7 +126,7 @@ public class ArmConstants {
         public static final int armWristMotorId = 53;
 
         /** The wrist absolute encoder zero offset, in radians. */
-        public static final double wristZeroOffset = 0.1882066;
+        public static final double wristZeroOffset = 0.6916269;
         /** The pitch absolute encoder zero offset, in radians. */
         public static final double pitchZeroOffset = 0.3511382;
 

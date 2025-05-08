@@ -20,6 +20,8 @@ import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.Timer;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.drive.DriveConstants;
+import frc.robot.subsystems.leds.LEDs;
+import frc.robot.subsystems.leds.LEDs.LEDState;
 import frc.robot.util.LoggedTunableNumber;
 import frc.robot.FieldConstants;
 import frc.robot.RobotState;
@@ -35,21 +37,55 @@ public class TrackCoral extends DriveToPose {
         "TrackCoral/CoralMaxAngleDegrees", 70.0);
 
     private final Debouncer notFoundTimeout = new Debouncer(2.0, Debouncer.DebounceType.kRising);
+    private final Debouncer disconnectedDebounce = new Debouncer(0.25);
     private final Runnable grabbingFailed;
+    private final LEDs leds;
 
-    public TrackCoral(Drive drive, boolean noFallback) {
-        this(drive, () -> {
+    public TrackCoral(Drive drive, LEDs leds, boolean noFallback) {
+        this(drive, leds, () -> {
         }, noFallback, () -> Translation2d.kZero, () -> 0);
     }
 
-    public TrackCoral(Drive drive, boolean noFallback, Supplier<Translation2d> linearDriverFeedforward,
+    public TrackCoral(Drive drive, LEDs leds, boolean noFallback, Supplier<Translation2d> linearDriverFeedforward,
         DoubleSupplier thetaDriverFeedforward) {
-        this(drive, () -> {
+        this(drive, leds, () -> {
         }, noFallback, linearDriverFeedforward, thetaDriverFeedforward);
     }
 
-    public TrackCoral(Drive drive, Runnable grabbingFailed) {
-        this(drive, grabbingFailed, false, () -> Translation2d.kZero, () -> 0);
+    public TrackCoral(Drive drive, LEDs leds, Runnable grabbingFailed) {
+        this(drive, leds, grabbingFailed, false, () -> Translation2d.kZero, () -> 0);
+    }
+
+    private static boolean isInAcceptablePosition(Translation2d position) {
+        // TODO: Move this to field constants
+        Translation2d sourceSide1 = new Translation2d(0, 6.822);
+        Translation2d sourceSide2 = new Translation2d(1.712, 8.075);
+        double moveDistance = Units.inchesToMeters(14);
+        Translation2d moveBy = new Translation2d(moveDistance, 0.);
+        Rotation2d slope = sourceSide2.minus(sourceSide2).getAngle();
+        Rotation2d moveNormal = slope.plus(Rotation2d.kCW_90deg);
+
+        sourceSide1 = sourceSide1.plus(moveBy.rotateBy(moveNormal));
+        sourceSide2 = sourceSide2.plus(moveBy.rotateBy(moveNormal));
+
+        Translation2d blueSidePosition = AutoBuilder.shouldFlip() ? FlippingUtil.flipFieldPosition(position) : position;
+        boolean isOnRight = blueSidePosition.getY() < FieldConstants.fieldWidth / 2.;
+        Translation2d quadrantPosition = isOnRight ? blueSidePosition
+            : new Translation2d(blueSidePosition.getX(), FieldConstants.fieldWidth - blueSidePosition.getY());
+
+        double lineSlope = Math.atan(slope.getRadians());
+        double yIntercept = sourceSide1.getY() - sourceSide1.getX() * lineSlope;
+        double lineY = lineSlope * quadrantPosition.getX() + yIntercept;
+
+        Logger.recordOutput("Something/ahah", new Pose2d[] {
+            new Pose2d(sourceSide1, Rotation2d.kZero), new Pose2d(sourceSide2, Rotation2d.kZero)
+        });
+        Logger.recordOutput("Something/QuadrantPose", new Pose2d(quadrantPosition, Rotation2d.kZero));
+
+        if(lineY <= quadrantPosition.getY()) return false;
+
+        return position.getX() >= 0 && position.getY() >= 0 && position.getX() <= FieldConstants.fieldLength
+            && position.getY() <= FieldConstants.fieldWidth;
     }
 
     /**
@@ -63,7 +99,7 @@ public class TrackCoral extends DriveToPose {
      * @param thetaDriverFeedforward The angular feedforward for the driver. This is used to partially override the
      *            tracking velocity based on driver input.
      */
-    public TrackCoral(Drive drive, Runnable grabbingFailed, boolean noFallback,
+    public TrackCoral(Drive drive, LEDs leds, Runnable grabbingFailed, boolean noFallback,
         Supplier<Translation2d> linearDriverFeedforward, DoubleSupplier thetaDriverFeedforward) {
         super(drive, () -> {
             RobotState robotState = RobotState.getInstance();
@@ -73,14 +109,15 @@ public class TrackCoral extends DriveToPose {
             Logger.recordOutput("TrackCoral/LookAheadPose", predictedRobot);
 
             Optional<Translation2d> trackedCoralPosition = robotState.getCoralTranslations()
-                .filter(coral -> coral.getX() >= 0 && coral.getY() >= 0 && coral.getX() <= FieldConstants.fieldLength
-                    && coral.getY() <= FieldConstants.fieldWidth)
+                .filter(TrackCoral::isInAcceptablePosition)
                 .min(Comparator.comparingDouble(coral -> coral.getDistance(predictedRobot.getTranslation())
                     + Math.abs(coral.minus(robot.getTranslation()).getAngle().plus(Rotation2d.kPi)
                         .minus(robot.getRotation()).getRadians() * angleDifferenceWeight.get())))
                 .filter(coral -> coral.getDistance(predictedRobot.getTranslation()) <= coralMaxDistance.get()
                     && Math.abs(coral.minus(robot.getTranslation()).getAngle().plus(Rotation2d.kPi)
                         .minus(robot.getRotation()).getDegrees()) <= coralMaxAngleDeg.get());
+
+            leds.setStateActive(LEDState.CoralSeen, trackedCoralPosition.isPresent());
 
             Pose2d target = trackedCoralPosition.<Pose2d>map(coralPosition -> {
                 Logger.recordOutput("TrackCoral/TargetedCoral", new Pose3d[] {
@@ -116,6 +153,7 @@ public class TrackCoral extends DriveToPose {
         }, linearDriverFeedforward, thetaDriverFeedforward);
 
         this.grabbingFailed = grabbingFailed;
+        this.leds = leds;
     }
 
     @Override
@@ -125,7 +163,15 @@ public class TrackCoral extends DriveToPose {
     }
 
     @Override
+    public void execute() {
+        thetaController.setP(2.0);
+        super.execute();
+    }
+
+    @Override
     public boolean isFinished() {
+        if(disconnectedDebounce.calculate(RobotState.getInstance().pieceVisionDisconnected)) return true;
+
         boolean timedOut = notFoundTimeout.calculate(RobotState.getInstance().getCoralTranslations().count() == 0);
         if(timedOut && grabbingFailed != null) grabbingFailed.run();
         return timedOut;
@@ -135,5 +181,6 @@ public class TrackCoral extends DriveToPose {
     public void end(boolean interrupted) {
         super.end(interrupted);
         Logger.recordOutput("TrackCoral/TargetedCoral", new Pose3d[] {});
+        leds.disableState(LEDState.CoralSeen);
     }
 }

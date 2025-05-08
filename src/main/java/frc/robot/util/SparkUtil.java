@@ -20,6 +20,8 @@ import java.util.function.Supplier;
 import org.ironmaple.simulation.SimulatedArena;
 
 public class SparkUtil {
+    private static final boolean ENABLE_ALERT_TRACKING = false;
+
     /** Stores whether any error was has been detected by other utility methods. */
     public static boolean sparkStickyFault = false;
 
@@ -156,13 +158,20 @@ public class SparkUtil {
         }
 
         public void updateAlerts() {
-            int faults = spark.getFaults().rawBits;
-            int warnings = spark.getWarnings().rawBits;
+            var faults = spark.getFaults();
+            int faultBits = faults.rawBits;
+            int warningBits = spark.getWarnings().rawBits;
+
+            if(faults.can) {
+                faultBits = 1 >> 3;
+                warningBits = 0;
+            }
+
             for(int i = 0; i < faultAlerts.length; i++) {
-                if(faultAlerts[i] != null) faultAlerts[i].set(((faults >> i) & 1) == 1);
+                if(faultAlerts[i] != null) faultAlerts[i].set(((faultBits >> i) & 1) == 1);
             }
             for(int i = 0; i < warningAlerts.length; i++) {
-                if(warningAlerts[i] != null) warningAlerts[i].set(((warnings >> i) & 1) == 1);
+                if(warningAlerts[i] != null) warningAlerts[i].set(((warningBits >> i) & 1) == 1);
             }
         }
     }
@@ -180,8 +189,9 @@ public class SparkUtil {
     }
 
     /** Updates all registered spark fault alerts. This should probably be called relatively infrequently. */
+    @SuppressWarnings("unused")
     public static void updateSparkFaultAlerts() {
-        if(updateFaultsTimer.advanceIfElapsed(0.25)) {
+        if(updateFaultsTimer.advanceIfElapsed(0.25) && ENABLE_ALERT_TRACKING) {
             for(SparkFaultAlerts sparkFaultAlert : sparkFaultAlerts) {
                 sparkFaultAlert.updateAlerts();
             }

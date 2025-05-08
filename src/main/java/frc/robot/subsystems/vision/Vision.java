@@ -14,14 +14,14 @@ import frc.robot.RobotState;
 import frc.robot.subsystems.vision.VisionIO.SingleApriltagResult;
 import frc.robot.util.LoggedTracer;
 import frc.robot.util.LoggedTunableNumber;
-
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 
 import org.littletonrobotics.junction.Logger;
 
 public class Vision extends SubsystemBase {
+    private static final boolean ENABLE_SINGLE_TAG_OBSERVATIONS = false;
+
     public static final LoggedTunableNumber perTagPersistenceTime = new LoggedTunableNumber(
         "Vision/PerTagPersistenceTime", 0.05);
 
@@ -44,7 +44,7 @@ public class Vision extends SubsystemBase {
         // Initialize disconnected alerts
         this.disconnectedAlerts = new Alert[io.length];
         for(int i = 0; i < inputs.length; i++) {
-            disconnectedAlerts[i] = new Alert("Vision camera " + Integer.toString(i) + " is disconnected.",
+            disconnectedAlerts[i] = new Alert("Vision camera " + io[i].getName() + " is disconnected.",
                 AlertType.kWarning);
         }
     }
@@ -72,8 +72,6 @@ public class Vision extends SubsystemBase {
         List<Pose3d> allIndividualTagRobotPoses = new LinkedList<>();
         List<Pose3d> allIndividualTagRobotPosesAccepted = new LinkedList<>();
         List<Pose3d> allIndividualTagRobotPosesRejected = new LinkedList<>();
-
-        HashMap<Integer, IndividualTagEstimate> currentIndividualTags = new HashMap<>();
 
         var robotState = RobotState.getInstance();
 
@@ -118,14 +116,13 @@ public class Vision extends SubsystemBase {
                         continue;
                     }
 
+                    Logger.recordOutput("Vision/Camera" + Integer.toString(cameraIndex) + "/RobotToTag" + id,
+                        robotToTag);
                     individualTagRobotPosesAccepted.add(robotPose);
 
-                    if(!currentIndividualTags.containsKey(id)
-                        || result.ambiguity() < currentIndividualTags.get(id).ambiguity()) {
-                        Logger.recordOutput("Vision/Camera" + Integer.toString(cameraIndex) + "/RobotToTag" + id,
-                            robotToTag);
-                        currentIndividualTags.put(id, new IndividualTagEstimate(robotPose.toPose2d(),
-                            result.ambiguity(), result.captureTimestamp()));
+                    if(ENABLE_SINGLE_TAG_OBSERVATIONS) {
+                        robotState.addIndividualTagObservation(robotPose.toPose2d(), result.captureTimestamp(),
+                            result.ambiguity(), id);
                     }
                 }
             }

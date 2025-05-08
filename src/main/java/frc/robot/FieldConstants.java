@@ -63,6 +63,8 @@ public class FieldConstants {
 
     public static final Translation2d reefCenter = new Translation2d(Units.inchesToMeters(176.746), fieldWidth / 2.);
 
+    private static final boolean ENABLE_BRANCH_FUDGE = false;
+
     /**
      * A reef branch, as labelled by the FMS. See
      * https://firstfrc.blob.core.windows.net/frc2025/Manual/HTML/2025GameManual_files/image016.png
@@ -127,6 +129,7 @@ public class FieldConstants {
         }
 
         public Translation2d getFudge(ReefLevel level) {
+            if(!ENABLE_BRANCH_FUDGE) return Translation2d.kZero;
             return getFudge(DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red, level);
         }
     }

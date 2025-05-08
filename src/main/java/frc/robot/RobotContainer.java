@@ -7,7 +7,6 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -54,7 +53,6 @@ import frc.robot.util.DriverStationInterface;
 import frc.robot.util.sim.SimRobotGamePiece;
 import frc.robot.util.sim.simField.CustomReefSimulation;
 
-import java.io.File;
 import org.ironmaple.simulation.SimulatedArena;
 import org.ironmaple.simulation.drivesims.SwerveDriveSimulation;
 import org.littletonrobotics.junction.Logger;
@@ -79,7 +77,6 @@ public class RobotContainer {
 
     private final Alert logReceiverQueueAlert = new Alert(
         "Logging queue exceeded capacity; data isn't being logged! This may fix itself.", AlertType.kError);
-    private final Alert noThumbDriveAlert = new Alert("No thumb drive in RoboRIO!", AlertType.kError);
     private final Alert noAutoSelectedAlert = new Alert("No auto selected!", AlertType.kWarning);
 
     /**
@@ -188,7 +185,7 @@ public class RobotContainer {
 
         // Set up auto routines
         autoChooser = new LoggedDashboardChooser<>("Auto Choices",
-            AutoBuilder.buildAutoChooser("Auto vision coral right"));
+            AutoBuilder.buildAutoChooser("Auto vision coral left"));
         DriveTuningCommands.addTuningCommandsToAutoChooser(drive, autoChooser);
         VisionTuningCommands.addTuningCommandsToAutoChooser(vision, autoChooser);
 
@@ -231,12 +228,6 @@ public class RobotContainer {
         noAutoSelectedAlert.set(DriverStation.isDisabled() && (selected == null || selected == "None"));
 
         logReceiverQueueAlert.set(Logger.getReceiverQueueFault());
-
-        if(DriverStation.isDisabled() && RobotBase.isReal()) {
-            // Check if "/U/" exists
-            var file = new File("/U/logs");
-            noThumbDriveAlert.set(!file.exists() || !file.isDirectory());
-        }
     }
 
     public void updateSimulation() {

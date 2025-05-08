@@ -9,6 +9,8 @@ import org.littletonrobotics.junction.Logger;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.trajectory.TrapezoidProfile;
+import edu.wpi.first.math.trajectory.TrapezoidProfile.State;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.DriverStation;
@@ -60,7 +62,12 @@ public class Arm extends SubsystemBase {
     private static final LoggedTunableNumber armResetTolerance = new LoggedTunableNumber(// Inches
         "Arm/Reset/Tolerance", 0.25);
     private static final LoggedTunableNumber armResetTimeout = new LoggedTunableNumber(// Seconds
-        "Arm/Reset/Timeout", 0.5);
+        "Arm/Reset/Timeout", 0.25);
+
+    private static final LoggedTunableNumber elevatorMaxAcceleration = new LoggedTunableNumber( // Meters per second per second
+        "Arm/ElevatorMaxAcceleration", 40);
+    private static final LoggedTunableNumber elevatorMaxVelocity = new LoggedTunableNumber( // Meters per second
+        "Arm/ElevatorMaxVelocity", 2.25);
 
     public static boolean resetWithAbsoluteSensorEnabled = true;
     private final Alert resetWithAbsoluteSensorOffAlert = new Alert("Elevator reset with LaserCAN turned off!",
@@ -73,9 +80,30 @@ public class Arm extends SubsystemBase {
             : ArmConstants.ShoulderConstants.armPitchKgReal);
     }
 
+    private TrapezoidProfile elevatorProfile = new TrapezoidProfile(new TrapezoidProfile.Constraints(0, 0));
+    private State lastTrapezoidTargetState = new State(0, 0);
+
     public Arm(ArmIO io) {
         this.io = io;
         this.inputs = new ArmIOInputsAutoLogged();
+    }
+
+    // HACK
+    public static WristRotation wristOverride = null;
+
+    public static Command adjustWrist(Arm arm, boolean next) {
+        return Commands.runOnce(() -> {
+            if(wristOverride == null) wristOverride = arm.getCurrentTargetState().wristRotation();
+            if(next) {
+                wristOverride = wristOverride.next();
+            } else {
+                wristOverride = wristOverride.previous();
+            }
+        });
+    }
+
+    public static void resetWristOverride() {
+        wristOverride = null;
     }
 
     public Command goToStateCommand(ArmState state, double timeoutSeconds) {
@@ -220,6 +248,12 @@ public class Arm extends SubsystemBase {
             return false;
         }
 
+        // If the elevator is far from our setpoint, don't trust ourself
+        // HACK?
+        if(Math.abs(inputs.elevatorHeightMeters - adjustedTarget.height().in(Meters)) > Units.inchesToMeters(5)) {
+            return false;
+        }
+
         // If the current target arm pitch is above the given threshold, we are safe to line up
         double highSafePitch = 20;
         if(adjustedTarget.pitch().getDegrees() > highSafePitch && lookaheadArmPosition.getDegrees() > highSafePitch) {
@@ -250,6 +284,7 @@ public class Arm extends SubsystemBase {
             targetEndEffector = EndEffectorState.velocity(-8 * degreesOff / 90.);
         }
 
+        if(wristOverride != null) targetWrist = wristOverride;
         return new ArmState(targetState.pitch(), targetState.height(), targetWrist, targetEndEffector);
     }
 
@@ -258,16 +293,27 @@ public class Arm extends SubsystemBase {
         io.updateInputs(inputs);
         Logger.processInputs("Arm", inputs);
 
+        if(elevatorMaxAcceleration.hasChanged(hashCode()) || elevatorMaxVelocity.hasChanged(hashCode())) {
+            elevatorProfile = new TrapezoidProfile(
+                new TrapezoidProfile.Constraints(elevatorMaxVelocity.get(), elevatorMaxAcceleration.get()));
+            lastTrapezoidTargetState = new State(inputs.elevatorHeightMeters, inputs.elevatorVelocityMetersPerSecond);
+        }
+
         if(targetState != null) {
             adjustedTarget = getAdjustedTarget();
 
-            io.setElevatorHeight(adjustedTarget.height().in(Meters), elevatorKg.get());
+            State goalState = new State(adjustedTarget.height().in(Meters), 0);
+            State targetState = elevatorProfile.calculate(0.02, lastTrapezoidTargetState, goalState);
+            lastTrapezoidTargetState = targetState;
+
+            io.setElevatorHeight(targetState.position, elevatorKg.get());
             io.setArmPitchPosition(adjustedTarget.pitch(),
                 Math.abs(Math.cos(inputs.armPitchPosition.getRadians())) * armPitchKg.get());
             io.setWristRotation(adjustedTarget.wristRotation());
             io.setEndEffectorState(adjustedTarget.endEffectorState());
 
             Logger.recordOutput("Arm/TargetHeight", adjustedTarget.height().in(Meters));
+            Logger.recordOutput("Arm/TargetHeightProfiled", targetState.position);
             Logger.recordOutput("Arm/TargetPitch", adjustedTarget.pitch().getRadians());
             Logger.recordOutput("Arm/TargetWrist", adjustedTarget.wristRotation().rotation.getRadians());
             Logger.recordOutput("Arm/TargetEndEffector",
@@ -276,9 +322,11 @@ public class Arm extends SubsystemBase {
             Logger.recordOutput("Arm/AtTargetWrist", atTargetWrist());
             Logger.recordOutput("Arm/AtTargetHeight", atTargetHeight());
             Logger.recordOutput("Arm/AtTarget", isAtTarget());
+        } else {
+            lastTrapezoidTargetState = new State(inputs.elevatorHeightMeters, inputs.elevatorVelocityMetersPerSecond);
         }
 
-        visualizer.update(inputs.absoluteHeightMeters, inputs.armPitchPosition, inputs.armWristPosition,
+        visualizer.update(inputs.elevatorHeightMeters, inputs.armPitchPosition, inputs.armWristPosition,
             inputs.gamePiecePresent);
 
         RobotState.getInstance().updateElevatorHeightPercent(getElevatorHeightPercent());
