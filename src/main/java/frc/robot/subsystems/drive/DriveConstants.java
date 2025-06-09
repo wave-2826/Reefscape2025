@@ -48,7 +48,7 @@ public class DriveConstants {
     public static final SwerveModuleConfiguration frontLeftModule = new SwerveModuleConfiguration("Front left", //
         41, 42, Rotation2d.fromRadians(1.219));
     public static final SwerveModuleConfiguration frontRightModule = new SwerveModuleConfiguration("Front right", //
-        11, 12, Rotation2d.fromRadians(1.407));
+        11, 12, Rotation2d.fromRadians(3.253));
     public static final SwerveModuleConfiguration backLeftModule = new SwerveModuleConfiguration("Back left", //
         21, 22, Rotation2d.fromRadians(5.973));
     public static final SwerveModuleConfiguration backRightModule = new SwerveModuleConfiguration("Back right", //

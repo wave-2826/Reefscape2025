@@ -186,6 +186,7 @@ public class Drive extends SubsystemBase {
         if(DriveConstants.USE_SETPOINT_GENERATOR && DriverStation.isTeleop()) {
             previousSetpoint = setpointGenerator.generateSetpoint(previousSetpoint, speeds, 0.02);
             setpointStates = previousSetpoint.moduleStates();
+            accelerationsMps2 = previousSetpoint.feedforwards().accelerationsMPSSq();
         } else {
             ChassisSpeeds discreteSpeeds = ChassisSpeeds.discretize(speeds, 0.02);
             setpointStates = kinematics.toSwerveModuleStates(discreteSpeeds);

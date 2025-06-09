@@ -85,7 +85,6 @@ public class Controls {
         drive.setDefaultCommand(DriveCommands.joystickDrive(drive, () -> -driver.getLeftY(), () -> -driver.getLeftX(),
             () -> -driver.getRightX()));
 
-        // Switch to X pattern when X button is pressed
         driver.x()
             .whileTrue(new TrackCoral(drive, leds, true,
                 () -> DriveCommands.getLinearVelocityFromJoysticks(-driver.getLeftY(), -driver.getLeftX())
