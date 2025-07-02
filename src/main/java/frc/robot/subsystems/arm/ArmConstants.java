@@ -23,7 +23,7 @@ public class ArmConstants {
     public static final ArmState restingState = new ArmState(Rotation2d.fromDegrees(-102), Inches.of(18.5),
         WristRotation.Horizontal, EndEffectorState.hold());
     /** The state the arm is in when getting a piece. */
-    public static final ArmState getPieceState = new ArmState(Rotation2d.fromDegrees(-102), Inches.of(11.5),
+    public static final ArmState getPieceState = new ArmState(Rotation2d.fromDegrees(-102), Inches.of(10),
         WristRotation.Horizontal, EndEffectorState.velocity(-20));
 
     /** The state when the arm is intaking from the source. */
@@ -126,7 +126,7 @@ public class ArmConstants {
         public static final int armWristMotorId = 53;
 
         /** The wrist absolute encoder zero offset, in radians. */
-        public static final double wristZeroOffset = 0.8058732;
+        public static final double wristZeroOffset = 0.9248817;
         /** The pitch absolute encoder zero offset, in radians. */
         public static final double pitchZeroOffset = 0.1950031;
 

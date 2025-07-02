@@ -32,6 +32,8 @@ public class ScoringSequenceCommands {
         "AutoScore/BranchScorePitch", 58);
     private static LoggedTunableNumber branchScorePitchDown = new LoggedTunableNumber(//
         "AutoScore/BranchScorePitchDown", 50);
+    private static LoggedTunableNumber branchScorePitchDownL2 = new LoggedTunableNumber(//
+        "AutoScore/BranchScorePitchDownL2", 25);
     private static LoggedTunableNumber L4ScorePitch = new LoggedTunableNumber(//
         "AutoScore/L4ScorePitch", 40);
     private static LoggedTunableNumber L4PitchDown = new LoggedTunableNumber(//
@@ -96,7 +98,10 @@ public class ScoringSequenceCommands {
 
         if(level == ReefLevel.L4) {
             ArmState startState = getStartingState(level);
-            ArmState scoreDownState = new ArmState(startState.pitch().minus(Rotation2d.fromDegrees(L4PitchDown.get())),
+            ArmState scoreDownState = new ArmState(
+                startState.pitch()
+                    .minus(Rotation2d.fromDegrees(
+                        level == ReefLevel.L2 ? branchScorePitchDownL2.get() : branchScorePitchDown.get())),
                 startState.height().minus(Inches.of(elevatorScoreHeightReduction.get())), startState.wristRotation(),
                 EndEffectorState.velocity(gamePieceEjectVelocity.get()));
 
