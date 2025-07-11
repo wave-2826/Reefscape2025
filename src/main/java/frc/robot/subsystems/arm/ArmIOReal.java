@@ -333,7 +333,7 @@ public class ArmIOReal implements ArmIO {
 
     @Override
     public void setWristRotation(WristRotation rotation) {
-        armWristController.setReference(MathUtil.angleModulus(rotation.rotation.getRadians()), ControlType.kPosition,
+        armWristController.setReference(MathUtil.angleModulus(-rotation.rotation.getRadians()), ControlType.kPosition,
             ArmConstants.ShoulderConstants.armWristPositionSlot);
     }
 
