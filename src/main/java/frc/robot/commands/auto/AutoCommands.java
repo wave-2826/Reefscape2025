@@ -67,25 +67,34 @@ public class AutoCommands {
         registerLoggedNamedCommand("Gamble Wait", Commands.waitSeconds(1.5));
 
         Container<Pose2d> startPosition = new Container<>(Pose2d.kZero);
+        final double MAX_VALID_GAMBLE_DISTANCE = 3.0;
         registerLoggedNamedCommand("Auto Grab Gamble Coral", Commands.sequence(//
             new ScheduleCommand(IntakeCommands.autoIntake(intake, arm)).beforeStarting(() -> {
+                RobotState.getInstance().resetCoralPositions();
                 IntakeCommands.waitingForPiece = true;
                 grabbingCoralFailed = false;
                 startPosition.value = RobotState.getInstance().getPose();
             }), //
 
             // TODO: Do not try to track if the piece vision camera is disconnected
-            new LoggedCommand("Grab Coral", new TrackCoral(drive, leds, () -> grabbingCoralFailed = true).until(() -> {
-                if(intake.intakeSensorTriggered()) return true;
-                if(startPosition.value.minus(RobotState.getInstance().getPose()).getTranslation().getNorm() > Units
-                    .feetToMeters(3.0)) {
-                    return true;
-                }
-                return false;
-            }).withTimeout(6.)), //
+            new LoggedCommand("Grab Gamble Coral",
+                new TrackCoral(drive, leds, () -> grabbingCoralFailed = true, (pos) -> {
+                    return startPosition.value.getTranslation().minus(pos).getNorm() > Units
+                        .feetToMeters(MAX_VALID_GAMBLE_DISTANCE);
+                }).until(() -> {
+                    if(intake.intakeSensorTriggered()) return true;
+                    if(startPosition.value.minus(RobotState.getInstance().getPose()).getTranslation().getNorm() > Units
+                        .feetToMeters(MAX_VALID_GAMBLE_DISTANCE)) {
+                        grabbingCoralFailed = true;
+                        return true;
+                    }
+                    return false;
+                }).withTimeout(6.)), //
 
             Commands.waitSeconds(15).onlyIf(() -> grabbingCoralFailed) //
         ));
+
+        registerLoggedNamedCommand("Wait For Gamble Coral", Commands.waitUntil(() -> !IntakeCommands.waitingForPiece));
 
         registerLoggedNamedCommand("Start intake", new ScheduleCommand(
             IntakeCommands.autoIntake(intake, arm).beforeStarting(() -> IntakeCommands.waitingForPiece = true)));

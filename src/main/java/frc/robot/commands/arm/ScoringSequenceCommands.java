@@ -35,12 +35,12 @@ public class ScoringSequenceCommands {
         new LoggedTunableNumber("AutoScore/L3ScorePitch", 58), //
         new LoggedTunableNumber("AutoScore/L4ScorePitch", 40)
     };
-    private static LoggedTunableNumber branchScorePitchDown = new LoggedTunableNumber(//
-        "AutoScore/BranchScorePitchDown", 50);
-    private static LoggedTunableNumber branchScorePitchDownL2 = new LoggedTunableNumber(//
-        "AutoScore/BranchScorePitchDownL2", 25);
-    private static LoggedTunableNumber L4PitchDown = new LoggedTunableNumber(//
-        "AutoScore/L4PitchDown", 49);
+    private static LoggedTunableNumber[] branchScorePitchDown = new LoggedTunableNumber[] {
+        null, //
+        new LoggedTunableNumber("AutoScore/BranchScorePitchDownL2", 25), //
+        new LoggedTunableNumber("AutoScore/BranchScorePitchDownL3", 35), //
+        new LoggedTunableNumber("AutoScore/BranchScorePitchDownL4", 49),
+    };
 
     private static LoggedTunableNumber L1BumpHeight = new LoggedTunableNumber(//
         "AutoScore/L1BumpHeight", 2);
@@ -95,7 +95,7 @@ public class ScoringSequenceCommands {
         if(level == ReefLevel.L4) {
             ArmState startState = getStartingState(level);
             ArmState scoreDownState = new ArmState(
-                startState.pitch().minus(Rotation2d.fromDegrees(branchScorePitchDown.get())),
+                startState.pitch().minus(Rotation2d.fromDegrees(branchScorePitchDown[level.ordinal()].get())),
                 startState.height().minus(Inches.of(elevatorScoreHeightReduction.get())), startState.wristRotation(),
                 EndEffectorState.velocity(gamePieceEjectVelocity.get()));
 
@@ -115,9 +115,7 @@ public class ScoringSequenceCommands {
 
         ArmState startState = getStartingState(level);
         ArmState scoreDownState = new ArmState(
-            startState.pitch()
-                .minus(Rotation2d
-                    .fromDegrees(level == ReefLevel.L2 ? branchScorePitchDownL2.get() : branchScorePitchDown.get())),
+            startState.pitch().minus(Rotation2d.fromDegrees(branchScorePitchDown[level.ordinal()].get())),
             startState.height().minus(Inches.of(elevatorScoreHeightReduction.get())), startState.wristRotation(),
             EndEffectorState.velocity(gamePieceEjectVelocity.get()));
 
@@ -142,7 +140,8 @@ public class ScoringSequenceCommands {
 
         if(level == ReefLevel.L4) {
             ArmState startState = getStartingState(level);
-            ArmState scoreDownState = new ArmState(startState.pitch().minus(Rotation2d.fromDegrees(L4PitchDown.get())),
+            ArmState scoreDownState = new ArmState(
+                startState.pitch().minus(Rotation2d.fromDegrees(branchScorePitchDown[3].get())),
                 startState.height().minus(Inches.of(elevatorScoreHeightReduction.get())), startState.wristRotation(),
                 EndEffectorState.velocity(1.));
 
@@ -157,7 +156,7 @@ public class ScoringSequenceCommands {
 
         ArmState startState = getStartingState(level);
         ArmState scoreDownState = new ArmState(
-            startState.pitch().minus(Rotation2d.fromDegrees(branchScorePitchDown.get())),
+            startState.pitch().minus(Rotation2d.fromDegrees(branchScorePitchDown[level.ordinal()].get())),
             startState.height().minus(Inches.of(elevatorScoreHeightReduction.get())), startState.wristRotation(),
             EndEffectorState.velocity(1.));
 
