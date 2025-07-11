@@ -6,6 +6,7 @@ import static edu.wpi.first.units.Units.Meters;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.units.measure.Distance;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
@@ -28,19 +29,19 @@ public class ScoringSequenceCommands {
         "AutoScore/ScoreHeightReduction", 4);
     private static LoggedTunableNumber gamePieceEjectVelocity = new LoggedTunableNumber(//
         "AutoScore/GamePieceEjectVelocity", 6);
-    private static LoggedTunableNumber branchScorePitch = new LoggedTunableNumber(//
-        "AutoScore/BranchScorePitch", 58);
+    private static LoggedTunableNumber[] branchScorePitches = new LoggedTunableNumber[] {
+        new LoggedTunableNumber("AutoScore/L1ScorePitch", -50), //
+        new LoggedTunableNumber("AutoScore/L2ScorePitch", 58), //
+        new LoggedTunableNumber("AutoScore/L3ScorePitch", 58), //
+        new LoggedTunableNumber("AutoScore/L4ScorePitch", 40)
+    };
     private static LoggedTunableNumber branchScorePitchDown = new LoggedTunableNumber(//
         "AutoScore/BranchScorePitchDown", 50);
     private static LoggedTunableNumber branchScorePitchDownL2 = new LoggedTunableNumber(//
         "AutoScore/BranchScorePitchDownL2", 25);
-    private static LoggedTunableNumber L4ScorePitch = new LoggedTunableNumber(//
-        "AutoScore/L4ScorePitch", 40);
     private static LoggedTunableNumber L4PitchDown = new LoggedTunableNumber(//
         "AutoScore/L4PitchDown", 49);
 
-    private static LoggedTunableNumber L1ScorePitch = new LoggedTunableNumber(//
-        "AutoScore/L1ScorePitch", -50);
     private static LoggedTunableNumber L1BumpHeight = new LoggedTunableNumber(//
         "AutoScore/L1BumpHeight", 2);
     private static LoggedTunableNumber L1EjectSpeed = new LoggedTunableNumber(//
@@ -61,13 +62,10 @@ public class ScoringSequenceCommands {
     public static ArmState getStartingState(ReefLevel level) {
         if(level == ReefLevel.L1) return getL1StartingState();
 
-        Rotation2d pitch = Rotation2d.fromDegrees(branchScorePitch.get());
+        Rotation2d pitch = Rotation2d.fromDegrees(//
+            branchScorePitches[level.ordinal()].get() + (DriverStation.isAutonomous() ? 5 : 0));
         Distance height = Inches.of(levelScoreHeights[level.ordinal()].get());
         boolean flipped = true;
-
-        if(level == ReefLevel.L4) {
-            pitch = Rotation2d.fromDegrees(L4ScorePitch.get());
-        }
 
         WristRotation rotation = flipped ? WristRotation.HorizontalFlipped : WristRotation.Horizontal;
         return new ArmState(pitch, height, rotation, EndEffectorState.hold());
@@ -213,7 +211,7 @@ public class ScoringSequenceCommands {
      */
     private static ArmState getL1StartingState() {
         return new ArmState(//
-            Rotation2d.fromDegrees(L1ScorePitch.get()), //
+            Rotation2d.fromDegrees(branchScorePitches[0].get()), //
             Inches.of(levelScoreHeights[0].get() + L1BumpHeight.get()), //
             WristRotation.HorizontalFlipped, //
             EndEffectorState.hold() //
