@@ -61,10 +61,12 @@ public class PieceVision extends SubsystemBase {
 
         disconnectedAlert.set(!inputs.connected);
 
+        var robotState = RobotState.getInstance();
+        robotState.pieceVisionDisconnected = !inputs.connected;
+
         if(inputs.locations != null) {
             var locations = inputs.locations;
 
-            var robotState = RobotState.getInstance();
             var robotPose = robotState.getPose();
             var robotPose3d = new Pose3d(robotPose.getTranslation().getX(), robotPose.getTranslation().getY(), 0.0,
                 new Rotation3d(0.0, 0.0, robotPose.getRotation().getRadians()));

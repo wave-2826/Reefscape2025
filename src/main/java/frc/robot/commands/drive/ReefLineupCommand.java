@@ -30,8 +30,8 @@ public class ReefLineupCommand extends DriveToPose {
     private static final LoggedTunableNumber[] lineupDistances = new LoggedTunableNumber[] {
         new LoggedTunableNumber("AutoScore/L1ReefLineupDistance", 33.5),
         new LoggedTunableNumber("AutoScore/L2ReefLineupDistance", 21),
-        new LoggedTunableNumber("AutoScore/L3ReefLineupDistance", 22.25),
-        new LoggedTunableNumber("AutoScore/L4ReefLineupDistance", 26)
+        new LoggedTunableNumber("AutoScore/L3ReefLineupDistance", 21),
+        new LoggedTunableNumber("AutoScore/L4ReefLineupDistance", 25.5)
     };
 
     private static final LoggedTunableNumber algaeLineupDistance = new LoggedTunableNumber(//
@@ -143,7 +143,10 @@ public class ReefLineupCommand extends DriveToPose {
             return new Pose2d(pose.getTranslation().plus(absoluteOffset.getTranslation()),
                 pose.getRotation().plus(absoluteOffset.getRotation()));
         }, () -> {
-            return RobotState.getInstance().getIndividualReefTagPose(target.branch().face, getLineupPose(target));
+            var estimate = RobotState.getInstance().getIndividualReefTagPose(target.branch().face,
+                getLineupPose(target, 0));
+            Logger.recordOutput("DriveToPose/ReefLineup/Interpolation", estimate.interpolation());
+            return estimate.pose();
         });
 
         this.leds = leds;

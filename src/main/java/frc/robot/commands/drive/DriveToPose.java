@@ -29,19 +29,19 @@ import org.littletonrobotics.junction.Logger;
 public class DriveToPose extends Command {
     // Drive and turn PID gains
     private static final LoggedTunableNumber drivekP = new LoggedTunableNumber(//
-        "DriveToPose/DrivekP", 3.5);
+        "DriveToPose/DrivekP", 2.75);
     private static final LoggedTunableNumber drivekD = new LoggedTunableNumber(//
         "DriveToPose/DrivekD", 0.0);
     private static final LoggedTunableNumber thetakP = new LoggedTunableNumber(//
-        "DriveToPose/ThetakP", 4.0);
+        "DriveToPose/ThetakP", 2.5);
     private static final LoggedTunableNumber thetakD = new LoggedTunableNumber(//
-        "DriveToPose/ThetakD", 0.5);
+        "DriveToPose/ThetakD", 0.0);
 
     // Tolerances for drive and theta
     private static final LoggedTunableNumber driveTolerance = new LoggedTunableNumber(//
-        "DriveToPose/DriveTolerance", Units.inchesToMeters(0.5));
+        "DriveToPose/DriveTolerance", 0.4);
     private static final LoggedTunableNumber thetaTolerance = new LoggedTunableNumber(//
-        "DriveToPose/ThetaTolerance", Units.degreesToRadians(1.5));
+        "DriveToPose/ThetaTolerance", 1);
 
     // Drive and turn constraints when the elevator is at the bottom
     private static final LoggedTunableNumber driveMaxVelocity = new LoggedTunableNumber(//
@@ -89,7 +89,7 @@ public class DriveToPose extends Command {
 
     private TrapezoidProfile driveProfile;
     private final PIDController driveController = new PIDController(0.0, 0.0, 0.0);
-    private final ProfiledPIDController thetaController = new ProfiledPIDController(0.0, 0.0, 0.0,
+    protected final ProfiledPIDController thetaController = new ProfiledPIDController(0.0, 0.0, 0.0,
         new TrapezoidProfile.Constraints(0.0, 0.0));
 
     private Translation2d lastSetpointTranslation = Translation2d.kZero;
@@ -193,10 +193,10 @@ public class DriveToPose extends Command {
             || thetakD.hasChanged(hashCode())) {
             driveController.setP(drivekP.get());
             driveController.setD(drivekD.get());
-            driveController.setTolerance(driveTolerance.get());
+            driveController.setTolerance(Units.inchesToMeters(driveTolerance.get()));
             thetaController.setP(thetakP.get());
             thetaController.setD(thetakD.get());
-            thetaController.setTolerance(thetaTolerance.get());
+            thetaController.setTolerance(Units.degreesToRadians(thetaTolerance.get()));
         }
 
         updateConstraints();
@@ -220,9 +220,6 @@ public class DriveToPose extends Command {
             .interpolate(linearDriverFeedforward.get().times(DriveConstants.maxSpeedMetersPerSec), linearInterp);
         thetaVelocity = MathUtil.interpolate(thetaVelocity,
             thetaDriverFeedforward.getAsDouble() * DriveConstants.maxAngularSpeedRadPerSec, thetaInterp);
-        ChassisSpeeds fieldVelocity = RobotState.getInstance().getFieldVelocity();
-        Translation2d linearFieldVelocity = new Translation2d(fieldVelocity.vxMetersPerSecond,
-            fieldVelocity.vyMetersPerSecond);
 
         // Reset profiles if there's enough driver input
         if(linearInterp >= 0.3 || thetaInterp >= 0.3) {
@@ -236,12 +233,9 @@ public class DriveToPose extends Command {
         ));
 
         // Log
-        Logger.recordOutput("DriveToPose/DistanceMeasured", absoluteTranslationError);
+        Logger.recordOutput("DriveToPose/CurrentPose", currentPose);
 
-        Logger.recordOutput("DriveToPose/VelocityMeasured",
-            -linearFieldVelocity.toVector()
-                .dot(targetPose.getTranslation().minus(currentPose.getTranslation()).toVector())
-                / absoluteTranslationError);
+        Logger.recordOutput("DriveToPose/DistanceMeasured", absoluteTranslationError);
 
         Logger.recordOutput("DriveToPose/ThetaMeasured", currentPose.getRotation().getRadians());
         Logger.recordOutput("DriveToPose/ThetaSetpoint", thetaController.getSetpoint().position);
@@ -373,7 +367,7 @@ public class DriveToPose extends Command {
 
     /** Checks if the robot pose is within the allowed drive and theta tolerances. */
     public boolean atSetpoint() {
-        return atSetpoint(endLinearTolerance.orElse(driveTolerance.get()),
-            Rotation2d.fromRadians(endThetaTolerance.orElse(thetaTolerance.get())));
+        return atSetpoint(endLinearTolerance.orElse(Units.inchesToMeters(driveTolerance.get())),
+            Rotation2d.fromRadians(endThetaTolerance.orElse(Units.degreesToRadians(thetaTolerance.get()))));
     }
 }

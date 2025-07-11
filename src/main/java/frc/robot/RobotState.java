@@ -84,6 +84,10 @@ public class RobotState {
      * The tracked positions of coral game pieces.
      */
     public ArrayList<CoralPosition> coralPositions = new ArrayList<>();
+    /**
+     * If the piece vision camera is disconnected.
+     */
+    public boolean pieceVisionDisconnected = false;
 
     @AutoLogOutput(key = "Odometry/RobotVelocity")
     private ChassisSpeeds robotVelocity = new ChassisSpeeds();
@@ -180,20 +184,23 @@ public class RobotState {
         return movement.map(m -> individualTagData.robotPose().plus(m));
     }
 
+    public static record ReefTagPoseEstimate(Pose2d pose, double interpolation) {
+    };
+
     /**
      * Get an estimated pose using individual tag data given a final pose. Used for reef lineup.
      */
-    public Pose2d getIndividualReefTagPose(ReefFace face, Pose2d finalPose) {
+    public ReefTagPoseEstimate getIndividualReefTagPose(ReefFace face, Pose2d finalPose) {
         var individualTagPose = getIndividualTagRobotPose(face.getAprilTagID());
         Pose2d currentPose = getPose();
-        if(individualTagPose.isEmpty()) return getPose();
+        if(individualTagPose.isEmpty()) return new ReefTagPoseEstimate(getPose(), 0);
 
         // Use distance from estimated pose to final pose to interpolate between the two
         final double t = MathUtil.clamp(
             (currentPose.getTranslation().getDistance(finalPose.getTranslation()) - minSingleTagBlendDistance.get())
                 / (maxSingleTagBlendDistance.get() - minSingleTagBlendDistance.get()),
             0.0, 1.0);
-        return currentPose.interpolate(individualTagPose.get(), 1.0 - t);
+        return new ReefTagPoseEstimate(currentPose.interpolate(individualTagPose.get(), 1 - t), 1 - t);
     }
 
     /**

@@ -92,20 +92,20 @@ public class AutoCommands {
                 scoringPositionsAvailable.add(new ReefTarget(ReefBranch.D, ReefLevel.L4));
                 scoringPositionsAvailable.add(new ReefTarget(ReefBranch.C, ReefLevel.L4));
                 scoringPositionsAvailable.add(new ReefTarget(ReefBranch.B, ReefLevel.L4));
-                scoringPositionsAvailable.add(new ReefTarget(ReefBranch.A, ReefLevel.L4)); // 5-piece auton!?! lol yeah right...
+                scoringPositionsAvailable.add(new ReefTarget(ReefBranch.A, ReefLevel.L4));
             } else {
                 // If on the left side of the field
                 scoringPositionsAvailable.add(new ReefTarget(ReefBranch.K, ReefLevel.L4));
                 scoringPositionsAvailable.add(new ReefTarget(ReefBranch.L, ReefLevel.L4));
                 scoringPositionsAvailable.add(new ReefTarget(ReefBranch.A, ReefLevel.L4));
-                scoringPositionsAvailable.add(new ReefTarget(ReefBranch.B, ReefLevel.L4)); // 5-piece auton!?! lol yeah right...  
+                scoringPositionsAvailable.add(new ReefTarget(ReefBranch.B, ReefLevel.L4));
             }
         }), Commands.sequence( //
             new ScheduleCommand(IntakeCommands.autoIntake(intake, arm))
                 .beforeStarting(() -> IntakeCommands.waitingForPiece = true), //
 
             // TODO: DO not try to track if the piece vision camera is disconnected
-            new LoggedCommand("Grab Coral", new TrackCoral(drive, () -> grabbingCoralFailed = true).until(() -> {
+            new LoggedCommand("Grab Coral", new TrackCoral(drive, leds, () -> grabbingCoralFailed = true).until(() -> {
                 if(intake.intakeSensorTriggered()) return true;
 
                 // If the robot is at risk of running into the wall, stop.

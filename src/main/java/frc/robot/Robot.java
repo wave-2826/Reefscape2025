@@ -179,10 +179,10 @@ public class Robot extends LoggedRobot {
         // Elastic dashboard utilities and setup
         WebServer.start(5800, Filesystem.getDeployDirectory().getPath());
 
-        RobotModeTriggers.autonomous().onTrue(Commands.runOnce(() -> {
+        RobotModeTriggers.autonomous().and(DriverStation::isFMSAttached).onTrue(Commands.runOnce(() -> {
             Elastic.selectTab("Autonomous");
         }));
-        RobotModeTriggers.teleop().onTrue(Commands.runOnce(() -> {
+        RobotModeTriggers.teleop().and(DriverStation::isFMSAttached).onTrue(Commands.runOnce(() -> {
             Elastic.selectTab("Teleoperated");
         }));
 
@@ -300,13 +300,13 @@ public class Robot extends LoggedRobot {
     @Override
     public void simulationInit() {
         SimControls.getInstance().configureControls();
-        for(var adapter : Constants.simAdapters) adapter.postInit();
+        if(Constants.isSim) for(var adapter : Constants.simAdapters) adapter.postInit();
     }
 
     /** This function is called periodically whilst in simulation. */
     @Override
     public void simulationPeriodic() {
         robotContainer.updateSimulation();
-        for(var adapter : Constants.simAdapters) adapter.tick();
+        if(Constants.isSim) for(var adapter : Constants.simAdapters) adapter.tick();
     }
 }

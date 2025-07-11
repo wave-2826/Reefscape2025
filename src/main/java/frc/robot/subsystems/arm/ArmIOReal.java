@@ -89,9 +89,9 @@ public class ArmIOReal implements ArmIO {
 
     public ArmIOReal(LaserCanInterface overrideLaserCan) {
         // Create motor contorllers 
-        elevatorHeightMotorLeader = new SparkMax(ArmConstants.ElevatorConstants.elevatorHeightMotor1Id,
+        elevatorHeightMotorLeader = new SparkMax(ArmConstants.ElevatorConstants.elevatorHeightMotorLeaderId,
             MotorType.kBrushless);
-        elevatorHeightMotorFollower = new SparkMax(ArmConstants.ElevatorConstants.elevatorHeightMotor2Id,
+        elevatorHeightMotorFollower = new SparkMax(ArmConstants.ElevatorConstants.elevatorHeightMotorFollowerId,
             MotorType.kBrushless);
 
         armPitchMotor = new SparkMax(ArmConstants.ShoulderConstants.armPitchMotorId, MotorType.kBrushless);
@@ -120,7 +120,7 @@ public class ArmIOReal implements ArmIO {
         elevatorMotorFollowerConfig.idleMode(IdleMode.kBrake)
             .smartCurrentLimit(ArmConstants.ElevatorConstants.elevatorMotorCurrentLimit)
             .voltageCompensation(Constants.voltageCompensation);
-        elevatorMotorFollowerConfig.follow(ArmConstants.ElevatorConstants.elevatorHeightMotor1Id, true);
+        elevatorMotorFollowerConfig.follow(ArmConstants.ElevatorConstants.elevatorHeightMotorLeaderId, true);
         elevatorMotorFollowerConfig.signals.apply(SparkUtil.defaultSignals).primaryEncoderPositionAlwaysOn(true)
             .primaryEncoderVelocityAlwaysOn(true).primaryEncoderPositionPeriodMs(20).primaryEncoderVelocityPeriodMs(20);
 

@@ -9,7 +9,6 @@ import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
-import frc.robot.Constants;
 import frc.robot.FieldConstants.ReefLevel;
 import frc.robot.commands.drive.DriveCommands;
 import frc.robot.subsystems.arm.Arm;
@@ -30,34 +29,22 @@ public class ScoringSequenceCommands {
     private static LoggedTunableNumber gamePieceEjectVelocity = new LoggedTunableNumber(//
         "AutoScore/GamePieceEjectVelocity", 6);
     private static LoggedTunableNumber branchScorePitch = new LoggedTunableNumber(//
-        "AutoScore/BranchScorePitch", 58.);
+        "AutoScore/BranchScorePitch", 58);
     private static LoggedTunableNumber branchScorePitchDown = new LoggedTunableNumber(//
-        "AutoScore/BranchScorePitchDown", 35);
+        "AutoScore/BranchScorePitchDown", 50);
+    private static LoggedTunableNumber branchScorePitchDownL2 = new LoggedTunableNumber(//
+        "AutoScore/BranchScorePitchDownL2", 25);
     private static LoggedTunableNumber L4ScorePitch = new LoggedTunableNumber(//
-        "AutoScore/L4ScorePitch", 45.);
+        "AutoScore/L4ScorePitch", 40);
     private static LoggedTunableNumber L4PitchDown = new LoggedTunableNumber(//
-        "AutoScore/L4PitchDown", 54);
+        "AutoScore/L4PitchDown", 49);
 
     private static LoggedTunableNumber[] levelScoreHeights = new LoggedTunableNumber[] {
         new LoggedTunableNumber("AutoScore/L1ScoreHeight", 10), //
-        new LoggedTunableNumber("AutoScore/L2ScoreHeight", 6.25), //
-        new LoggedTunableNumber("AutoScore/L3ScoreHeight", 22.25), //
-        new LoggedTunableNumber("AutoScore/L4ScoreHeight", 52)
+        new LoggedTunableNumber("AutoScore/L2ScoreHeight", 5.5), //
+        new LoggedTunableNumber("AutoScore/L3ScoreHeight", 21.5), //
+        new LoggedTunableNumber("AutoScore/L4ScoreHeight", 50.75)
     };
-
-    // HACK ..?
-    public static WristRotation wristOverride = null;
-
-    public static Command adjustWrist(Arm arm, boolean next) {
-        return Commands.runOnce(() -> {
-            if(wristOverride == null) wristOverride = arm.getCurrentTargetState().wristRotation();
-            if(next) {
-                wristOverride = wristOverride.next();
-            } else {
-                wristOverride = wristOverride.previous();
-            }
-        });
-    }
 
     /**
      * Gets the starting state for scoring at level 1.
@@ -85,7 +72,6 @@ public class ScoringSequenceCommands {
         }
 
         WristRotation rotation = flipped ? WristRotation.HorizontalFlipped : WristRotation.Horizontal;
-        if(wristOverride != null) rotation = wristOverride;
         return new ArmState(pitch, height, rotation, EndEffectorState.hold());
     }
 
@@ -112,14 +98,17 @@ public class ScoringSequenceCommands {
 
         if(level == ReefLevel.L4) {
             ArmState startState = getStartingState(level);
-            ArmState scoreDownState = new ArmState(startState.pitch().minus(Rotation2d.fromDegrees(L4PitchDown.get())),
+            ArmState scoreDownState = new ArmState(
+                startState.pitch()
+                    .minus(Rotation2d.fromDegrees(
+                        level == ReefLevel.L2 ? branchScorePitchDownL2.get() : branchScorePitchDown.get())),
                 startState.height().minus(Inches.of(elevatorScoreHeightReduction.get())), startState.wristRotation(),
                 EndEffectorState.velocity(gamePieceEjectVelocity.get()));
 
             // @formatter:off
-            return minimalBackUp ? Commands.parallel(
-                arm.goToStateCommand(scoreDownState, 0.25),
-                DriveCommands.driveStraightCommand(drive, Units.feetToMeters(-8), 0.15, () -> fieldAngle, null)
+            return minimalBackUp ? arm.goToStateCommand(scoreDownState, 0.25).deadlineFor(
+                Commands.waitSeconds(0.1)
+                    .andThen(DriveCommands.driveStraightCommand(drive, Units.feetToMeters(-8), () -> fieldAngle, null))
             ) : Commands.sequence(
                 Commands.parallel(
                     arm.goToStateCommand(scoreDownState, 0.25),
@@ -131,26 +120,18 @@ public class ScoringSequenceCommands {
         }
 
         ArmState startState = getStartingState(level);
-        ArmState scoreDownState = new ArmState(startState.pitch(),
-            startState.height().minus(Inches.of(elevatorScoreHeightReduction.get())), startState.wristRotation(),
-            Constants.isSim ? EndEffectorState.velocity(gamePieceEjectVelocity.get()) : EndEffectorState.hold());
-        ArmState scoreDownState2 = new ArmState(
+        ArmState scoreDownState = new ArmState(
             startState.pitch().minus(Rotation2d.fromDegrees(branchScorePitchDown.get())),
             startState.height().minus(Inches.of(elevatorScoreHeightReduction.get())), startState.wristRotation(),
             EndEffectorState.velocity(gamePieceEjectVelocity.get()));
 
         // @formatter:off
-        return Commands.sequence(
-            Commands.parallel(
-                Commands.sequence(
-                    Commands.waitSeconds(0.2),
-                    arm.goToStateCommand(scoreDownState)
-                ),
-                DriveCommands.driveStraightCommand(drive, Units.feetToMeters(2.5), minimalBackUp ? 0.15 : 0.7, () -> fieldAngle, null)
-            ).withTimeout(0.75),
-            Commands.parallel(
-                arm.goToStateCommand(scoreDownState2).withTimeout(0.75),
-                DriveCommands.driveStraightCommand(drive, Units.feetToMeters(minimalBackUp ? -4 : -2), minimalBackUp ? 0.3 : 1.25, () -> fieldAngle, null)
+        return Commands.parallel(
+            Commands.runOnce(Arm::resetWristOverride),
+            arm.goToStateCommand(scoreDownState).withTimeout(0.75),
+            Commands.sequence(
+                Commands.waitSeconds(0.15),
+                DriveCommands.driveStraightCommand(drive, Units.feetToMeters(minimalBackUp ? -4 : -3), minimalBackUp ? 0.3 : 1.5, () -> fieldAngle, null)
             )
         ).withName("ScoreAt" + level.name() + "Sequence");
         // @formatter:on
@@ -186,6 +167,7 @@ public class ScoringSequenceCommands {
 
         // @formatter:off
         return Commands.sequence(
+            Commands.runOnce(Arm::resetWristOverride),
             Commands.runOnce(() -> startTime.value = Timer.getTimestamp()),
             arm.setTargetStateCommand(() -> startState.lerp(scoreDownState, (Timer.getTimestamp() - startTime.value) / scoreTime)).withTimeout(scoreTime)
         ).withName("ScoreAt" + level.name() + "SlowlySequence");
