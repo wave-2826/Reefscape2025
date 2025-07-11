@@ -64,6 +64,28 @@ public class AutoCommands {
         registerLoggedNamedCommand("Auto Coral Vision Score",
             Commands.defer(() -> scoreUntilFailure(drive, arm, intake, leds), Set.of(drive, arm, intake)));
 
+        registerLoggedNamedCommand("Gamble Wait", Commands.waitSeconds(2));
+
+        Container<Pose2d> startPosition = new Container<>(Pose2d.kZero);
+        registerLoggedNamedCommand("Auto Grab Gamble Coral", Commands.sequence(//
+            new ScheduleCommand(IntakeCommands.autoIntake(intake, arm)).beforeStarting(() -> {
+                IntakeCommands.waitingForPiece = true;
+                startPosition.value = RobotState.getInstance().getPose();
+            }), //
+
+            // TODO: Do not try to track if the piece vision camera is disconnected
+            new LoggedCommand("Grab Coral", new TrackCoral(drive, leds, () -> grabbingCoralFailed = true).until(() -> {
+                if(intake.intakeSensorTriggered()) return true;
+                if(startPosition.value.minus(RobotState.getInstance().getPose()).getTranslation().getNorm() > Units
+                    .feetToMeters(3.0)) {
+                    return true;
+                }
+                return false;
+            }).withTimeout(6.)).unless(intake::pieceInTransport), //
+
+            Commands.waitSeconds(15).onlyIf(() -> grabbingCoralFailed) //
+        ));
+
         registerLoggedNamedCommand("Start intake", new ScheduleCommand(
             IntakeCommands.autoIntake(intake, arm).beforeStarting(() -> IntakeCommands.waitingForPiece = true)));
         registerLoggedNamedCommand("Intake That John", intakeThatJohn(drive, intake));

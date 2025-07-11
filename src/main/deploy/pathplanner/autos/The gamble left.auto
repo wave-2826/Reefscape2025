@@ -1,0 +1,55 @@
+{
+  "version": "2025.0",
+  "command": {
+    "type": "sequential",
+    "data": {
+      "commands": [
+        {
+          "type": "path",
+          "data": {
+            "pathName": "The gamble left.0"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Score G L4"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Gamble Wait"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "The gamble left.1"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Auto Grab Gamble Coral"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "The gamble left.2"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Score H L4"
+          }
+        }
+      ]
+    }
+  },
+  "resetOdom": true,
+  "folder": null,
+  "choreoAuto": true
+}
