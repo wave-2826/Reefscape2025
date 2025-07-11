@@ -46,7 +46,7 @@ public class DriveConstants {
 
     // TODO: Command to tune wheel offsets
     public static final SwerveModuleConfiguration frontLeftModule = new SwerveModuleConfiguration("Front left", //
-        41, 42, Rotation2d.fromRadians(1.196));
+        41, 42, Rotation2d.fromRadians(2.929));
     public static final SwerveModuleConfiguration frontRightModule = new SwerveModuleConfiguration("Front right", //
         11, 12, Rotation2d.fromRadians(3.203));
     public static final SwerveModuleConfiguration backLeftModule = new SwerveModuleConfiguration("Back left", //
