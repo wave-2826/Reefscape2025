@@ -64,12 +64,13 @@ public class AutoCommands {
         registerLoggedNamedCommand("Auto Coral Vision Score",
             Commands.defer(() -> scoreUntilFailure(drive, arm, intake, leds), Set.of(drive, arm, intake)));
 
-        registerLoggedNamedCommand("Gamble Wait", Commands.waitSeconds(2));
+        registerLoggedNamedCommand("Gamble Wait", Commands.waitSeconds(1.5));
 
         Container<Pose2d> startPosition = new Container<>(Pose2d.kZero);
         registerLoggedNamedCommand("Auto Grab Gamble Coral", Commands.sequence(//
             new ScheduleCommand(IntakeCommands.autoIntake(intake, arm)).beforeStarting(() -> {
                 IntakeCommands.waitingForPiece = true;
+                grabbingCoralFailed = false;
                 startPosition.value = RobotState.getInstance().getPose();
             }), //
 
@@ -81,7 +82,7 @@ public class AutoCommands {
                     return true;
                 }
                 return false;
-            }).withTimeout(6.)).unless(intake::pieceInTransport), //
+            }).withTimeout(6.)), //
 
             Commands.waitSeconds(15).onlyIf(() -> grabbingCoralFailed) //
         ));

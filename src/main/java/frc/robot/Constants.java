@@ -65,4 +65,6 @@ public final class Constants {
         // new TeleopAdapter(),
         new AutoMatchTimeAdapter(), new VisionAutoTestSimAdapter()
     };
+
+    public static final String simAuto = "The gamble left";
 }

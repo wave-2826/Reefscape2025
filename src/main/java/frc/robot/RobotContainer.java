@@ -185,7 +185,7 @@ public class RobotContainer {
 
         // Set up auto routines
         autoChooser = new LoggedDashboardChooser<>("Auto Choices",
-            AutoBuilder.buildAutoChooser("Auto vision coral left"));
+            AutoBuilder.buildAutoChooser(Constants.isSim ? Constants.simAuto : "Auto vision coral left"));
         DriveTuningCommands.addTuningCommandsToAutoChooser(drive, autoChooser);
         VisionTuningCommands.addTuningCommandsToAutoChooser(vision, autoChooser);
 
