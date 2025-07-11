@@ -18,6 +18,7 @@ import edu.wpi.first.math.util.Units;
 import edu.wpi.first.util.function.BooleanConsumer;
 import edu.wpi.first.wpilibj.DriverStation;
 import frc.robot.RobotState;
+import frc.robot.FieldConstants.ReefLevel;
 import frc.robot.commands.intake.IntakeCommands;
 import frc.robot.FieldConstants;
 import frc.robot.subsystems.drive.Drive;
@@ -28,7 +29,7 @@ import frc.robot.util.ReefTarget;
 
 public class ReefLineupCommand extends DriveToPose {
     private static final LoggedTunableNumber[] lineupDistances = new LoggedTunableNumber[] {
-        new LoggedTunableNumber("AutoScore/L1ReefLineupDistance", 33.5),
+        new LoggedTunableNumber("AutoScore/L1ReefLineupDistance", 21),
         new LoggedTunableNumber("AutoScore/L2ReefLineupDistance", 21),
         new LoggedTunableNumber("AutoScore/L3ReefLineupDistance", 21),
         new LoggedTunableNumber("AutoScore/L4ReefLineupDistance", 25.5)
@@ -43,6 +44,9 @@ public class ReefLineupCommand extends DriveToPose {
         "AutoScore/CenterPositionTweakRight", -0.25);
     private static final LoggedTunableNumber safeOffsetOutward = new LoggedTunableNumber(//
         "AutoScore/SafeOffsetOutward", 14.);
+
+    private static final LoggedTunableNumber L1InwardDistance = new LoggedTunableNumber(//
+        "AutoScore/L1InwardDistance", 3.);
 
     private final LEDs leds;
 
@@ -83,6 +87,11 @@ public class ReefLineupCommand extends DriveToPose {
 
         double centerDistance = FieldConstants.reefBranchSeparation.in(Meters) / 2.
             + Units.inchesToMeters(centerDistanceTweak.get());
+
+        if(target.level() == ReefLevel.L1) {
+            centerDistance -= Units.inchesToMeters(L1InwardDistance.get());
+        }
+
         boolean isLeft = target.branch().isLeft;
         double horizontalOffset = (alignCenter ? 0. : (isLeft ? -centerDistance : centerDistance));
 

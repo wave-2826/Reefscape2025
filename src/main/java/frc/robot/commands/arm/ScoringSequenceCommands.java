@@ -39,21 +39,19 @@ public class ScoringSequenceCommands {
     private static LoggedTunableNumber L4PitchDown = new LoggedTunableNumber(//
         "AutoScore/L4PitchDown", 49);
 
+    private static LoggedTunableNumber L1ScorePitch = new LoggedTunableNumber(//
+        "AutoScore/L1ScorePitch", -50);
+    private static LoggedTunableNumber L1BumpHeight = new LoggedTunableNumber(//
+        "AutoScore/L1BumpHeight", 2);
+    private static LoggedTunableNumber L1EjectSpeed = new LoggedTunableNumber(//
+        "AutoScore/L1EjectSpeed", 7);
+
     private static LoggedTunableNumber[] levelScoreHeights = new LoggedTunableNumber[] {
-        new LoggedTunableNumber("AutoScore/L1ScoreHeight", 10), //
+        new LoggedTunableNumber("AutoScore/L1ScoreHeight", 22.5), //
         new LoggedTunableNumber("AutoScore/L2ScoreHeight", 5.5), //
         new LoggedTunableNumber("AutoScore/L3ScoreHeight", 21.5), //
         new LoggedTunableNumber("AutoScore/L4ScoreHeight", 50.75)
     };
-
-    /**
-     * Gets the starting state for scoring at level 1.
-     * @return
-     */
-    private static ArmState getL1StartingState() {
-        return new ArmState(Rotation2d.fromDegrees(0), Inches.of(levelScoreHeights[0].get()), WristRotation.Vertical,
-            EndEffectorState.hold());
-    }
 
     /**
      * Gets the starting state for scoring at a given level.
@@ -94,14 +92,12 @@ public class ScoringSequenceCommands {
      */
     public static Command scoreAtLevel(ReefLevel level, Arm arm, Drive drive, Rotation2d fieldAngle,
         boolean minimalBackUp) {
-        if(level == ReefLevel.L1) return troughScoringSequence(arm);
+        if(level == ReefLevel.L1) return troughScoringSequence(drive, arm, fieldAngle);
 
         if(level == ReefLevel.L4) {
             ArmState startState = getStartingState(level);
             ArmState scoreDownState = new ArmState(
-                startState.pitch()
-                    .minus(Rotation2d.fromDegrees(
-                        level == ReefLevel.L2 ? branchScorePitchDownL2.get() : branchScorePitchDown.get())),
+                startState.pitch().minus(Rotation2d.fromDegrees(branchScorePitchDown.get())),
                 startState.height().minus(Inches.of(elevatorScoreHeightReduction.get())), startState.wristRotation(),
                 EndEffectorState.velocity(gamePieceEjectVelocity.get()));
 
@@ -121,7 +117,9 @@ public class ScoringSequenceCommands {
 
         ArmState startState = getStartingState(level);
         ArmState scoreDownState = new ArmState(
-            startState.pitch().minus(Rotation2d.fromDegrees(branchScorePitchDown.get())),
+            startState.pitch()
+                .minus(Rotation2d
+                    .fromDegrees(level == ReefLevel.L2 ? branchScorePitchDownL2.get() : branchScorePitchDown.get())),
             startState.height().minus(Inches.of(elevatorScoreHeightReduction.get())), startState.wristRotation(),
             EndEffectorState.velocity(gamePieceEjectVelocity.get()));
 
@@ -139,7 +137,7 @@ public class ScoringSequenceCommands {
 
     // HACK aaahahh
     public static Command scoreAtLevelSlowly(ReefLevel level, Arm arm) {
-        if(level == ReefLevel.L1) return troughScoringSequence(arm);
+        if(level == ReefLevel.L1) return slowTroughScoringSequence(arm);
 
         Container<Double> startTime = new Container<Double>(0.);
         double scoreTime = 2.0;
@@ -210,14 +208,48 @@ public class ScoringSequenceCommands {
     }
 
     /**
+     * Gets the starting state for scoring at level 1.
+     * @return
+     */
+    private static ArmState getL1StartingState() {
+        return new ArmState(//
+            Rotation2d.fromDegrees(L1ScorePitch.get()), //
+            Inches.of(levelScoreHeights[0].get() + L1BumpHeight.get()), //
+            WristRotation.HorizontalFlipped, //
+            EndEffectorState.hold() //
+        );
+    }
+
+    /**
      * The trough scoring sequence.
      * @param arm
      * @return
      */
-    private static Command troughScoringSequence(Arm arm) {
-        return Commands
-            .sequence(arm.goToStateCommand(new ArmState(Rotation2d.fromDegrees(0),
-                Inches.of(levelScoreHeights[0].get()), WristRotation.Vertical, EndEffectorState.velocity(8.))))
-            .withName("TroughScoringSequence");
+    private static Command troughScoringSequence(Drive drive, Arm arm, Rotation2d fieldAngle) {
+        ArmState initialState = getL1StartingState();
+        ArmState scoreState = initialState.withEndEffector(EndEffectorState.velocity(L1EjectSpeed.get()))
+            .withHeight(initialState.height().minus(Inches.of(L1BumpHeight.get())));
+
+        // @formatter:off
+        return Commands.sequence(
+            arm.goToStateCommand(initialState),
+            arm.goToStateCommand(scoreState),
+            Commands.waitSeconds(0.15),
+            DriveCommands.driveStraightCommand(drive, Units.feetToMeters(-4), 1.0, () -> fieldAngle, null)
+        ).withName("TroughScoringSequence");
+        // @formatter:on
+    }
+
+    private static Command slowTroughScoringSequence(Arm arm) {
+        ArmState initialState = getL1StartingState();
+        ArmState scoreState = initialState.withEndEffector(EndEffectorState.velocity(L1EjectSpeed.get()))
+            .withHeight(initialState.height().minus(Inches.of(L1BumpHeight.get())));
+
+        // @formatter:off
+        return Commands.sequence(
+            arm.goToStateCommand(initialState),
+            arm.goToStateCommand(scoreState)
+        ).withName("TroughScoringSequence");
+        // @formatter:on
     }
 }

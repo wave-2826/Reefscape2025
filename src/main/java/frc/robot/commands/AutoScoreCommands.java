@@ -15,6 +15,7 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.RobotState;
+import frc.robot.FieldConstants.ReefLevel;
 import frc.robot.commands.arm.ScoringSequenceCommands;
 import frc.robot.commands.drive.ReefLineupCommand;
 import frc.robot.commands.drive.ReefLineupCommand.FinishBehavior;
@@ -32,14 +33,18 @@ import frc.robot.util.ReefTarget;
 public class AutoScoreCommands {
     private static final LoggedTunableNumber autoAlignTweakAmount = new LoggedTunableNumber(//
         "AutoScore/AutoAlignTweakInches", 4.5);
+    private static final LoggedTunableNumber autoAlignTweakAmountL1 = new LoggedTunableNumber(//
+        "AutoScore/AutoAlignTweakL1Inches", 7);
 
     private static final BooleanSupplier resetElevatorDuringScoring = () -> true; // DriverStation::isTeleop;
 
     public static Command autoAlign(Drive drive, LEDs leds, ReefTarget target, DoubleSupplier tweakX,
         DoubleSupplier tweakY, Supplier<FinishBehavior> finishBehavior, BooleanConsumer lineupFeedback) {
+        double tweakAmount = Units
+            .inchesToMeters(target.level() == ReefLevel.L1 ? autoAlignTweakAmountL1.get() : autoAlignTweakAmount.get());
+
         Supplier<Transform2d> getFieldRelativeOffset = () -> new Transform2d(
-            new Translation2d(-tweakY.getAsDouble() * Units.inchesToMeters(autoAlignTweakAmount.get()),
-                -tweakX.getAsDouble() * Units.inchesToMeters(autoAlignTweakAmount.get())),
+            new Translation2d(-tweakY.getAsDouble() * tweakAmount, -tweakX.getAsDouble() * tweakAmount),
             Rotation2d.kZero);
 
         return new ReefLineupCommand(drive, leds, target, getFieldRelativeOffset, finishBehavior, lineupFeedback);
@@ -134,7 +139,9 @@ public class AutoScoreCommands {
                     .scoreAtLevel(target.level(), arm, drive, target.branch().face.getFieldAngle(), !driveBackward)
                     .deadlineFor(leds.runStateCommand(LEDState.AutoScoring)),
                 finishSequenceSlow::getAsBoolean
-            )
+            ),
+
+            Commands.waitUntil(() -> !finishSequence.get().getAsBoolean()).onlyIf(finishSequence::isPresent)
         ).withName("AutoScore" + target.toString());
         // @formatter:on
     }
