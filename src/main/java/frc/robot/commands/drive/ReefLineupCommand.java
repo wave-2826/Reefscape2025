@@ -46,7 +46,7 @@ public class ReefLineupCommand extends DriveToPose {
         "AutoScore/SafeOffsetOutward", 14.);
 
     private static final LoggedTunableNumber L1InwardDistance = new LoggedTunableNumber(//
-        "AutoScore/L1InwardDistance", 0.);
+        "AutoScore/L1InwardDistance", 1.5);
 
     private final LEDs leds;
 

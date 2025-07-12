@@ -216,7 +216,7 @@ public class ScoringSequenceCommands {
         return new ArmState(//
             Rotation2d.fromDegrees(branchScorePitches[0].get()), //
             Inches.of(levelScoreHeights[0].get() + L1BumpHeight.get()), //
-            isLeft ? WristRotation.VerticalFlipped : WristRotation.Vertical, //
+            isLeft ? WristRotation.Vertical : WristRotation.VerticalFlipped, //
             EndEffectorState.hold() //
         );
     }
