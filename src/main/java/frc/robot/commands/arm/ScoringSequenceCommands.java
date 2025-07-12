@@ -43,12 +43,12 @@ public class ScoringSequenceCommands {
     };
 
     private static LoggedTunableNumber L1BumpHeight = new LoggedTunableNumber(//
-        "AutoScore/L1BumpHeight", 2);
+        "AutoScore/L1BumpHeight", 1);
     private static LoggedTunableNumber L1EjectSpeed = new LoggedTunableNumber(//
         "AutoScore/L1EjectSpeed", 7);
 
     private static LoggedTunableNumber[] levelScoreHeights = new LoggedTunableNumber[] {
-        new LoggedTunableNumber("AutoScore/L1ScoreHeight", 23), //
+        new LoggedTunableNumber("AutoScore/L1ScoreHeight", 23.5), //
         new LoggedTunableNumber("AutoScore/L2ScoreHeight", 5.5), //
         new LoggedTunableNumber("AutoScore/L3ScoreHeight", 21.5), //
         new LoggedTunableNumber("AutoScore/L4ScoreHeight", 50.75)
