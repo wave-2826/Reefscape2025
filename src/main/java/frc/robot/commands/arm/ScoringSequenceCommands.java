@@ -229,8 +229,7 @@ public class ScoringSequenceCommands {
 
         // @formatter:off
         return Commands.sequence(
-            arm.goToStateCommand(scoreState),
-            Commands.waitSeconds(0.15),
+            arm.goToStateCommand(scoreState, 0.5),
             DriveCommands.driveStraightCommand(drive, Units.feetToMeters(-4), 1.0, () -> fieldAngle, null)
         ).withName("TroughScoringSequence");
         // @formatter:on
