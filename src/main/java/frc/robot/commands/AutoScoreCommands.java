@@ -195,7 +195,7 @@ public class AutoScoreCommands {
             Commands.runOnce(Arm::resetWristOverride), //
             Commands.runOnce(arm::resetToAbsolute),
             ScoringSequenceCommands.prepForAlgaeRemoval(target.level(), arm).withTimeout(0.5),
-            autoAlign(drive, leds, target, tweakX, tweakY,\
+            autoAlign(drive, leds, target, tweakX, tweakY,
                 () -> finishSequence.getAsBoolean() ? FinishBehavior.Finish : FinishBehavior.DoNotFinish, null), //
             ScoringSequenceCommands.removeAlgae(target.level(), arm, drive, target.branch().face.getFieldAngle())
                 .raceWith(leds.runStateCommand(LEDState.AutoScoring))//
