@@ -29,7 +29,7 @@ import frc.robot.util.ReefTarget;
 
 public class ReefLineupCommand extends DriveToPose {
     private static final LoggedTunableNumber[] lineupDistances = new LoggedTunableNumber[] {
-        new LoggedTunableNumber("AutoScore/L1ReefLineupDistance", 25),
+        new LoggedTunableNumber("AutoScore/L1ReefLineupDistance", 27),
         new LoggedTunableNumber("AutoScore/L2ReefLineupDistance", 21),
         new LoggedTunableNumber("AutoScore/L3ReefLineupDistance", 21),
         new LoggedTunableNumber("AutoScore/L4ReefLineupDistance", 25.5)
@@ -46,8 +46,7 @@ public class ReefLineupCommand extends DriveToPose {
         "AutoScore/SafeOffsetOutward", 14.);
 
     private static final LoggedTunableNumber L1InwardDistance = new LoggedTunableNumber(//
-        "AutoScore/L1InwardDistance", 1.5);
-
+        "AutoScore/L1InwardDistance", 2);
     private final LEDs leds;
 
     private final Supplier<FinishBehavior> finishSequence;
