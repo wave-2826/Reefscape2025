@@ -33,6 +33,7 @@ import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.intake.Intake;
 import frc.robot.subsystems.leds.LEDs;
 import frc.robot.util.Container;
+import frc.robot.util.Elastic;
 import frc.robot.util.ReefTarget;
 
 public class AutoCommands {
@@ -64,7 +65,12 @@ public class AutoCommands {
         registerLoggedNamedCommand("Auto Coral Vision Score",
             Commands.defer(() -> scoreUntilFailure(drive, arm, intake, leds), Set.of(drive, arm, intake)));
 
-        registerLoggedNamedCommand("Gamble Wait", Commands.waitSeconds(1.5));
+        // @formatter:off
+        registerLoggedNamedCommand("Gamble Wait", Commands.sequence(
+            Commands.waitSeconds(1.5),
+            new ScheduleCommand(arm.goToStateCommand(ArmConstants.restingState))
+        ));
+        // @formatter:on
 
         Container<Pose2d> startPosition = new Container<>(Pose2d.kZero);
         final double MAX_VALID_GAMBLE_DISTANCE = 3.0;
@@ -76,7 +82,11 @@ public class AutoCommands {
                 startPosition.value = RobotState.getInstance().getPose();
             }), //
 
-            // TODO: Do not try to track if the piece vision camera is disconnected
+            Commands.runOnce(() -> {
+                Elastic.sendNotification(new Elastic.Notification(Elastic.Notification.NotificationLevel.ERROR,
+                    "Piece vision camera disconnected!", "Autonomous routine will fail!"));
+            }).onlyIf(() -> RobotState.getInstance().pieceVisionDisconnected),
+
             new LoggedCommand("Grab Gamble Coral",
                 new TrackCoral(drive, leds, () -> grabbingCoralFailed = true, (pos) -> {
                     return startPosition.value.getTranslation().minus(pos).getNorm() > Units
@@ -91,7 +101,7 @@ public class AutoCommands {
                     return false;
                 }).withTimeout(6.)), //
 
-            Commands.waitSeconds(15).onlyIf(() -> grabbingCoralFailed) //
+            new LoggedCommand("Gamble Fail", Commands.waitSeconds(15)).onlyIf(() -> grabbingCoralFailed) //
         ));
 
         registerLoggedNamedCommand("Wait For Gamble Coral", Commands.waitUntil(() -> !IntakeCommands.waitingForPiece));
@@ -136,7 +146,11 @@ public class AutoCommands {
             new ScheduleCommand(IntakeCommands.autoIntake(intake, arm))
                 .beforeStarting(() -> IntakeCommands.waitingForPiece = true), //
 
-            // TODO: DO not try to track if the piece vision camera is disconnected
+            Commands.runOnce(() -> {
+                Elastic.sendNotification(new Elastic.Notification(Elastic.Notification.NotificationLevel.ERROR,
+                    "Piece vision camera disconnected!", "Autonomous routine will fail!"));
+            }).onlyIf(() -> RobotState.getInstance().pieceVisionDisconnected),
+
             new LoggedCommand("Grab Coral", new TrackCoral(drive, leds, () -> grabbingCoralFailed = true).until(() -> {
                 if(intake.intakeSensorTriggered()) return true;
 

@@ -34,7 +34,7 @@ public class AutoScoreCommands {
     private static final LoggedTunableNumber autoAlignTweakAmount = new LoggedTunableNumber(//
         "AutoScore/AutoAlignTweakInches", 4.5);
     private static final LoggedTunableNumber autoAlignTweakAmountL1 = new LoggedTunableNumber(//
-        "AutoScore/AutoAlignTweakL1Inches", 7);
+        "AutoScore/AutoAlignTweakL1Inches", 5);
 
     private static final BooleanSupplier resetElevatorDuringScoring = () -> true; // DriverStation::isTeleop;
 

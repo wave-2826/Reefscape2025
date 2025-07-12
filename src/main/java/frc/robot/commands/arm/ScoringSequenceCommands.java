@@ -48,7 +48,7 @@ public class ScoringSequenceCommands {
         "AutoScore/L1EjectSpeed", 7);
 
     private static LoggedTunableNumber[] levelScoreHeights = new LoggedTunableNumber[] {
-        new LoggedTunableNumber("AutoScore/L1ScoreHeight", 22.5), //
+        new LoggedTunableNumber("AutoScore/L1ScoreHeight", 23), //
         new LoggedTunableNumber("AutoScore/L2ScoreHeight", 5.5), //
         new LoggedTunableNumber("AutoScore/L3ScoreHeight", 21.5), //
         new LoggedTunableNumber("AutoScore/L4ScoreHeight", 50.75)
@@ -212,7 +212,7 @@ public class ScoringSequenceCommands {
         return new ArmState(//
             Rotation2d.fromDegrees(branchScorePitches[0].get()), //
             Inches.of(levelScoreHeights[0].get() + L1BumpHeight.get()), //
-            WristRotation.HorizontalFlipped, //
+            WristRotation.Vertical, //
             EndEffectorState.hold() //
         );
     }
