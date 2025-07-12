@@ -94,14 +94,12 @@ public class AutoCommands {
                 }).until(() -> {
                     if(intake.intakeSensorTriggered()) return true;
                     if(startPosition.value.minus(RobotState.getInstance().getPose()).getTranslation().getNorm() > Units
-                        .feetToMeters(MAX_VALID_GAMBLE_DISTANCE)) {
+                        .feetToMeters(MAX_VALID_GAMBLE_DISTANCE + 0.25)) {
                         grabbingCoralFailed = true;
                         return true;
                     }
                     return false;
-                }).withTimeout(6.)), //
-
-            new LoggedCommand("Gamble Fail", Commands.waitSeconds(15)).onlyIf(() -> grabbingCoralFailed) //
+                }).withTimeout(6.)) //
         ));
 
         registerLoggedNamedCommand("Wait For Gamble Coral", Commands.waitUntil(() -> !IntakeCommands.waitingForPiece));
