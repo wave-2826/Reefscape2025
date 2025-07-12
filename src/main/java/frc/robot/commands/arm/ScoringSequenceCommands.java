@@ -20,6 +20,7 @@ import frc.robot.subsystems.arm.ArmState.WristRotation;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.util.Container;
 import frc.robot.util.LoggedTunableNumber;
+import frc.robot.util.ReefTarget;
 
 /**
  * This is a disaster... hopefully I rarely ever have to touch this.
@@ -59,8 +60,9 @@ public class ScoringSequenceCommands {
      * @param level
      * @return
      */
-    public static ArmState getStartingState(ReefLevel level) {
-        if(level == ReefLevel.L1) return getL1StartingState();
+    public static ArmState getStartingState(ReefTarget target) {
+        ReefLevel level = target.level();
+        if(level == ReefLevel.L1) return getL1StartingState(target.branch().isLeft);
 
         Rotation2d pitch = Rotation2d.fromDegrees(//
             branchScorePitches[level.ordinal()].get() + (DriverStation.isAutonomous() ? 5 : 0));
@@ -76,8 +78,8 @@ public class ScoringSequenceCommands {
      * position as part of the scoring sequence; the arm will be lined up with the branch post.
      * @return
      */
-    public static Command middleArmMovement(ReefLevel level, Arm arm) {
-        return arm.goToStateCommand(() -> getStartingState(level)).withTimeout(0.75);
+    public static Command middleArmMovement(ReefTarget target, Arm arm) {
+        return arm.goToStateCommand(() -> getStartingState(target)).withTimeout(0.75);
     }
 
     /**
@@ -88,12 +90,13 @@ public class ScoringSequenceCommands {
      * @param drive If null, no "drive back" is performed.
      * @return
      */
-    public static Command scoreAtLevel(ReefLevel level, Arm arm, Drive drive, Rotation2d fieldAngle,
+    public static Command scoreAtLevel(ReefTarget target, Arm arm, Drive drive, Rotation2d fieldAngle,
         boolean minimalBackUp) {
-        if(level == ReefLevel.L1) return troughScoringSequence(drive, arm, fieldAngle);
+        ReefLevel level = target.level();
+        if(level == ReefLevel.L1) return troughScoringSequence(drive, arm, fieldAngle, target.branch().isLeft);
 
         if(level == ReefLevel.L4) {
-            ArmState startState = getStartingState(level);
+            ArmState startState = getStartingState(target);
             ArmState scoreDownState = new ArmState(
                 startState.pitch().minus(Rotation2d.fromDegrees(branchScorePitchDown[level.ordinal()].get())),
                 startState.height().minus(Inches.of(elevatorScoreHeightReduction.get())), startState.wristRotation(),
@@ -113,7 +116,7 @@ public class ScoringSequenceCommands {
             // @formatter:on
         }
 
-        ArmState startState = getStartingState(level);
+        ArmState startState = getStartingState(target);
         ArmState scoreDownState = new ArmState(
             startState.pitch().minus(Rotation2d.fromDegrees(branchScorePitchDown[level.ordinal()].get())),
             startState.height().minus(Inches.of(elevatorScoreHeightReduction.get())), startState.wristRotation(),
@@ -132,14 +135,15 @@ public class ScoringSequenceCommands {
     }
 
     // HACK aaahahh
-    public static Command scoreAtLevelSlowly(ReefLevel level, Arm arm) {
-        if(level == ReefLevel.L1) return slowTroughScoringSequence(arm);
+    public static Command scoreAtLevelSlowly(ReefTarget target, Arm arm) {
+        ReefLevel level = target.level();
+        if(level == ReefLevel.L1) return slowTroughScoringSequence(arm, target.branch().isLeft);
 
         Container<Double> startTime = new Container<Double>(0.);
         double scoreTime = 2.0;
 
         if(level == ReefLevel.L4) {
-            ArmState startState = getStartingState(level);
+            ArmState startState = getStartingState(target);
             ArmState scoreDownState = new ArmState(
                 startState.pitch().minus(Rotation2d.fromDegrees(branchScorePitchDown[3].get())),
                 startState.height().minus(Inches.of(elevatorScoreHeightReduction.get())), startState.wristRotation(),
@@ -154,7 +158,7 @@ public class ScoringSequenceCommands {
             // @formatter:on
         }
 
-        ArmState startState = getStartingState(level);
+        ArmState startState = getStartingState(target);
         ArmState scoreDownState = new ArmState(
             startState.pitch().minus(Rotation2d.fromDegrees(branchScorePitchDown[level.ordinal()].get())),
             startState.height().minus(Inches.of(elevatorScoreHeightReduction.get())), startState.wristRotation(),
@@ -208,11 +212,11 @@ public class ScoringSequenceCommands {
      * Gets the starting state for scoring at level 1.
      * @return
      */
-    private static ArmState getL1StartingState() {
+    private static ArmState getL1StartingState(boolean isLeft) {
         return new ArmState(//
             Rotation2d.fromDegrees(branchScorePitches[0].get()), //
             Inches.of(levelScoreHeights[0].get() + L1BumpHeight.get()), //
-            WristRotation.Vertical, //
+            isLeft ? WristRotation.VerticalFlipped : WristRotation.Vertical, //
             EndEffectorState.hold() //
         );
     }
@@ -222,8 +226,8 @@ public class ScoringSequenceCommands {
      * @param arm
      * @return
      */
-    private static Command troughScoringSequence(Drive drive, Arm arm, Rotation2d fieldAngle) {
-        ArmState initialState = getL1StartingState();
+    private static Command troughScoringSequence(Drive drive, Arm arm, Rotation2d fieldAngle, boolean isLeft) {
+        ArmState initialState = getL1StartingState(isLeft);
         ArmState scoreState = initialState.withEndEffector(EndEffectorState.velocity(L1EjectSpeed.get()))
             .withHeight(initialState.height().minus(Inches.of(L1BumpHeight.get())));
 
@@ -235,8 +239,8 @@ public class ScoringSequenceCommands {
         // @formatter:on
     }
 
-    private static Command slowTroughScoringSequence(Arm arm) {
-        ArmState initialState = getL1StartingState();
+    private static Command slowTroughScoringSequence(Arm arm, boolean isLeft) {
+        ArmState initialState = getL1StartingState(isLeft);
         ArmState scoreState = initialState.withEndEffector(EndEffectorState.velocity(L1EjectSpeed.get()))
             .withHeight(initialState.height().minus(Inches.of(L1BumpHeight.get())));
 

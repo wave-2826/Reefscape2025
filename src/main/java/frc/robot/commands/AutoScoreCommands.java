@@ -128,15 +128,15 @@ public class AutoScoreCommands {
 
                 Commands.sequence(
                     Commands.waitUntil(() -> !IntakeCommands.waitingForPiece).withTimeout(3).onlyIf(DriverStation::isAutonomous),
-                    ScoringSequenceCommands.middleArmMovement(target.level(), arm).withTimeout(3),
+                    ScoringSequenceCommands.middleArmMovement(target, arm).withTimeout(3),
                     resetArmCommand(arm)
                 )
             ),
             Commands.either(
-                ScoringSequenceCommands.scoreAtLevelSlowly(target.level(), arm)
+                ScoringSequenceCommands.scoreAtLevelSlowly(target, arm)
                     .deadlineFor(leds.runStateCommand(LEDState.AutoScoring)),
                 ScoringSequenceCommands
-                    .scoreAtLevel(target.level(), arm, drive, target.branch().face.getFieldAngle(), !driveBackward)
+                    .scoreAtLevel(target, arm, drive, target.branch().face.getFieldAngle(), !driveBackward)
                     .deadlineFor(leds.runStateCommand(LEDState.AutoScoring)),
                 finishSequenceSlow::getAsBoolean
             ),
