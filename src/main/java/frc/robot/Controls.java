@@ -180,8 +180,7 @@ public class Controls {
 
         // Go to active scoring position
         operator.a().and(normalOperator).whileTrue(arm.goToStateCommand(() -> {
-            return ScoringSequenceCommands
-                .getStartingState(DriverStationInterface.getInstance().getReefTarget().level());
+            return ScoringSequenceCommands.getStartingState(DriverStationInterface.getInstance().getReefTarget());
         }));
 
         operator.povUp().and(normalOperator).onTrue(arm.goToStateCommand(ArmConstants.sourceIntakeState))
@@ -231,7 +230,7 @@ public class Controls {
         // Go to active scoring position
         operator.a().and(operatorManual).whileTrue(Commands.runOnce(() -> {
             var scoringPosition = ScoringSequenceCommands
-                .getStartingState(DriverStationInterface.getInstance().getReefTarget().level());
+                .getStartingState(DriverStationInterface.getInstance().getReefTarget());
             height.value = scoringPosition.height().in(Meters);
             pitch.value = scoringPosition.pitch().getDegrees();
             wristRotation.value = scoringPosition.wristRotation();

@@ -41,19 +41,29 @@ public class TrackCoral extends DriveToPose {
     private final Runnable grabbingFailed;
     private final LEDs leds;
 
+    @FunctionalInterface
+    public static interface AcceptablePositionCallback {
+        public boolean test(Translation2d pos);
+    }
+
     public TrackCoral(Drive drive, LEDs leds, boolean noFallback) {
         this(drive, leds, () -> {
-        }, noFallback, () -> Translation2d.kZero, () -> 0);
+        }, noFallback, () -> Translation2d.kZero, () -> 0, null);
     }
 
     public TrackCoral(Drive drive, LEDs leds, boolean noFallback, Supplier<Translation2d> linearDriverFeedforward,
         DoubleSupplier thetaDriverFeedforward) {
         this(drive, leds, () -> {
-        }, noFallback, linearDriverFeedforward, thetaDriverFeedforward);
+        }, noFallback, linearDriverFeedforward, thetaDriverFeedforward, null);
+    }
+
+    public TrackCoral(Drive drive, LEDs leds, Runnable grabbingFailed,
+        AcceptablePositionCallback customAcceptablePosition) {
+        this(drive, leds, grabbingFailed, false, () -> Translation2d.kZero, () -> 0, customAcceptablePosition);
     }
 
     public TrackCoral(Drive drive, LEDs leds, Runnable grabbingFailed) {
-        this(drive, leds, grabbingFailed, false, () -> Translation2d.kZero, () -> 0);
+        this(drive, leds, grabbingFailed, false, () -> Translation2d.kZero, () -> 0, null);
     }
 
     private static boolean isInAcceptablePosition(Translation2d position) {
@@ -62,7 +72,13 @@ public class TrackCoral extends DriveToPose {
         Translation2d sourceSide2 = new Translation2d(1.712, 8.075);
         double moveDistance = Units.inchesToMeters(14);
         Translation2d moveBy = new Translation2d(moveDistance, 0.);
-        Rotation2d slope = sourceSide2.minus(sourceSide2).getAngle();
+        Rotation2d slope;
+        try {
+            slope = sourceSide2.minus(sourceSide2).getAngle();
+        } catch(Error e) {
+            return false;
+        }
+
         Rotation2d moveNormal = slope.plus(Rotation2d.kCW_90deg);
 
         sourceSide1 = sourceSide1.plus(moveBy.rotateBy(moveNormal));
@@ -98,9 +114,11 @@ public class TrackCoral extends DriveToPose {
      *            tracking velocity based on driver input.
      * @param thetaDriverFeedforward The angular feedforward for the driver. This is used to partially override the
      *            tracking velocity based on driver input.
+     * @param customAcceptablePosition Nullable.
      */
     public TrackCoral(Drive drive, LEDs leds, Runnable grabbingFailed, boolean noFallback,
-        Supplier<Translation2d> linearDriverFeedforward, DoubleSupplier thetaDriverFeedforward) {
+        Supplier<Translation2d> linearDriverFeedforward, DoubleSupplier thetaDriverFeedforward,
+        AcceptablePositionCallback customAcceptablePosition) {
         super(drive, () -> {
             RobotState robotState = RobotState.getInstance();
             Pose2d robot = robotState.getPose();
@@ -108,11 +126,12 @@ public class TrackCoral extends DriveToPose {
             Pose2d predictedRobot = robotState.getLookaheadPose(lookAheadSecs.get());
             Logger.recordOutput("TrackCoral/LookAheadPose", predictedRobot);
 
-            Optional<Translation2d> trackedCoralPosition = robotState.getCoralTranslations()
-                .filter(TrackCoral::isInAcceptablePosition)
-                .min(Comparator.comparingDouble(coral -> coral.getDistance(predictedRobot.getTranslation())
-                    + Math.abs(coral.minus(robot.getTranslation()).getAngle().plus(Rotation2d.kPi)
-                        .minus(robot.getRotation()).getRadians() * angleDifferenceWeight.get())))
+            Optional<Translation2d> trackedCoralPosition = robotState.getCoralTranslations().filter((pos) -> {
+                if(customAcceptablePosition != null && !customAcceptablePosition.test(pos)) return false;
+                return TrackCoral.isInAcceptablePosition(pos);
+            }).min(Comparator.comparingDouble(coral -> coral.getDistance(predictedRobot.getTranslation())
+                + Math.abs(coral.minus(robot.getTranslation()).getAngle().plus(Rotation2d.kPi)
+                    .minus(robot.getRotation()).getRadians() * angleDifferenceWeight.get())))
                 .filter(coral -> coral.getDistance(predictedRobot.getTranslation()) <= coralMaxDistance.get()
                     && Math.abs(coral.minus(robot.getTranslation()).getAngle().plus(Rotation2d.kPi)
                         .minus(robot.getRotation()).getDegrees()) <= coralMaxAngleDeg.get());

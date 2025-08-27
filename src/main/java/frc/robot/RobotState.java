@@ -305,6 +305,10 @@ public class RobotState {
         coralPositions.add(coralPosition);
     }
 
+    public void resetCoralPositions() {
+        coralPositions.clear();
+    }
+
     public void removeOldCoralPositions() {
         coralPositions = coralPositions.stream()
             .filter((x) -> Timer.getTimestamp() - x.timestamp() < PieceVision.coralPersistenceTime.get())

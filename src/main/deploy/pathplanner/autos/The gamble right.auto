@@ -13,13 +13,13 @@
         {
           "type": "path",
           "data": {
-            "pathName": "The gamble left.0"
+            "pathName": "The gamble right.0"
           }
         },
         {
           "type": "named",
           "data": {
-            "name": "Fast Score G L4"
+            "name": "Fast Score H L4"
           }
         },
         {
@@ -31,7 +31,7 @@
         {
           "type": "path",
           "data": {
-            "pathName": "The gamble left.1"
+            "pathName": "The gamble right.1"
           }
         },
         {
@@ -43,7 +43,7 @@
         {
           "type": "path",
           "data": {
-            "pathName": "The gamble left.2"
+            "pathName": "The gamble right.2"
           }
         },
         {
@@ -55,7 +55,7 @@
         {
           "type": "named",
           "data": {
-            "name": "Fast Score H L4"
+            "name": "Fast Score G L4"
           }
         }
       ]
