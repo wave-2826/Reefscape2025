@@ -124,7 +124,6 @@ public class ScoringSequenceCommands {
 
         // @formatter:off
         return Commands.parallel(
-            Commands.runOnce(Arm::resetWristOverride),
             arm.goToStateCommand(scoreDownState).withTimeout(0.75),
             Commands.sequence(
                 Commands.waitSeconds(0.15),
@@ -166,7 +165,6 @@ public class ScoringSequenceCommands {
 
         // @formatter:off
         return Commands.sequence(
-            Commands.runOnce(Arm::resetWristOverride),
             Commands.runOnce(() -> startTime.value = Timer.getTimestamp()),
             arm.setTargetStateCommand(() -> startState.lerp(scoreDownState, (Timer.getTimestamp() - startTime.value) / scoreTime)).withTimeout(scoreTime)
         ).withName("ScoreAt" + level.name() + "SlowlySequence");

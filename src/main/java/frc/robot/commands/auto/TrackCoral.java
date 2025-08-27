@@ -72,7 +72,13 @@ public class TrackCoral extends DriveToPose {
         Translation2d sourceSide2 = new Translation2d(1.712, 8.075);
         double moveDistance = Units.inchesToMeters(14);
         Translation2d moveBy = new Translation2d(moveDistance, 0.);
-        Rotation2d slope = sourceSide2.minus(sourceSide2).getAngle();
+        Rotation2d slope;
+        try {
+            slope = sourceSide2.minus(sourceSide2).getAngle();
+        } catch(Error e) {
+            return false;
+        }
+
         Rotation2d moveNormal = slope.plus(Rotation2d.kCW_90deg);
 
         sourceSide1 = sourceSide1.plus(moveBy.rotateBy(moveNormal));

@@ -193,7 +193,7 @@ public class AutoScoreCommands {
         BooleanSupplier finishSequence, DoubleSupplier tweakX, DoubleSupplier tweakY) {
         return Commands.sequence(//
             Commands.runOnce(Arm::resetWristOverride), //
-            Commands.runOnce(arm::resetToAbsolute),
+            // Commands.runOnce(arm::resetToAbsolute),
             ScoringSequenceCommands.prepForAlgaeRemoval(target.level(), arm).withTimeout(0.25),
             autoAlign(drive, leds, target, tweakX, tweakY,
                 () -> finishSequence.getAsBoolean() ? FinishBehavior.Finish : FinishBehavior.DoNotFinish, null), //
