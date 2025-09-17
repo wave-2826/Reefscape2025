@@ -27,8 +27,8 @@ import frc.robot.subsystems.leds.LEDs;
 import frc.robot.subsystems.leds.LEDs.LEDState;
 import frc.robot.util.Container;
 import frc.robot.util.DriverStationInterface;
-import frc.robot.util.LoggedTunableNumber;
 import frc.robot.util.ReefTarget;
+import frc.robot.util.tunables.LoggedTunableNumber;
 
 public class AutoScoreCommands {
     private static final LoggedTunableNumber autoAlignTweakAmount = new LoggedTunableNumber(//

@@ -1,4 +1,4 @@
-package frc.robot.util;
+package frc.robot.util.tunables;
 
 import static frc.robot.util.SparkUtil.tryUntilOk;
 
@@ -16,6 +16,7 @@ import com.revrobotics.spark.config.SparkFlexConfig;
 import com.revrobotics.spark.config.SparkMaxConfig;
 
 import frc.robot.Constants;
+import frc.robot.util.PIDConstants;
 
 /**
  * A class to manage logged, tunable, PIDF constants for Spark motor controllers. This class allows for the PIDF

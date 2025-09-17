@@ -11,9 +11,9 @@ import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.units.measure.Distance;
 import frc.robot.subsystems.arm.ArmState.WristRotation;
-import frc.robot.util.LoggedTunableSparkPID;
 import frc.robot.util.PIDConstants;
 import frc.robot.util.GearRatios.UltraPlanetaryRatio;
+import frc.robot.util.tunables.LoggedTunableSparkPID;
 
 /**
  * Constants related to the arm subsystem.

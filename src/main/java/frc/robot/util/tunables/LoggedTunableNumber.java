@@ -4,7 +4,7 @@
 // Use of this source code is governed by an MIT-style
 // license.
 
-package frc.robot.util;
+package frc.robot.util.tunables;
 
 import java.util.Arrays;
 import java.util.HashMap;

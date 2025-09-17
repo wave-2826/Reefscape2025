@@ -24,8 +24,8 @@ import frc.robot.FieldConstants;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.leds.LEDs;
 import frc.robot.subsystems.leds.LEDs.LEDState;
-import frc.robot.util.LoggedTunableNumber;
 import frc.robot.util.ReefTarget;
+import frc.robot.util.tunables.LoggedTunableNumber;
 
 public class ReefLineupCommand extends DriveToPose {
     private static final LoggedTunableNumber[] lineupDistances = new LoggedTunableNumber[] {

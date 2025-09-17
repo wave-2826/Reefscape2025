@@ -6,8 +6,8 @@ import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.units.measure.Distance;
-import frc.robot.util.LoggedTunableSparkPID;
 import frc.robot.util.PIDConstants;
+import frc.robot.util.tunables.LoggedTunableSparkPID;
 
 /**
  * Constants related to the climber subsystem.
