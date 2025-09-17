@@ -4,7 +4,8 @@ import java.util.OptionalDouble;
 
 import com.revrobotics.spark.ClosedLoopSlot;
 
-import frc.robot.util.LoggedTunableSparkPID.InternalPIDConstants;
+import frc.robot.util.tunables.LoggedTunableSparkPID;
+import frc.robot.util.tunables.LoggedTunableSparkPID.InternalPIDConstants;
 
 /** A set of PID constants with tunable numbers for each for logged tunable PIDs. */
 public class PIDConstants {

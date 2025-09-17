@@ -14,13 +14,13 @@ import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import frc.robot.subsystems.vision.VisionConstants;
 import frc.robot.util.Elastic;
 import frc.robot.util.LoggedTracer;
-import frc.robot.util.LoggedTunableSparkPID;
 import frc.robot.util.NTClientLogger;
 import frc.robot.util.Pn532;
 import frc.robot.util.RioAlerts;
 import frc.robot.util.SimControls;
 import frc.robot.util.SparkUtil;
 import frc.robot.util.ThreadPriorityDummyLogReceiver;
+import frc.robot.util.tunables.LoggedTunableSparkPID;
 
 import java.lang.reflect.Field;
 import java.util.HashMap;

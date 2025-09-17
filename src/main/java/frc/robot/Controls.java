@@ -39,7 +39,7 @@ import frc.robot.subsystems.leds.LEDs;
 import frc.robot.subsystems.vision.Vision;
 import frc.robot.util.Container;
 import frc.robot.util.DriverStationInterface;
-import frc.robot.util.LoggedTunableNumber;
+import frc.robot.util.tunables.LoggedTunableNumber;
 
 public class Controls {
     private static final double debounceTime = Constants.isSim ? 0.15 : 0;

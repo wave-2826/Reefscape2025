@@ -14,7 +14,7 @@ import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import frc.robot.subsystems.vision.VisionConstants;
-import frc.robot.util.LoggedTunableNumber;
+import frc.robot.util.tunables.LoggedTunableNumber;
 
 /**
  * Field-related constants for the 2025 game. All measurements are by default relative to the blue alliance.

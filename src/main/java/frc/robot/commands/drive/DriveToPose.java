@@ -15,7 +15,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.RobotState;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.drive.DriveConstants;
-import frc.robot.util.LoggedTunableNumber;
+import frc.robot.util.tunables.LoggedTunableNumber;
 
 import java.util.OptionalDouble;
 import java.util.function.DoubleSupplier;

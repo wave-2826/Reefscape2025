@@ -15,7 +15,7 @@ import frc.robot.FieldConstants;
 import frc.robot.RobotState;
 import frc.robot.subsystems.pieceVision.PieceVisionIO.PieceLocation;
 import frc.robot.util.LoggedTracer;
-import frc.robot.util.LoggedTunableNumber;
+import frc.robot.util.tunables.LoggedTunableNumber;
 
 /**
  * Handles autonomous tracking of game pieces. This is separated from the main vision subsystem because it doesn't need

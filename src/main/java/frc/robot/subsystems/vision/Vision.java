@@ -13,7 +13,8 @@ import frc.robot.Constants;
 import frc.robot.RobotState;
 import frc.robot.subsystems.vision.VisionIO.SingleApriltagResult;
 import frc.robot.util.LoggedTracer;
-import frc.robot.util.LoggedTunableNumber;
+import frc.robot.util.tunables.LoggedTunableNumber;
+
 import java.util.LinkedList;
 import java.util.List;
 

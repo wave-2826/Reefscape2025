@@ -38,8 +38,8 @@ import frc.robot.subsystems.vision.Vision;
 import frc.robot.subsystems.vision.VisionConstants;
 import frc.robot.subsystems.vision.Vision.IndividualTagEstimate;
 import frc.robot.util.DriverStationInterface;
-import frc.robot.util.LoggedTunableNumber;
 import frc.robot.util.poseEstimator.OdometrySwerveDrivePoseEstimator;
+import frc.robot.util.tunables.LoggedTunableNumber;
 
 /**
  * A singleton class that holds the state of the robot. This holds state that doesn't directly control mechanisms and

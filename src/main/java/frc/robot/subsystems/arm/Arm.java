@@ -24,8 +24,8 @@ import frc.robot.Controls;
 import frc.robot.RobotState;
 import frc.robot.subsystems.arm.ArmState.WristRotation;
 import frc.robot.util.LoggedTracer;
-import frc.robot.util.LoggedTunableNumber;
 import frc.robot.util.SuppliedWait;
+import frc.robot.util.tunables.LoggedTunableNumber;
 import frc.robot.commands.LoggedCommand;
 
 /**
