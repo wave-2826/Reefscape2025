@@ -126,7 +126,7 @@ public class ArmConstants {
         public static final int armWristMotorId = 53;
 
         /** The wrist absolute encoder zero offset, in radians. */
-        public static final double wristZeroOffset = 0.8995758;
+        public static final double wristZeroOffset = 0.7141741;
         /** The pitch absolute encoder zero offset, in radians. */
         public static final double pitchZeroOffset = 0.1950031;
 
